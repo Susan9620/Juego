@@ -1,114 +1,149 @@
 <!doctype html>
 <html lang="es">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <title>Mini Juegos ❤️</title>
-  <link rel="stylesheet" href="../assets/global/global.css" />
-  <style>
-    /* Estilos propios del menú (usa tus variables y utilidades globales) */
-    body {
-      background: radial-gradient(1200px 800px at 50% 20%, #1a1625 0%, #0f0f14 60%, #0a0a0d 100%);
-      color: var(--texto);
-      min-height: 100dvh;
-    }
-    header {
-      padding: 28px 18px 12px;
-      text-align: center;
-    }
-    h1 { margin: 0; font-size: 28px; letter-spacing: .3px; }
-    p.sub { margin: 8px 0 0; color: var(--atenuado); }
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <title>Mini Juegos ❤️</title>
+    <link rel="stylesheet" href="../assets/global/global.css" />
+    <style>
+        /* Estilos propios del menú (usa tus variables y utilidades globales) */
+        body {
+            background: radial-gradient(1200px 800px at 50% 20%, #1a1625 0%, #0f0f14 60%, #0a0a0d 100%);
+            color: var(--texto);
+            min-height: 100dvh;
+        }
 
-    main {
-      padding: 18px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      max-width: 1100px;
-      margin: 0 auto 40px;
-    }
-    .thumb {
-      aspect-ratio: 16 / 10;
-      border-radius: 16px;
-      background: linear-gradient(120deg, var(--acento-1), var(--acento-2));
-      border: 1px solid rgba(255, 255, 255, .12);
-    }
-    h2 { margin: 0; font-size: 18px; }
-    p.desc { margin: 0; color: var(--atenuado); }
-    .row { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-top: 8px; }
-    .tag {
-      font-size: 12px; opacity: .9;
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.18);
-      padding: 6px 10px; border-radius: 999px;
-      color: var(--texto);
-    }
-    footer {
-      text-align: center; color: var(--atenuado);
-      padding: 8px 0 24px; font-size: 12px;
-    }
-  </style>
+        header {
+            padding: 28px 18px 12px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: .3px;
+        }
+
+        p.sub {
+            margin: 8px 0 0;
+            color: var(--atenuado);
+        }
+
+        main {
+            padding: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            max-width: 1100px;
+            margin: 0 auto 40px;
+        }
+
+        .thumb {
+            aspect-ratio: 16 / 10;
+            border-radius: 16px;
+            background: linear-gradient(120deg, var(--acento-1), var(--acento-2));
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        p.desc {
+            margin: 0;
+            color: var(--atenuado);
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .tag {
+            font-size: 12px;
+            opacity: .9;
+            background: rgba(255, 255, 255, .12);
+            border: 1px solid rgba(255, 255, 255, .18);
+            padding: 6px 10px;
+            border-radius: 999px;
+            color: var(--texto);
+        }
+
+        footer {
+            text-align: center;
+            color: var(--atenuado);
+            padding: 8px 0 24px;
+            font-size: 12px;
+        }
+    </style>
 </head>
+
 <body>
-  <header>
-    <h1>Mini Juegos ❤️</h1>
-    <p class="sub">Elige un mini juego. Cada uno está en su propio HTML dentro de <code>frontend/</code>.</p>
-  </header>
+    <header>
+        <h1>Mini Juegos ❤️</h1>
+        <p class="sub">Elige un mini juego. Cada uno está en su propio HTML dentro de <code>frontend/</code>.</p>
+    </header>
 
-  <main>
-    <!-- Disparando -->
-    <article class="card">
-      <div class="thumb" aria-hidden="true"></div>
-      <h2>Disparando ❤️</h2>
-      <p class="desc">Shooter romántico/espacial.</p>
-      <div class="row">
-        <span class="tag">Acción</span>
-        <a class="btn" href="./disparando.html">Jugar</a>
-      </div>
-    </article>
+    <main>
+        <!-- Disparando -->
+        <article class="card">
+            <div class="thumb" aria-hidden="true"></div>
+            <h2>Disparando ❤️</h2>
+            <p class="desc">Shooter romántico/espacial.</p>
+            <div class="row">
+                <span class="tag">Acción</span>
+                <a class="btn" href="./disparando.html">Jugar</a>
+            </div>
+        </article>
 
-    <!-- Candy (match-3) -->
-    <article class="card">
-      <div class="thumb" aria-hidden="true"></div>
-      <h2>Candy (prototipo)</h2>
-      <p class="desc">Match-3 con caramelos.</p>
-      <div class="row">
-        <span class="tag">Puzzle</span>
-        <a class="btn" href="./candy.html">Jugar</a>
-      </div>
-    </article>
+        <!-- Candy (match-3) -->
+        <article class="card">
+            <div class="thumb" aria-hidden="true"></div>
+            <h2>Candy (prototipo)</h2>
+            <p class="desc">Match-3 con caramelos.</p>
+            <div class="row">
+                <span class="tag">Puzzle</span>
+                <a class="btn" href="./candy.html">Jugar</a>
+            </div>
+        </article>
 
-    <!-- Laberinto -->
-    <article class="card">
-      <div class="thumb" aria-hidden="true"></div>
-      <h2>Laberinto (prototipo)</h2>
-      <p class="desc">Encuentra la salida.</p>
-      <div class="row">
-        <span class="tag">Habilidad</span>
-        <a class="btn" href="./laberinto.html">Jugar</a>
-      </div>
-    </article>
+        <!-- Laberinto -->
+        <article class="card">
+            <div class="thumb" aria-hidden="true"></div>
+            <h2>Laberinto (prototipo)</h2>
+            <p class="desc">Encuentra la salida.</p>
+            <div class="row">
+                <span class="tag">Habilidad</span>
+                <a class="btn" href="./laberinto.html">Jugar</a>
+            </div>
+        </article>
 
-    <!-- Tetris -->
-    <article class="card">
-      <div class="thumb" aria-hidden="true"></div>
-      <h2>Tetris (prototipo)</h2>
-      <p class="desc">Clásico de tetrominós.</p>
-      <div class="row">
-        <span class="tag">Arcade</span>
-        <a class="btn" href="./tetris.html">Jugar</a>
-      </div>
-    </article>
+        <!-- Tetris -->
+        <article class="card">
+            <div class="thumb" aria-hidden="true"></div>
+            <h2>Tetris (prototipo)</h2>
+            <p class="desc">Clásico de tetrominós.</p>
+            <div class="row">
+                <span class="tag">Arcade</span>
+                <a class="btn" href="./tetris.html">Jugar</a>
+            </div>
+        </article>
 
-    <!--
+        <!--
       Para agregar otro mini juego:
       1) Crea, por ejemplo, ./pong.html dentro de frontend/
       2) Duplica un <article> como los de arriba y cambia título, descripción y href="./pong.html"
     -->
-  </main>
+    </main>
 
-  <footer>
-    <span>Menú de mini juegos</span>
-  </footer>
+    <footer>
+        <span>Menú de mini juegos</span>
+    </footer>
 </body>
+
 </html>
