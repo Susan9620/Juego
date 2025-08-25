@@ -505,6 +505,9 @@
         // === Backend API ===
         const API_BASE = 'https://juego-xexm.onrender.com';
 
+        var AUTH_TOKEN = localStorage.getItem('auth_token') || null;
+        var USERNAME = localStorage.getItem('username') || '';
+
         // Identidad del jugador (persistente en el navegador)
         let PLAYER_ID = localStorage.getItem('player_id');
         if (!PLAYER_ID) {
@@ -517,16 +520,24 @@
         async function enviarResultado({ score, time, level }) {
             try {
                 const headers = { 'Content-Type': 'application/json' };
-                if (AUTH_TOKEN) headers['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+                if (AUTH_TOKEN) headers.Authorization = `Bearer ${AUTH_TOKEN}`;
+
                 const res = await fetch(`${API_BASE}/api/runs`, {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify({
-                        playerId: PLAYER_ID,
-                        name: USERNAME || PLAYER_NAME,
-                        score, time, level
-                    })
+                    body: JSON.stringify({ playerId: PLAYER_ID, name: USERNAME || PLAYER_NAME, score, time, level })
                 });
+
+                if (res.status === 401) {
+                    // Token inválido: limpiar y mostrar login
+                    localStorage.removeItem('auth_token');
+                    AUTH_TOKEN = null;
+                    document.getElementById('pantallaLogin').hidden = false;
+                    document.getElementById('pantallaInicio').hidden = true;
+                    document.getElementById('msgLogin').textContent = 'Vuelve a iniciar sesión';
+                    return;
+                }
+
                 const data = await res.json();
                 if (!res.ok || !data.ok) console.warn('Respuesta no OK:', data);
             } catch (e) {
@@ -610,9 +621,6 @@
             const btnRegister = document.getElementById('btnRegister');
             const inpUser = document.getElementById('username');
             const inpPass = document.getElementById('password');
-
-            let AUTH_TOKEN = localStorage.getItem('auth_token') || null;
-            let USERNAME = localStorage.getItem('username') || '';
 
             async function loginRegister(endpoint) {
                 const username = inpUser.value.trim();
