@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Candy Crush</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: url('../assets/Fondo.png') center/cover fixed;
+            color: #fff;
+            font-family: sans-serif;
+            text-shadow: 0 0 4px #000;
+        }
+
+        #wrapper {
+            width: 600px;
+            height: 775px;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            border-radius: 8px;
+            padding-top: 20px;
+        }
+
+        #game {
+            background: rgba(255, 255, 255, 0.8);
+            width: 600px;
+            height: 600px;
+        }
+
+        #info {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrapper">
+        <h1>Candy Crush</h1>
+        <canvas id="game" width="600" height="600"></canvas>
+        <div id="info"></div>
+    </div>
+    <script>
+        const GRID = 8, SIZE = 75;
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const CANDIES = ['💋', '🧸', '🎁', '🍫', '🌹', '💍'];
+        let board = [];
+        let selected = null;
+        let score = 0;
+        let level = 1;
+        const BASE_TARGET = 100;
+        function target() { return BASE_TARGET * Math.pow(2, level - 1); }
+        function randomCandy() { return { emoji: CANDIES[Math.floor(Math.random() * CANDIES.length)], special: null, dir: null }; }
+        function init() {
+            for (let y = 0; y < GRID; y++) {
+                board[y] = [];
+                for (let x = 0; x < GRID; x++) {
+                    board[y][x] = randomCandy();
+                }
+            }
+            while (findMatches().length > 0) {
+                removeMatches();
+                dropCandies();
+                fillCandies();
+            }
+            draw();
+        }
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '32px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (let y = 0; y < GRID; y++) {
+                for (let x = 0; x < GRID; x++) {
+                    const c = board[y][x];
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.fillRect(x * SIZE, y * SIZE, SIZE, SIZE);
+                    let ch = c.emoji;
+                    if (c.special === 'stripe') ch = c.dir === 'h' ? '➡️' : '⬇️';
+                    if (c.special === 'color') ch = '💛';
+                    ctx.fillText(ch, x * SIZE + SIZE / 2, y * SIZE + SIZE / 2);
+                    if (selected && selected.x === x && selected.y === y) {
+                        ctx.strokeStyle = 'red';
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(x * SIZE + 2, y * SIZE + 2, SIZE - 4, SIZE - 4);
+                    }
+                }
+            }
+            document.getElementById('info').textContent = `Puntaje: ${score} / ${target()}  •  Nivel: ${level}/10`;
+        }
+        canvas.addEventListener('click', e => {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / SIZE);
+            const y = Math.floor((e.clientY - rect.top) / SIZE);
+            if (selected) {
+                const dx = Math.abs(selected.x - x);
+                const dy = Math.abs(selected.y - y);
+                if ((dx + dy) === 1) {
+                    swap(selected.x, selected.y, x, y);
+                    const matches = findMatches();
+                    if (matches.length > 0) {
+                        animateRemoval(matches, () => {
+                            dropCandies();
+                            fillCandies();
+                            checkLevel();
+                            draw();
+                        });
+                    } else {
+                        swap(selected.x, selected.y, x, y);
+                        draw();
+                    }
+                    selected = null;
+                } else {
+                    selected = { x, y };
+                    draw();
+                }
+            } else {
+                selected = { x, y };
+                draw();
+            }
+        });
+        function swap(x1, y1, x2, y2) {
+            const tmp = board[y1][x1];
+            board[y1][x1] = board[y2][x2];
+            board[y2][x2] = tmp;
+        }
+        function findMatches() {
+            const matches = [];
+            for (let y = 0; y < GRID; y++) {
+                let run = 1;
+                for (let x = 1; x < GRID; x++) {
+                    if (board[y][x].emoji === board[y][x - 1].emoji) run++; else { if (run >= 3) matches.push({ x: x - run, y, width: run, height: 1, orientation: 'h' }); run = 1; }
+                }
+                if (run >= 3) matches.push({ x: GRID - run, y, width: run, height: 1, orientation: 'h' });
+            }
+            for (let x = 0; x < GRID; x++) {
+                let run = 1;
+                for (let y = 1; y < GRID; y++) {
+                    if (board[y][x].emoji === board[y - 1][x].emoji) run++; else { if (run >= 3) matches.push({ x, y: y - run, width: 1, height: run, orientation: 'v' }); run = 1; }
+                }
+                if (run >= 3) matches.push({ x, y: GRID - run, width: 1, height: run, orientation: 'v' });
+            }
+            return matches;
+        }
+        function removeMatches(groups) {
+            if (!groups) groups = findMatches();
+            const toClear = [];
+            for (const g of groups) {
+                const cells = [];
+                for (let dx = 0; dx < g.width; dx++) for (let dy = 0; dy < g.height; dy++) cells.push({ x: g.x + dx, y: g.y + dy });
+                if ((g.width === 4 && g.height === 1) || (g.width === 1 && g.height === 4)) {
+                    const t = cells.pop();
+                    const base = board[t.y][t.x];
+                    board[t.y][t.x] = { emoji: base.emoji, special: 'stripe', dir: g.orientation };
+                    toClear.push(...cells);
+                } else if ((g.width >= 5 && g.height === 1) || (g.width === 1 && g.height >= 5)) {
+                    const t = cells.pop();
+                    board[t.y][t.x] = { emoji: '💛', special: 'color', dir: null };
+                    toClear.push(...cells);
+                } else {
+                    toClear.push(...cells);
+                }
+            }
+            for (const c of toClear) {
+                activateSpecial(c.x, c.y);
+                if (board[c.y][c.x]) { board[c.y][c.x] = null; score += 10; }
+            }
+        }
+        function activateSpecial(x, y) {
+            const cell = board[y] && board[y][x];
+            if (!cell || !cell.special) return;
+            if (cell.special === 'stripe') {
+                if (cell.dir === 'h') {
+                    for (let cx = 0; cx < GRID; cx++) {
+                        if (board[y][cx]) { activateSpecial(cx, y); board[y][cx] = null; score += 10; }
+                    }
+                } else {
+                    for (let cy = 0; cy < GRID; cy++) {
+                        if (board[cy][x]) { activateSpecial(x, cy); board[cy][x] = null; score += 10; }
+                    }
+                }
+            } else if (cell.special === 'color') {
+                for (let yy = 0; yy < GRID; yy++) {
+                    for (let xx = 0; xx < GRID; xx++) {
+                        if (board[yy][xx]) {
+                            activateSpecial(xx, yy);
+                            board[yy][xx] = null;
+                            score += 10;
+                        }
+                    }
+                }
+            }
+            board[y][x] = null;
+        }
+        function dropCandies() {
+            for (let x = 0; x < GRID; x++) {
+                let column = [];
+                for (let y = 0; y < GRID; y++) if (board[y][x] != null) column.push(board[y][x]);
+                while (column.length < GRID) column.unshift(null);
+                for (let y = 0; y < GRID; y++) board[y][x] = column[y];
+            }
+        }
+        function fillCandies() {
+            for (let y = 0; y < GRID; y++) {
+                for (let x = 0; x < GRID; x++) {
+                    if (board[y][x] == null) board[y][x] = randomCandy();
+                }
+            }
+            const matches = findMatches();
+            if (matches.length > 0) {
+                removeMatches(matches);
+                dropCandies();
+                fillCandies();
+            }
+        }
+        function checkLevel() {
+            if (score >= target()) {
+                if (level < 10) {
+                    level++;
+                    alert('Nivel ' + level);
+                } else {
+                    alert('\u00A1Ganaste!');
+                }
+            }
+        }
+        function animateRemoval(matches, cb) {
+            removeMatches(matches);
+            draw();
+            setTimeout(cb, 200);
+        }
+        init();
+    </script>
+</body>
+
+</html>
