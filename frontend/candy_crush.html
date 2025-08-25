@@ -16,65 +16,53 @@
             align-items: center;
             justify-content: center;
             background: url('../assets/Fondo.png') center/cover fixed;
+            font-family: system-ui, sans-serif;
             color: #fff;
-            font-family: sans-serif;
-            text-shadow: 0 0 4px #000;
         }
 
         #wrapper {
             width: 600px;
             height: 775px;
             background: rgba(0, 0, 0, 0.6);
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .45), 0 2px 12px rgba(0, 0, 0, .6) inset;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            border-radius: 8px;
             padding-top: 20px;
         }
 
         #game {
             background: rgba(255, 255, 255, 0.8);
-            width: 600px;
-            height: 600px;
+            border-radius: 8px;
         }
 
         #info {
             margin-top: 10px;
+            font-weight: 700;
         }
     </style>
 </head>
 
 <body>
     <div id="wrapper">
-        <h1>Candy Crush</h1>
         <canvas id="game" width="600" height="600"></canvas>
         <div id="info"></div>
     </div>
     <script>
-        const GRID = 8, SIZE = 75;
+        const ROWS = 8, COLS = 8, SIZE = 75;
+        const CANDIES = ['❤️', '🌹', '💌', '🍫', '💘', '💍'];
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
-        const CANDIES = ['💋', '🧸', '🎁', '🍫', '🌹', '💍'];
-        let board = [];
-        let selected = null;
-        let score = 0;
-        let level = 1;
-        const BASE_TARGET = 100;
-        function target() { return BASE_TARGET * Math.pow(2, level - 1); }
-        function randomCandy() { return { emoji: CANDIES[Math.floor(Math.random() * CANDIES.length)], special: null, dir: null }; }
+        let board = [], selected = null, score = 0, level = 1;
+        const BASE = 100;
+
+        function randCandy() { return CANDIES[Math.floor(Math.random() * CANDIES.length)]; }
+
         function init() {
-            for (let y = 0; y < GRID; y++) {
-                board[y] = [];
-                for (let x = 0; x < GRID; x++) {
-                    board[y][x] = randomCandy();
-                }
-            }
-            while (findMatches().length > 0) {
-                removeMatches();
-                dropCandies();
-                fillCandies();
-            }
+            board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+            for (let y = 0; y < ROWS; y++)for (let x = 0; x < COLS; x++) board[y][x] = randCandy();
+            while (clearMatches() > 0) { collapse(); fill(); }
             draw();
         }
         function draw() {
@@ -82,164 +70,104 @@
             ctx.font = '32px serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            for (let y = 0; y < GRID; y++) {
-                for (let x = 0; x < GRID; x++) {
-                    const c = board[y][x];
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
                     ctx.fillRect(x * SIZE, y * SIZE, SIZE, SIZE);
-                    let ch = c.emoji;
-                    if (c.special === 'stripe') ch = c.dir === 'h' ? '➡️' : '⬇️';
-                    if (c.special === 'color') ch = '💛';
-                    ctx.fillText(ch, x * SIZE + SIZE / 2, y * SIZE + SIZE / 2);
-                    if (selected && selected.x === x && selected.y === y) {
-                        ctx.strokeStyle = 'red';
-                        ctx.lineWidth = 3;
-                        ctx.strokeRect(x * SIZE + 2, y * SIZE + 2, SIZE - 4, SIZE - 4);
-                    }
+                    ctx.fillText(board[y][x], x * SIZE + SIZE / 2, y * SIZE + SIZE / 2);
                 }
+            }
+            if (selected) {
+                ctx.strokeStyle = '#f00';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(selected.x * SIZE + 2, selected.y * SIZE + 2, SIZE - 4, SIZE - 4);
             }
             document.getElementById('info').textContent = `Puntaje: ${score} / ${target()}  •  Nivel: ${level}/10`;
         }
-        canvas.addEventListener('click', e => {
+        function target() { return BASE * Math.pow(2, level - 1); }
+
+        function getTile(e) {
             const rect = canvas.getBoundingClientRect();
             const x = Math.floor((e.clientX - rect.left) / SIZE);
             const y = Math.floor((e.clientY - rect.top) / SIZE);
-            if (selected) {
-                const dx = Math.abs(selected.x - x);
-                const dy = Math.abs(selected.y - y);
-                if ((dx + dy) === 1) {
-                    swap(selected.x, selected.y, x, y);
-                    const matches = findMatches();
-                    if (matches.length > 0) {
-                        animateRemoval(matches, () => {
-                            dropCandies();
-                            fillCandies();
-                            checkLevel();
-                            draw();
-                        });
-                    } else {
-                        swap(selected.x, selected.y, x, y);
-                        draw();
-                    }
-                    selected = null;
-                } else {
-                    selected = { x, y };
-                    draw();
-                }
-            } else {
-                selected = { x, y };
-                draw();
-            }
+            return { x, y };
+        }
+
+        let dragging = false, start = null;
+        canvas.addEventListener('mousedown', e => {
+            start = getTile(e);
+            selected = start;
+            dragging = true;
+            draw();
         });
-        function swap(x1, y1, x2, y2) {
-            const tmp = board[y1][x1];
-            board[y1][x1] = board[y2][x2];
-            board[y2][x2] = tmp;
-        }
-        function findMatches() {
-            const matches = [];
-            for (let y = 0; y < GRID; y++) {
-                let run = 1;
-                for (let x = 1; x < GRID; x++) {
-                    if (board[y][x].emoji === board[y][x - 1].emoji) run++; else { if (run >= 3) matches.push({ x: x - run, y, width: run, height: 1, orientation: 'h' }); run = 1; }
-                }
-                if (run >= 3) matches.push({ x: GRID - run, y, width: run, height: 1, orientation: 'h' });
-            }
-            for (let x = 0; x < GRID; x++) {
-                let run = 1;
-                for (let y = 1; y < GRID; y++) {
-                    if (board[y][x].emoji === board[y - 1][x].emoji) run++; else { if (run >= 3) matches.push({ x, y: y - run, width: 1, height: run, orientation: 'v' }); run = 1; }
-                }
-                if (run >= 3) matches.push({ x, y: GRID - run, width: 1, height: run, orientation: 'v' });
-            }
-            return matches;
-        }
-        function removeMatches(groups) {
-            if (!groups) groups = findMatches();
-            const toClear = [];
-            for (const g of groups) {
-                const cells = [];
-                for (let dx = 0; dx < g.width; dx++) for (let dy = 0; dy < g.height; dy++) cells.push({ x: g.x + dx, y: g.y + dy });
-                if ((g.width === 4 && g.height === 1) || (g.width === 1 && g.height === 4)) {
-                    const t = cells.pop();
-                    const base = board[t.y][t.x];
-                    board[t.y][t.x] = { emoji: base.emoji, special: 'stripe', dir: g.orientation };
-                    toClear.push(...cells);
-                } else if ((g.width >= 5 && g.height === 1) || (g.width === 1 && g.height >= 5)) {
-                    const t = cells.pop();
-                    board[t.y][t.x] = { emoji: '💛', special: 'color', dir: null };
-                    toClear.push(...cells);
+        canvas.addEventListener('mouseup', e => {
+            if (!dragging) return;
+            const end = getTile(e);
+            dragging = false;
+            if (start && (Math.abs(start.x - end.x) + Math.abs(start.y - end.y) === 1)) {
+                swap(start, end);
+                const removed = clearMatches();
+                if (removed > 0) {
+                    collapse();
+                    fill();
+                    score += removed * 10;
+                    checkLevel();
                 } else {
-                    toClear.push(...cells);
+                    swap(start, end);
                 }
             }
-            for (const c of toClear) {
-                activateSpecial(c.x, c.y);
-                if (board[c.y][c.x]) { board[c.y][c.x] = null; score += 10; }
-            }
+            selected = null;
+            draw();
+        });
+
+        function swap(a, b) {
+            const tmp = board[a.y][a.x];
+            board[a.y][a.x] = board[b.y][b.x];
+            board[b.y][b.x] = tmp;
         }
-        function activateSpecial(x, y) {
-            const cell = board[y] && board[y][x];
-            if (!cell || !cell.special) return;
-            if (cell.special === 'stripe') {
-                if (cell.dir === 'h') {
-                    for (let cx = 0; cx < GRID; cx++) {
-                        if (board[y][cx]) { activateSpecial(cx, y); board[y][cx] = null; score += 10; }
-                    }
-                } else {
-                    for (let cy = 0; cy < GRID; cy++) {
-                        if (board[cy][x]) { activateSpecial(x, cy); board[cy][x] = null; score += 10; }
-                    }
+
+        function clearMatches() {
+            let remove = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+            let count = 0;
+            for (let y = 0; y < ROWS; y++) {
+                let run = 1;
+                for (let x = 1; x < COLS; x++) {
+                    if (board[y][x] === board[y][x - 1]) run++; else { if (run >= 3) for (let k = 0; k < run; k++) remove[y][x - 1 - k] = true; run = 1; }
                 }
-            } else if (cell.special === 'color') {
-                for (let yy = 0; yy < GRID; yy++) {
-                    for (let xx = 0; xx < GRID; xx++) {
-                        if (board[yy][xx]) {
-                            activateSpecial(xx, yy);
-                            board[yy][xx] = null;
-                            score += 10;
-                        }
-                    }
+                if (run >= 3) for (let k = 0; k < run; k++) remove[y][COLS - 1 - k] = true;
+            }
+            for (let x = 0; x < COLS; x++) {
+                let run = 1;
+                for (let y = 1; y < ROWS; y++) {
+                    if (board[y][x] === board[y - 1][x]) run++; else { if (run >= 3) for (let k = 0; k < run; k++) remove[y - 1 - k][x] = true; run = 1; }
                 }
+                if (run >= 3) for (let k = 0; k < run; k++) remove[ROWS - 1 - k][x] = true;
             }
-            board[y][x] = null;
+            for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (remove[y][x]) { board[y][x] = null; count++; }
+            return count;
         }
-        function dropCandies() {
-            for (let x = 0; x < GRID; x++) {
-                let column = [];
-                for (let y = 0; y < GRID; y++) if (board[y][x] != null) column.push(board[y][x]);
-                while (column.length < GRID) column.unshift(null);
-                for (let y = 0; y < GRID; y++) board[y][x] = column[y];
-            }
-        }
-        function fillCandies() {
-            for (let y = 0; y < GRID; y++) {
-                for (let x = 0; x < GRID; x++) {
-                    if (board[y][x] == null) board[y][x] = randomCandy();
-                }
-            }
-            const matches = findMatches();
-            if (matches.length > 0) {
-                removeMatches(matches);
-                dropCandies();
-                fillCandies();
+
+        function collapse() {
+            for (let x = 0; x < COLS; x++) {
+                let col = board.map(row => row[x]).filter(v => v != null);
+                while (col.length < ROWS) col.unshift(null);
+                for (let y = 0; y < ROWS; y++) board[y][x] = col[y];
             }
         }
+
+        function fill() {
+            for (let y = 0; y < ROWS; y++)for (let x = 0; x < COLS; x++) if (board[y][x] == null) board[y][x] = randCandy();
+            const cleared = clearMatches();
+            if (cleared > 0) { collapse(); fill(); score += cleared * 10; checkLevel(); }
+        }
+
         function checkLevel() {
             if (score >= target()) {
-                if (level < 10) {
-                    level++;
-                    alert('Nivel ' + level);
-                } else {
-                    alert('\u00A1Ganaste!');
-                }
+                if (level < 10) { level++; alert('Nivel ' + level); }
+                else alert('¡Ganaste!');
             }
         }
-        function animateRemoval(matches, cb) {
-            removeMatches(matches);
-            draw();
-            setTimeout(cb, 200);
-        }
+
         init();
     </script>
 </body>
