@@ -13,6 +13,7 @@ app.use(express.json());
 
 const { MONGODB_URI, PORT = 3000 } = process.env;
 
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
 
@@ -105,12 +106,12 @@ app.post('/api/register', async (req, res) => {
         if (existe) return res.status(400).json({ error: 'Usuario ya existe' });
 
         const hash = await bcrypt.hash(password, 10);
-        const user = await User.create({ username, passwordHash: hash });
+        await User.create({ username, passwordHash: hash });
 
         res.json({ ok: true, msg: 'Usuario registrado' });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error de servidor' });
+        console.error('REGISTER ERROR:', err); // <-- verás el error en logs de Render
+        res.status(500).json({ error: 'Error de servidor en /api/register' });
     }
 });
 
