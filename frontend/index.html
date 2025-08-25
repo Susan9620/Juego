@@ -97,6 +97,63 @@
             border: none
         }
 
+        /* Pantalla de Login */
+        #pantallaLogin {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(0, 0, 0, .85);
+            z-index: 40;
+        }
+
+        #pantallaLogin[hidden] {
+            display: none;
+        }
+
+        .form-login {
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, .12);
+            padding: 24px 22px;
+            border-radius: 16px;
+            width: min(90vw, 380px);
+            text-align: center;
+        }
+
+        .form-login h1 {
+            margin: 0 0 10px 0;
+            color: #ff7aa2;
+            font-size: 26px;
+        }
+
+        .form-login .fila {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .form-login input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .15);
+            background: rgba(0, 0, 0, .35);
+            color: #fff;
+            outline: none;
+        }
+
+        .form-login .cta {
+            margin-top: 12px;
+        }
+
+        #msgLogin {
+            color: #ffe3ea;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+
         /* Controles táctiles */
         .controles {
             position: fixed;
@@ -392,17 +449,17 @@
     <!-- Indicador de Pausa -->
     <div id="pausado" hidden>⏸ Pausa</div>
 
-    <!-- Pantalla de login/registro -->
+    <!-- Pantalla de Login / Registro -->
     <div id="pantallaLogin">
-        <div class="panel-inicio">
+        <div class="form-login">
             <h1>Disparando ❤️</h1>
-            <input id="username" type="text" placeholder="Usuario" style="margin:8px; padding:6px;">
-            <input id="password" type="password" placeholder="Contraseña" style="margin:8px; padding:6px;">
-            <div style="margin-top:10px;">
+            <input id="username" type="text" placeholder="Usuario" autocomplete="username">
+            <input id="password" type="password" placeholder="Contraseña" autocomplete="current-password">
+            <div class="fila">
                 <button id="btnLogin" class="cta">Iniciar sesión</button>
                 <button id="btnRegister" class="cta">Registrarse</button>
             </div>
-            <p id="msgLogin" style="color:#ffe3ea; margin-top:10px;"></p>
+            <p id="msgLogin"></p>
         </div>
     </div>
 
@@ -448,54 +505,6 @@
         // === Backend API ===
         const API_BASE = 'https://juego-xexm.onrender.com';
 
-        let AUTH_TOKEN = localStorage.getItem('auth_token');
-        let USERNAME = localStorage.getItem('username');
-
-        const pantallaLogin = document.getElementById('pantallaLogin');
-        const msgLogin = document.getElementById('msgLogin');
-        const btnLogin = document.getElementById('btnLogin');
-        const btnRegister = document.getElementById('btnRegister');
-
-        async function loginRegister(endpoint) {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            if (!username || !password) {
-                msgLogin.textContent = "Completa usuario y contraseña";
-                return;
-            }
-            try {
-                const res = await fetch(`${API_BASE}/api/${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || "Error");
-
-                if (endpoint === 'login') {
-                    AUTH_TOKEN = data.token;
-                    USERNAME = data.username;
-                    localStorage.setItem('auth_token', AUTH_TOKEN);
-                    localStorage.setItem('username', USERNAME);
-                    pantallaLogin.hidden = true;
-                    pantallaInicio.hidden = false;
-                } else {
-                    msgLogin.textContent = "✅ Registrado, ahora inicia sesión";
-                }
-            } catch (e) {
-                msgLogin.textContent = "❌ " + e.message;
-            }
-        }
-
-        btnLogin.onclick = () => loginRegister('login');
-        btnRegister.onclick = () => loginRegister('register');
-
-        // Si ya tenía token
-        if (AUTH_TOKEN) {
-            pantallaLogin.hidden = true;
-            pantallaInicio.hidden = false;
-        }
-
         // Identidad del jugador (persistente en el navegador)
         let PLAYER_ID = localStorage.getItem('player_id');
         if (!PLAYER_ID) {
@@ -507,22 +516,19 @@
 
         async function enviarResultado({ score, time, level }) {
             try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (AUTH_TOKEN) headers['Authorization'] = `Bearer ${AUTH_TOKEN}`;
                 const res = await fetch(`${API_BASE}/api/runs`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${AUTH_TOKEN}`
-                    },
+                    headers,
                     body: JSON.stringify({
                         playerId: PLAYER_ID,
-                        name: USERNAME,
-                        score,
-                        time,
-                        level
+                        name: USERNAME || PLAYER_NAME,
+                        score, time, level
                     })
                 });
                 const data = await res.json();
-                if (!data.ok) console.warn('Respuesta no OK:', data);
+                if (!res.ok || !data.ok) console.warn('Respuesta no OK:', data);
             } catch (e) {
                 console.error('Error enviando resultado:', e);
             }
@@ -596,6 +602,61 @@
                 bala: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1755920216/Coraz%C3%B3n_rh4fmm.png',
                 enemigo: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1755989490/Alien_rhbowg.png',
             };
+
+            // === Login / Registro ===
+            const pantallaLogin = document.getElementById('pantallaLogin');
+            const msgLogin = document.getElementById('msgLogin');
+            const btnLogin = document.getElementById('btnLogin');
+            const btnRegister = document.getElementById('btnRegister');
+            const inpUser = document.getElementById('username');
+            const inpPass = document.getElementById('password');
+
+            let AUTH_TOKEN = localStorage.getItem('auth_token') || null;
+            let USERNAME = localStorage.getItem('username') || '';
+
+            async function loginRegister(endpoint) {
+                const username = inpUser.value.trim();
+                const password = inpPass.value.trim();
+                if (!username || !password) {
+                    msgLogin.textContent = "Completa usuario y contraseña";
+                    return;
+                }
+                try {
+                    const res = await fetch(`${API_BASE}/api/${endpoint}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || "Error");
+
+                    if (endpoint === 'login') {
+                        AUTH_TOKEN = data.token;
+                        USERNAME = data.username;
+                        localStorage.setItem('auth_token', AUTH_TOKEN);
+                        localStorage.setItem('username', USERNAME);
+                        pantallaLogin.hidden = true;
+                        pantallaInicio.hidden = false;
+                    } else {
+                        msgLogin.textContent = "✅ Registrada. Ahora inicia sesión.";
+                    }
+                } catch (e) {
+                    msgLogin.textContent = "❌ " + e.message;
+                }
+            }
+
+            btnLogin?.addEventListener('click', () => loginRegister('login'));
+            btnRegister?.addEventListener('click', () => loginRegister('register'));
+
+            function exigirSesionOLogin() {
+                if (AUTH_TOKEN) {
+                    pantallaLogin.hidden = true;
+                    pantallaInicio.hidden = false;
+                } else {
+                    pantallaLogin.hidden = false;
+                    pantallaInicio.hidden = true;
+                }
+            }
 
             function cargarImagen(src) {
                 return new Promise((resolver, rechazar) => {
@@ -1010,10 +1071,17 @@
                 });
 
                 btnComenzar.addEventListener('click', async () => {
-                    await setupAudio();            // Prepara SFX (decode) para evitar latencia
+                    if (!AUTH_TOKEN) {
+                        pantallaLogin.hidden = false;
+                        pantallaInicio.hidden = true;
+                        msgLogin.textContent = "Primero inicia sesión 💖";
+                        return;
+                    }
+                    await setupAudio();
                     comenzarJuego();
-                    iniciarMusicaHTML();           // Música local tal cual
+                    iniciarMusicaHTML();
                 });
+
                 btnAudio.addEventListener('click', alternarMusicaHTML);
                 btnPausa.addEventListener('click', alternarPausa);
 
@@ -1450,7 +1518,8 @@
                 redimensionar();
                 inicializarCorazonesFondo();
                 actualizarIU();
-                pantallaInicio.hidden = false;
+                exigirSesionOLogin();
+
                 window.addEventListener('resize', redimensionar);
                 window.addEventListener('orientationchange', () => setTimeout(redimensionar, 250));
                 requestAnimationFrame(bucle);
