@@ -8,10 +8,13 @@ const Run = require('./models/run');
 
 const app = express();
 const allow = process.env.CORS_ORIGIN?.split(',').map(s => s.trim()) ?? ['*'];
-app.use(cors({ origin: allow }));               // ajusta origin si alojas frontend aparte
+app.use(cors({ origin: allow }));
 app.use(express.json());
 
 const { MONGODB_URI, PORT = 3000 } = process.env;
+
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
 
 mongoose.connect(MONGODB_URI)
     .then(() => console.log('MongoDB conectado'))
@@ -91,3 +94,45 @@ app.get('/api/player/:playerId', async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`API escuchando en http://localhost:${PORT}`));
+
+// ====================== REGISTRO ======================
+app.post('/api/register', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        if (!username || !password) return res.status(400).json({ error: 'Datos faltantes' });
+
+        const existe = await User.findOne({ username });
+        if (existe) return res.status(400).json({ error: 'Usuario ya existe' });
+
+        const hash = await bcrypt.hash(password, 10);
+        const user = await User.create({ username, passwordHash: hash });
+
+        res.json({ ok: true, msg: 'Usuario registrado' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error de servidor' });
+    }
+});
+
+// ====================== LOGIN ======================
+app.post('/api/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+        if (!user || !(await user.comparePassword(password))) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+
+        // Firmar token
+        const token = jwt.sign(
+            { userId: user._id, username: user.username },
+            process.env.JWT_SECRET || 'secreto123',
+            { expiresIn: '7d' }
+        );
+
+        res.json({ ok: true, token, username: user.username });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error de servidor' });
+    }
+});

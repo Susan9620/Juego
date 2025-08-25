@@ -392,6 +392,20 @@
     <!-- Indicador de Pausa -->
     <div id="pausado" hidden>⏸ Pausa</div>
 
+    <!-- Pantalla de login/registro -->
+    <div id="pantallaLogin">
+        <div class="panel-inicio">
+            <h1>Disparando ❤️</h1>
+            <input id="username" type="text" placeholder="Usuario" style="margin:8px; padding:6px;">
+            <input id="password" type="password" placeholder="Contraseña" style="margin:8px; padding:6px;">
+            <div style="margin-top:10px;">
+                <button id="btnLogin" class="cta">Iniciar sesión</button>
+                <button id="btnRegister" class="cta">Registrarse</button>
+            </div>
+            <p id="msgLogin" style="color:#ffe3ea; margin-top:10px;"></p>
+        </div>
+    </div>
+
     <!-- Pantalla de inicio -->
     <div id="pantallaInicio">
         <div class="panel-inicio">
@@ -434,6 +448,54 @@
         // === Backend API ===
         const API_BASE = 'https://juego-xexm.onrender.com';
 
+        let AUTH_TOKEN = localStorage.getItem('auth_token');
+        let USERNAME = localStorage.getItem('username');
+
+        const pantallaLogin = document.getElementById('pantallaLogin');
+        const msgLogin = document.getElementById('msgLogin');
+        const btnLogin = document.getElementById('btnLogin');
+        const btnRegister = document.getElementById('btnRegister');
+
+        async function loginRegister(endpoint) {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            if (!username || !password) {
+                msgLogin.textContent = "Completa usuario y contraseña";
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/api/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Error");
+
+                if (endpoint === 'login') {
+                    AUTH_TOKEN = data.token;
+                    USERNAME = data.username;
+                    localStorage.setItem('auth_token', AUTH_TOKEN);
+                    localStorage.setItem('username', USERNAME);
+                    pantallaLogin.hidden = true;
+                    pantallaInicio.hidden = false;
+                } else {
+                    msgLogin.textContent = "✅ Registrado, ahora inicia sesión";
+                }
+            } catch (e) {
+                msgLogin.textContent = "❌ " + e.message;
+            }
+        }
+
+        btnLogin.onclick = () => loginRegister('login');
+        btnRegister.onclick = () => loginRegister('register');
+
+        // Si ya tenía token
+        if (AUTH_TOKEN) {
+            pantallaLogin.hidden = true;
+            pantallaInicio.hidden = false;
+        }
+
         // Identidad del jugador (persistente en el navegador)
         let PLAYER_ID = localStorage.getItem('player_id');
         if (!PLAYER_ID) {
@@ -447,12 +509,15 @@
             try {
                 const res = await fetch(`${API_BASE}/api/runs`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    },
                     body: JSON.stringify({
                         playerId: PLAYER_ID,
-                        name: PLAYER_NAME,
+                        name: USERNAME,
                         score,
-                        time,   // segundos totales (tu variable tiempoTranscurrido)
+                        time,
                         level
                     })
                 });
