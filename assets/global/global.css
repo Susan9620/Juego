@@ -1,0 +1,16 @@
+:root {
+            --acento-1: #ff7aa2;
+            --acento-2: #ff4d6d;
+            --panel: rgba(0, 0, 0, .6);
+            --texto: #fff;
+            --atenuado: #ffffffcc;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+        }

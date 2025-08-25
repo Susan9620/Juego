@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <title>Disparando ❤️</title>
+    <link rel="stylesheet" href="../assets/global/global.css" />
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: radial-gradient(1200px 800px at 50% 20%, #1a1625 0%, #0f0f14 60%, #0a0a0d 100%);
+            color: var(--texto);
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, "Noto Sans";
+            touch-action: none;
+        }
+
+        /* Canvas a pantalla completa debajo de la interfaz de usuario */
+        #contenedor {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+        }
+
+        canvas {
+            display: block;
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .45), 0 2px 12px rgba(0, 0, 0, .6) inset;
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Interfaz de usuario superior */
+        .interfazUsuario {
+            position: fixed;
+            top: env(safe-area-inset-top);
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 10
+        }
+
+        .chip {
+            margin-top: 50px;
+            background: rgba(0, 0, 0, .35);
+            border: 1px solid rgba(255, 255, 255, .15);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+        }
+
+        /* Top bar (botones: sonido, pausa, instalar) */
+        .barra-superior {
+            position: fixed;
+            top: calc(env(safe-area-inset-top) + 8px);
+            right: 8px;
+            display: flex;
+            gap: 8px;
+            z-index: 11
+        }
+
+        .pildora {
+            background: rgba(0, 0, 0, .35);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #fff;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-weight: 800;
+            font-size: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+        }
+
+        .pildora.acento {
+            background: linear-gradient(90deg, var(--acento-1), var(--acento-2));
+            border: none
+        }
+
+        /* Pantalla de Login */
+        #pantallaLogin {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(0, 0, 0, .85);
+            z-index: 40;
+        }
+
+        #pantallaLogin[hidden] {
+            display: none;
+        }
+
+        .form-login {
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, .12);
+            padding: 24px 22px;
+            border-radius: 16px;
+            width: min(90vw, 380px);
+            text-align: center;
+        }
+
+        .form-login h1 {
+            margin: 0 0 10px 0;
+            color: #ff7aa2;
+            font-size: 26px;
+        }
+
+        .form-login .fila {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .form-login input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .15);
+            background: rgba(0, 0, 0, .35);
+            color: #fff;
+            outline: none;
+        }
+
+        .form-login .cta {
+            margin-top: 12px;
+        }
+
+        #msgLogin {
+            color: #ffe3ea;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+
+        /* Controles táctiles */
+        .controles {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: calc(env(safe-area-inset-bottom) + 12px);
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 0 12px;
+            z-index: 10
+        }
+
+        .btn-img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .corazon-img {
+            width: 50px;
+            height: 50px;
+        }
+
+        .btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+
+        .btn:focus {
+            outline: none;
+        }
+
+        .btn:active .btn-img {
+            transform: scale(0.9);
+            opacity: 0.8;
+        }
+
+        .pad {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            width: 76px;
+            height: 76px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .04));
+            color: #fff;
+            font-size: 28px;
+            font-weight: 900;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            filter: brightness(1.15)
+        }
+
+        .btn.corazon {
+            width: 92px;
+            height: 92px;
+            font-size: 30px;
+            background: linear-gradient(90deg, var(--acento-1), var(--acento-2));
+            box-shadow: 0 18px 40px rgba(255, 90, 120, .35);
+        }
+
+        /* Pantalla Game Over / Victoria */
+        #superposicion {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(0, 0, 0, .35);
+            z-index: 20;
+        }
+
+        #superposicion[hidden] {
+            display: none
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, .12);
+            padding: 22px 22px;
+            border-radius: 16px;
+            text-align: center;
+            width: min(90vw, 380px);
+            margin-bottom: env(safe-area-inset-bottom)
+        }
+
+        .panel h1 {
+            margin: 0 0 10px 0
+        }
+
+        .linea {
+            margin: 6px 0;
+            color: var(--atenuado)
+        }
+
+        .frase {
+            margin: 12px 0 18px 0;
+            font-style: italic;
+            color: #ffe3ea
+        }
+
+        .cta {
+            background: linear-gradient(90deg, var(--acento-1), var(--acento-2));
+            border: none;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 999px;
+            font-weight: 800
+        }
+
+        /* Indicador de Pausa */
+        #pausado {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, .45);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #fff;
+            font-weight: 800;
+            z-index: 20
+        }
+
+        #pausado[hidden] {
+            display: none
+        }
+
+        /* Capa superior de inicio */
+        #pantallaInicio {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(0, 0, 0, .85);
+            z-index: 30;
+        }
+
+        #pantallaInicio[hidden] {
+            display: none
+        }
+
+        .panel-inicio {
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, .12);
+            padding: 30px 25px;
+            border-radius: 16px;
+            text-align: center;
+            width: min(90vw, 380px);
+        }
+
+        .panel-inicio h1 {
+            margin: 0 0 15px 0;
+            color: #ff7aa2;
+            font-size: 28px;
+        }
+
+        .instrucciones {
+            margin: 15px 0 20px 0;
+            text-align: left;
+            color: #ffe3ea;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .instrucciones li {
+            margin-bottom: 8px;
+        }
+
+        /* Evitar que el botón de disparo quede tapado por la barra del navegador móvil */
+        @supports(padding:max(0px)) {
+            .controles {
+                padding-bottom: max(12px, env(safe-area-inset-bottom));
+            }
+        }
+
+        /* Estilos para el joystick */
+        .joystick-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            touch-action: none;
+        }
+
+        .joystick-base {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .joystick-stick {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .2), rgba(255, 255, 255, .1));
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+            transition: transform 0.1s ease;
+        }
+
+        .joystick-stick.active {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .3), rgba(255, 255, 255, .15));
+        }
+
+        /* Estilos para mensajes de racha */
+        .mensaje-racha {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #ff4d6d;
+            border-radius: 12px;
+            padding: 20px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            z-index: 100;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="contenedor"><canvas id="juego" aria-label="Juego de disparos romántico"></canvas></div>
+
+    <div class="interfazUsuario">
+        <div class="chip" id="IUPuntaje">Puntaje: 0 • Récord: 0 • %: 0 • Nivel: 1 • Tiempo: 0s • Intentos: 3</div>
+    </div>
+
+    <!-- Botones superiores: sonido / pausa -->
+    <div class="barra-superior">
+        <button id="btnAudio" class="pildora">🔊 Activar sonido</button>
+        <button id="btnPausa" class="pildora">⏸ Pausar</button>
+    </div>
+
+    <!-- Controles táctiles: joystick para movimiento y botón de disparo -->
+    <div class="controles" aria-hidden="false">
+        <div class="joystick-container" id="joystickContainer">
+            <div class="joystick-base"></div>
+            <div class="joystick-stick" id="joystickStick"></div>
+        </div>
+        <button class="btn corazon" id="btnDisparar" aria-label="Disparar">
+            <img src="https://res.cloudinary.com/dsf9hse1e/image/upload/v1755920216/Coraz%C3%B3n_rh4fmm.png"
+                alt="Disparar" class="btn-img corazon-img" oncontextmenu="return false;">
+        </button>
+    </div>
+
+    <!-- Indicador de Pausa -->
+    <div id="pausado" hidden>⏸ Pausa</div>
+
+    <!-- Pantalla de Login / Registro -->
+    <div id="pantallaLogin">
+        <div class="form-login">
+            <h1>Disparando ❤️</h1>
+            <input id="username" type="text" placeholder="Usuario" autocomplete="username">
+            <input id="password" type="password" placeholder="Contraseña" autocomplete="current-password">
+            <div class="fila">
+                <button id="btnLogin" class="cta" type="button">Iniciar sesión</button>
+                <button id="btnRegister" class="cta" type="button">Registrarse</button>
+            </div>
+            <p id="msgLogin"></p>
+        </div>
+    </div>
+
+    <!-- Pantalla de inicio -->
+    <div id="pantallaInicio">
+        <div class="panel-inicio">
+            <h1>Disparando ❤️</h1>
+
+            <div class="instrucciones">
+                <p><strong>Instrucciones:</strong></p>
+                <ul>
+                    <li>Usa el joystick para moverte en todas las direcciones</li>
+                    <li>❤️ Disparar corazones</li>
+                    <li>Llena la barra para avanzar</li>
+                    <li>¡Recoge los regalos que caen!</li>
+                    <li>Evita que el alien llegue al fondo</li>
+                    <li>No toques los aliens con la nave</li>
+                    <li>Tienes 3 intentos para completar cada nivel</li>
+                    <li>¡Mide tu tiempo y mejora tu récord!</li>
+                    <li>¡Cuidado con los regalos trampa!</li>
+                    <li>¡Consigue rachas de eliminación por puntos extra!</li>
+                </ul>
+            </div>
+
+            <button id="btnComenzar" class="cta">❤️ Comenzar</button>
+        </div>
+    </div>
+
+    <!-- Pantalla final -->
+    <div id="superposicion" hidden>
+        <div class="panel">
+            <h1 id="titulosuperposicion">💔 Game Over</h1>
+            <p class="linea">Puntaje: <b id="puntajeActual">0</b></p>
+            <p class="linea">Récord: <b id="mejorPuntaje">0</b></p>
+            <p class="linea">Nivel: <b id="nivelActual">1</b></p>
+            <p class="linea">Tiempo: <b id="tiempoJugado">0s</b></p>
+            <p class="frase" id="fraseFinal">"Inténtalo de nuevo ♥"</p>
+            <button id="btnReiniciar" class="cta">Reintentar (R)</button>
+        </div>
+    </div>
+
+    <script>
+        // === Backend API ===
+        const API_BASE = 'https://juego-xexm.onrender.com';
+
+        var AUTH_TOKEN = localStorage.getItem('auth_token') || null;
+        var USERNAME = localStorage.getItem('username') || '';
+
+        if (AUTH_TOKEN === 'null') {
+            localStorage.removeItem('auth_token');
+            AUTH_TOKEN = null;
+        }
+
+        // Identidad del jugador (persistente en el navegador)
+        let PLAYER_ID = localStorage.getItem('player_id');
+        if (!PLAYER_ID) {
+            PLAYER_ID = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2);
+            localStorage.setItem('player_id', PLAYER_ID);
+        }
+        // (Opcional) nombre visible
+        const PLAYER_NAME = localStorage.getItem('player_name') || '';
+
+        async function enviarResultado({ score, time, level }) {
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (AUTH_TOKEN) headers.Authorization = `Bearer ${AUTH_TOKEN}`;
+
+                const res = await fetch(`${API_BASE}/api/runs`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ playerId: PLAYER_ID, name: USERNAME || PLAYER_NAME, score, time, level })
+                });
+
+                if (res.status === 401) {
+                    localStorage.removeItem('auth_token');
+                    AUTH_TOKEN = null;
+                    const login = document.getElementById('pantallaLogin');
+                    const inicio = document.getElementById('pantallaInicio');
+                    const msg = document.getElementById('msgLogin');
+                    if (login && inicio && msg) {
+                        login.hidden = false;
+                        inicio.hidden = true;
+                        msg.textContent = 'Vuelve a iniciar sesión';
+                    }
+                    return;
+                }
+
+                const data = await res.json();
+                if (!res.ok || !data.ok) console.warn('Respuesta no OK:', data);
+            } catch (e) {
+                console.error('Error enviando resultado:', e);
+            }
+        }
+
+        async function cargarTop() {
+            try {
+                const res = await fetch(`${API_BASE}/api/leaderboard?limit=5`);
+                const data = await res.json();
+                console.table(data.leaderboard);
+                // aquí podrías escribirlo en tu UI si quieres
+            } catch (e) {
+                console.error('No se pudo cargar el ranking', e);
+            }
+        }
+
+        (function () {
+            // ===== Mundo =====
+            const MUNDO_ANCHO = 600, MUNDO_ALTO = 775;
+
+            // Velocidades
+            const VELOCIDAD_JUGADOR = 450;
+            const VELOCIDAD_BALA = 520;
+            const VELOCIDAD_BASE_ENEMIGO = 160;
+            const ENFRIAMIENTO_DISPARO = 0.18;
+            const AUMENTO_POR_NIVEL = 40;
+
+            // Tamaños
+            const JUGADOR = { ancho: 60, alto: 60 };
+            const BALA = { ancho: 50, alto: 50 };
+            const ENEMIGO = { ancho: 60, alto: 60 };
+            const REGALO = { ancho: 40, alto: 40 };
+
+            // Apariciones
+            const APARICION_MIN = 0.28, APARICION_MAX = 0.85;
+            const REGALO_MIN = 8, REGALO_MAX = 12;
+
+            // Objetivo romántico
+            const AMOR_MAXIMO = 100;
+
+            // Referencias UI
+            const lienzo = document.getElementById('juego');
+            const IUPuntaje = document.getElementById('IUPuntaje');
+            const superposicion = document.getElementById('superposicion');
+            const elPuntajeActual = document.getElementById('puntajeActual');
+            const elMejorPuntaje = document.getElementById('mejorPuntaje');
+            const elNivelActual = document.getElementById('nivelActual');
+            const elTiempoJugado = document.getElementById('tiempoJugado');
+            const laFraseFinal = document.getElementById('fraseFinal');
+            const btnReiniciar = document.getElementById('btnReiniciar');
+            const titulosuperposicion = superposicion.querySelector('h1');
+            const pantallaInicio = document.getElementById('pantallaInicio');
+            const btnComenzar = document.getElementById('btnComenzar');
+
+            const btnDisparar = document.getElementById('btnDisparar');
+            const btnAudio = document.getElementById('btnAudio');
+            const btnPausa = document.getElementById('btnPausa');
+            const indicadorPausado = document.getElementById('pausado');
+
+            // Joystick
+            const joystickContainer = document.getElementById('joystickContainer');
+            const joystickStick = document.getElementById('joystickStick');
+
+            const contexto = lienzo.getContext('2d');
+
+            // Imágenes
+            const IMG = {};
+            const rutas = {
+                fondo: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1755920217/Fondo_npum68.png',
+                jugador: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1755989490/Nave_omowwt.png',
+                bala: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1755920216/Coraz%C3%B3n_rh4fmm.png',
+                enemigo: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1755989490/Alien_rhbowg.png',
+            };
+
+            // === Login / Registro ===
+            const pantallaLogin = document.getElementById('pantallaLogin');
+            const msgLogin = document.getElementById('msgLogin');
+            const btnLogin = document.getElementById('btnLogin');
+            const btnRegister = document.getElementById('btnRegister');
+            const inpUser = document.getElementById('username');
+            const inpPass = document.getElementById('password');
+
+            async function loginRegister(endpoint) {
+                const username = inpUser.value.trim();
+                const password = inpPass.value.trim();
+                if (!username || !password) {
+                    msgLogin.textContent = "Completa usuario y contraseña";
+                    return;
+                }
+                try {
+                    const res = await fetch(`${API_BASE}/api/${endpoint}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || "Error");
+
+                    if (endpoint === 'login') {
+                        AUTH_TOKEN = data.token;
+                        USERNAME = data.username;
+                        localStorage.setItem('auth_token', AUTH_TOKEN);
+                        localStorage.setItem('username', USERNAME);
+                        pantallaLogin.hidden = true;
+                        pantallaInicio.hidden = false;
+                    } else {
+                        msgLogin.textContent = "✅ Registrada. Ahora inicia sesión.";
+                    }
+                } catch (e) {
+                    msgLogin.textContent = "❌ " + e.message;
+                }
+            }
+
+            if (!btnLogin || !btnRegister) {
+                console.error('No se encontraron los botones de login/registro');
+            }
+
+            btnLogin.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('click login');
+                loginRegister('login');
+            });
+
+            btnRegister.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('click register');
+                loginRegister('register');
+            });
+
+            function exigirSesionOLogin() {
+                if (AUTH_TOKEN) {
+                    pantallaLogin.hidden = true;
+                    pantallaInicio.hidden = false;
+                } else {
+                    pantallaLogin.hidden = false;
+                    pantallaInicio.hidden = true;
+                }
+            }
+
+            function cargarImagen(src) {
+                return new Promise((resolver, rechazar) => {
+                    const img = new Image();
+                    img.onload = () => resolver(img);
+                    img.onerror = () => rechazar(new Error('No se pudo cargar ' + src));
+                    img.src = src;
+                });
+            }
+
+            Promise.all(Object.entries(rutas).map(([k, src]) => cargarImagen(src).then(im => { IMG[k] = im; })))
+                .then(iniciar)
+                .catch(err => { console.error(err); iniciar(); });
+
+            // ===== AUDIO =====
+            // --- Música local (tal cual) con HTMLAudioElement ---
+            let musicaIniciada = false;
+            const audioMusica = new Audio('https://res.cloudinary.com/dsf9hse1e/video/upload/v1755918802/Marshmello_-_Alone_a5xb9m.mp4');
+            audioMusica.loop = true;
+            audioMusica.preload = 'auto';
+            audioMusica.playsInline = true;
+            audioMusica.volume = 1.0;
+
+            function iniciarMusicaHTML() {
+                if (musicaIniciada) return;
+                musicaIniciada = true;
+                audioMusica.currentTime = 0;
+                audioMusica.play()
+                    .then(() => { btnAudio.textContent = '🔈 Silenciar'; })
+                    .catch(() => { musicaIniciada = false; });
+            }
+
+            function alternarMusicaHTML() {
+                if (!musicaIniciada) { iniciarMusicaHTML(); return; }
+                if (audioMusica.paused) {
+                    audioMusica.play().catch(() => { });
+                    btnAudio.textContent = '🔈 Silenciar';
+                } else {
+                    audioMusica.pause();
+                    btnAudio.textContent = '🔊 Activar sonido';
+                }
+            }
+
+            // --- SFX de baja latencia con Web Audio API (regalo, trampa, gameover, racha, nivel) ---
+            let audioCtx = null, masterGain = null;
+            const sfxBuffers = {};
+            const SFX_FILES = {
+                regalo: 'https://res.cloudinary.com/dsf9hse1e/video/upload/v1756073261/Recompensa_kpa0fw.mp4',
+                trampa: 'https://res.cloudinary.com/dsf9hse1e/video/upload/v1756070983/Trampa_fbagfb.mp3',
+                racha: 'https://res.cloudinary.com/dsf9hse1e/video/upload/v1756070984/Racha_havlgn.mp3',
+                gameover: 'https://res.cloudinary.com/dsf9hse1e/video/upload/v1756070984/GameOver_jzb8ly.mp3',
+                nivel: 'https://res.cloudinary.com/dsf9hse1e/video/upload/v1756075601/Nivel_Completado_hj90kr.mp3'
+            };
+
+            async function setupAudio() {
+                if (audioCtx) return;
+                const AC = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AC();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 1.0;
+                masterGain.connect(audioCtx.destination);
+
+                // Pre-cargar y decodificar
+                await Promise.all(Object.entries(SFX_FILES).map(async ([k, url]) => {
+                    try {
+                        const res = await fetch(url);
+                        const buf = await res.arrayBuffer();
+                        sfxBuffers[k] = await new Promise((resolve, reject) => {
+                            audioCtx.decodeAudioData(buf, resolve, reject);
+                        });
+                    } catch (e) {
+                        console.warn('No se pudo cargar SFX', k, e);
+                    }
+                }));
+            }
+
+            function playSfx(name, { volume = 1.0, rate = 1.0 } = {}) {
+                if (!audioCtx || !sfxBuffers[name]) return;
+                try {
+                    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => { });
+                    const src = audioCtx.createBufferSource();
+                    src.buffer = sfxBuffers[name];
+                    src.playbackRate.value = rate;
+                    const g = audioCtx.createGain();
+                    g.gain.value = volume;
+                    src.connect(g);
+                    g.connect(masterGain);
+                    src.start(audioCtx.currentTime);
+                } catch { }
+            }
+
+            // ===== Estado del juego =====
+            let teclas = { izquierda: false, derecha: false, arriba: false, abajo: false, disparar: false };
+            let temporizadorDisparo = 0;
+            let juegoTerminado = false;
+            let victoria = false;
+            let pausado = false;
+            let amor = 0;
+            let puntaje = 0;
+            let nivel = 1;
+            let intentos = 3;
+
+            // Reloj global de partida (no se reinicia al cambiar de nivel)
+            let inicioReloj = 0;
+            let tiempoTranscurrido = 0;
+
+            let mejorPuntaje = parseInt(localStorage.getItem('puntaje_maximo_amor') || '0', 10) || 0;
+            let mejorTiempo = parseInt(localStorage.getItem('mejor_tiempo') || '0', 10) || 0;
+            let juegoIniciado = false;
+
+            const FRASES_GOLPE = ["Perfecto", "Bien", "Buen trabajo", "Excelente"];
+            const FRASES_FIN = ["¡Inténtalo de nuevo!"];
+            const MENSAJES_VICTORIA = {
+                1: "¡Vamos, tú puedes!", 2: "¡Excelente!", 3: "¡Impresionante!", 4: "¡Sigue así!",
+                5: "¡Mitad del camino!", 6: "¡No te rindas!", 7: "¡Casi llegas!",
+                8: "¡Increíble resistencia!", 9: "¡Último esfuerzo!", 10: "¡Leyenda!"
+            };
+            const FRASES_VICTORIA = {
+                1: "¡Nivel 1 completado!", 2: "¡Nivel 2 completado!", 3: "¡Nivel 3 completado!",
+                4: "¡Nivel 4 completado!", 5: "¡Nivel 5 completado!", 6: "¡Nivel 6 completado!",
+                7: "¡Nivel 7 completado!", 8: "¡Nivel 8 completado!", 9: "¡Nivel 9 completado!",
+                10: "¡Nivel máximo alcanzado!"
+            };
+
+            const jugador = {
+                x: (MUNDO_ANCHO - JUGADOR.ancho) / 2,
+                y: MUNDO_ALTO - JUGADOR.alto - 10,
+                ancho: JUGADOR.ancho,
+                alto: JUGADOR.alto
+            };
+            let balas = [];
+            let enemigos = [];
+            let regalos = [];
+            let flotantes = [];
+            let particulas = [];
+            let corazonesFondo = [];
+            let velocidadEnemigo = VELOCIDAD_BASE_ENEMIGO;
+            let temporizadorAparicion = 0, siguienteAparicion = aleatorio(APARICION_MIN, APARICION_MAX);
+            let temporizadorRegalo = 0, siguienteRegalo = aleatorio(REGALO_MIN, REGALO_MAX);
+            let dpr = 1, escala = 1, desplazamientoX = 0, desplazamientoY = 0, cssAncho = 0, cssAlto = 0;
+
+            // ===== Joystick =====
+            let joystickActive = false;
+            let joystickCenterX = 0;
+            let joystickCenterY = 0;
+            let joystickRadius = 0;
+            let joystickDirection = { x: 0, y: 0 };
+            let activePointerId = null;
+            const DEADZONE = 0.08;
+
+            // ===== Rachas =====
+            let rachaEliminaciones = 0;
+            let ultimoTiempoEliminacion = 0;
+            let protegerRachaTransicion = false;
+            let indiceSiguienteHito = 0;
+            const rachas = [50, 100, 200, 300, 500];
+
+            // ===== Utilidades =====
+            function aleatorio(min, max) { return Math.random() * (max - min) + min }
+            function limitar(v, min, max) { return Math.max(min, Math.min(max, v)) }
+            function colisionan(a, b) { return a.x < b.x + b.ancho && a.x + a.ancho > b.x && a.y < b.y + b.alto && a.y + a.alto > b.y }
+            function elegirAleatorio(arr) { return arr[(Math.random() * arr.length) | 0] }
+
+            function dibujarCorazon(ctx, x, y, tamaño) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.bezierCurveTo(x, y - tamaño * 0.3, x - tamaño, y - tamaño * 0.3, x - tamaño, y + tamaño * 0.2);
+                ctx.bezierCurveTo(x - tamaño, y + tamaño, x, y + tamaño * 1.2, x, y + tamaño * 1.6);
+                ctx.bezierCurveTo(x, y + tamaño * 1.2, x + tamaño, y + tamaño, x + tamaño, y + tamaño * 0.2);
+                ctx.bezierCurveTo(x + tamaño, y - tamaño * 0.3, x, y - tamaño * 0.3, x, y);
+                ctx.closePath(); ctx.fill();
+            }
+
+            function inicializarCorazonesFondo() {
+                corazonesFondo.length = 0;
+                for (let i = 0; i < 30; i++) {
+                    corazonesFondo.push({
+                        x: Math.random() * MUNDO_ANCHO,
+                        y: Math.random() * MUNDO_ALTO,
+                        velocidad: aleatorio(8, 18),
+                        tamaño: aleatorio(6, 14),
+                        alpha: aleatorio(0.08, 0.18)
+                    });
+                }
+            }
+
+            function reiniciarJuego() {
+                Object.assign(jugador, {
+                    x: (MUNDO_ANCHO - JUGADOR.ancho) / 2,
+                    y: MUNDO_ALTO - JUGADOR.alto - 10,
+                    ancho: JUGADOR.ancho,
+                    alto: JUGADOR.alto
+                });
+                balas = []; enemigos = []; regalos = []; flotantes = []; particulas = [];
+                velocidadEnemigo = VELOCIDAD_BASE_ENEMIGO + (nivel - 1) * AUMENTO_POR_NIVEL;
+                temporizadorAparicion = 0;
+                siguienteAparicion = aleatorio(APARICION_MIN, APARICION_MAX);
+                temporizadorRegalo = 0;
+                siguienteRegalo = aleatorio(REGALO_MIN, REGALO_MAX);
+                // reloj global se reinicia SOLO al empezar partida nueva
+                inicioReloj = performance.now() / 1000;
+                tiempoTranscurrido = 0;
+                puntaje = 0; amor = 0;
+                intentos = 3;
+                juegoTerminado = false;
+                victoria = false;
+                pausado = false;
+                rachaEliminaciones = 0;
+                ultimoTiempoEliminacion = 0;
+                indicadorPausado.hidden = true;
+                superposicion.hidden = true;
+                indiceSiguienteHito = 0;
+                protegerRachaTransicion = false;
+                actualizarIU();
+            }
+
+            function siguienteNivel() {
+                nivel++;
+                amor = 0;
+                juegoTerminado = false;
+                victoria = false;
+                balas = [];
+                enemigos = [];
+                regalos = [];
+                flotantes = [];
+                particulas = [];
+                velocidadEnemigo = VELOCIDAD_BASE_ENEMIGO + (nivel - 1) * AUMENTO_POR_NIVEL;
+                temporizadorAparicion = 0;
+                siguienteAparicion = aleatorio(APARICION_MIN, APARICION_MAX);
+                temporizadorRegalo = 0;
+                siguienteRegalo = aleatorio(REGALO_MIN, REGALO_MAX);
+                // NO tocar inicioReloj: el tiempo total se mantiene
+                protegerRachaTransicion = true;
+                Object.assign(jugador, {
+                    x: (MUNDO_ANCHO - JUGADOR.ancho) / 2,
+                    y: MUNDO_ALTO - JUGADOR.alto - 10,
+                    ancho: JUGADOR.ancho,
+                    alto: JUGADOR.alto
+                });
+                superposicion.hidden = true;
+                actualizarIU();
+            }
+
+            function obtenerAmorPorDisparo() {
+                switch (nivel) {
+                    case 1: return 2;
+                    case 2: return 1.8;
+                    case 3: return 1.6;
+                    case 4: return 1.4;
+                    case 5: return 1.2;
+                    case 6: return 1;
+                    case 7: return 0.8;
+                    case 8: return 0.6;
+                    case 9: return 0.4;
+                    case 10: return 0.2;
+                    default: return 2;
+                }
+            }
+
+            // ===== Vibración =====
+            function vibrar(duracion) { if (navigator.vibrate) navigator.vibrate(duracion); }
+
+            // ===== Mensajes de racha =====
+            function mostrarMensajeRacha(texto) {
+                const mensaje = document.createElement('div');
+                mensaje.className = 'mensaje-racha';
+                mensaje.textContent = texto;
+                document.body.appendChild(mensaje);
+
+                vibrar(200);
+                playSfx('racha');
+
+                setTimeout(() => { if (mensaje.parentNode) mensaje.parentNode.removeChild(mensaje); }, 2000);
+            }
+
+            // ===== Controles =====
+            function vincularBoton(elemento, activar, desactivar) {
+                const presionados = new Set();
+                const presionar = e => { e.preventDefault(); presionados.add(e.pointerId || 'm'); activar(); };
+                const soltar = e => { presionados.delete(e.pointerId || 'm'); if (presionados.size === 0) desactivar(); };
+                elemento.addEventListener('pointerdown', presionar, { passive: false });
+                window.addEventListener('pointerup', soltar, { passive: false });
+                window.addEventListener('pointercancel', soltar, { passive: false });
+                window.addEventListener('pointerleave', soltar, { passive: false });
+            }
+
+            function configurarJoystick() {
+                const rect = joystickContainer.getBoundingClientRect();
+                joystickCenterX = rect.left + rect.width / 2;
+                joystickCenterY = rect.top + rect.height / 2;
+                joystickRadius = rect.width / 2 - 30;
+
+                joystickContainer.addEventListener('pointerdown', (e) => {
+                    if (!juegoIniciado) return;
+                    e.preventDefault();
+                    joystickActive = true;
+                    activePointerId = e.pointerId || null;
+                    try { joystickContainer.setPointerCapture(e.pointerId); } catch { }
+                    joystickStick.classList.add('active');
+                    actualizarJoystick(e);
+                }, { passive: false });
+
+                window.addEventListener('pointermove', (e) => {
+                    if (!joystickActive || !juegoIniciado) return;
+                    if (activePointerId !== null && e.pointerId !== activePointerId) return;
+                    e.preventDefault();
+                    actualizarJoystick(e);
+                }, { passive: false });
+
+                function finArrastre(e) {
+                    if (!joystickActive) return;
+                    if (activePointerId !== null && e.pointerId !== activePointerId) return;
+                    e.preventDefault();
+                    resetearJoystick();
+                    try { joystickContainer.releasePointerCapture(e.pointerId); } catch { }
+                    activePointerId = null;
+                }
+                window.addEventListener('pointerup', finArrastre, { passive: false });
+                window.addEventListener('pointercancel', finArrastre, { passive: false });
+            }
+
+            function actualizarJoystick(e) {
+                if (!joystickActive) return;
+
+                const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
+                const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY);
+
+                const rect = joystickContainer.getBoundingClientRect();
+                joystickCenterX = rect.left + rect.width / 2;
+                joystickCenterY = rect.top + rect.height / 2;
+                joystickRadius = rect.width / 2 - 30;
+
+                const dx = clientX - joystickCenterX;
+                const dy = clientY - joystickCenterY;
+                const distancia = Math.hypot(dx, dy);
+                const angulo = Math.atan2(dy, dx);
+                const r = Math.min(distancia, joystickRadius);
+
+                const stickX = r * Math.cos(angulo);
+                const stickY = r * Math.sin(angulo);
+                joystickStick.style.transform = `translate(-50%, -50%) translate(${stickX}px, ${stickY}px)`;
+
+                let mag = r / joystickRadius;
+                let normX = Math.cos(angulo);
+                let normY = Math.sin(angulo);
+
+                if (mag < DEADZONE) {
+                    joystickDirection.x = 0;
+                    joystickDirection.y = 0;
+                } else {
+                    const scaled = Math.pow((mag - DEADZONE) / (1 - DEADZONE), 1.15);
+                    joystickDirection.x = normX * scaled;
+                    joystickDirection.y = normY * scaled;
+                }
+                actualizarControlesDesdeJoystick();
+            }
+
+            function resetearJoystick() {
+                joystickActive = false;
+                joystickStick.classList.remove('active');
+                joystickStick.style.transform = 'translate(-50%, -50%)';
+                joystickDirection.x = 0;
+                joystickDirection.y = 0;
+                actualizarControlesDesdeJoystick();
+            }
+
+            function actualizarControlesDesdeJoystick() {
+                const t = 0.08;
+                teclas.izquierda = joystickDirection.x < -t;
+                teclas.derecha = joystickDirection.x > t;
+                teclas.arriba = joystickDirection.y < -t;
+                teclas.abajo = joystickDirection.y > t;
+            }
+
+            function configurarEntradas() {
+                window.addEventListener('keydown', e => {
+                    if (!juegoIniciado) return;
+                    if (e.code === 'Space') { e.preventDefault(); teclas.disparar = true; }
+                    if (e.code === 'ArrowLeft' || e.code === 'KeyA') teclas.izquierda = true;
+                    if (e.code === 'ArrowRight' || e.code === 'KeyD') teclas.derecha = true;
+                    if (e.code === 'ArrowUp' || e.code === 'KeyW') teclas.arriba = true;
+                    if (e.code === 'ArrowDown' || e.code === 'KeyS') teclas.abajo = true;
+                    if (e.code === 'KeyR' && (juegoTerminado || victoria)) {
+                        if (juegoTerminado) nivel = 1;
+                        reiniciarJuego();
+                    }
+                    if (e.code === 'KeyP') { alternarPausa(); }
+                });
+                window.addEventListener('keyup', e => {
+                    if (!juegoIniciado) return;
+                    if (e.code === 'Space') teclas.disparar = false;
+                    if (e.code === 'ArrowLeft' || e.code === 'KeyA') teclas.izquierda = false;
+                    if (e.code === 'ArrowRight' || e.code === 'KeyD') teclas.derecha = false;
+                    if (e.code === 'ArrowUp' || e.code === 'KeyW') teclas.arriba = false;
+                    if (e.code === 'ArrowDown' || e.code === 'KeyS') teclas.abajo = false;
+                });
+
+                vincularBoton(btnDisparar, () => { if (juegoIniciado) teclas.disparar = true }, () => teclas.disparar = false);
+
+                btnReiniciar.addEventListener('click', function () {
+                    if (juegoTerminado) {
+                        nivel = 1;
+                        reiniciarJuego();
+                    } else if (victoria) {
+                        if (nivel < 10) {
+                            siguienteNivel();
+                        } else {
+                            nivel = 1;
+                            reiniciarJuego();
+                        }
+                    }
+                });
+
+                btnComenzar.addEventListener('click', async () => {
+                    if (!AUTH_TOKEN) {
+                        pantallaLogin.hidden = false;
+                        pantallaInicio.hidden = true;
+                        msgLogin.textContent = "Primero inicia sesión 💖";
+                        return;
+                    }
+                    await setupAudio();
+                    comenzarJuego();
+                    iniciarMusicaHTML();
+                });
+
+                btnAudio.addEventListener('click', alternarMusicaHTML);
+                btnPausa.addEventListener('click', alternarPausa);
+
+                configurarJoystick();
+            }
+
+            function alternarPausa() {
+                if (!juegoIniciado) return;
+                pausado = !pausado; indicadorPausado.hidden = !pausado;
+                btnPausa.textContent = pausado ? '▶️ Reanudar' : '⏸ Pausar';
+            }
+
+            // ===== Responsive =====
+            function redimensionar() {
+                cssAncho = window.innerWidth; cssAlto = window.innerHeight;
+                dpr = Math.min(window.devicePixelRatio || 1, 3);
+                lienzo.width = Math.floor(cssAncho * dpr);
+                lienzo.height = Math.floor(cssAlto * dpr);
+                const escalaX = cssAncho / MUNDO_ANCHO, escalaY = cssAlto / MUNDO_ALTO;
+                escala = Math.min(escalaX, escalaY);
+                desplazamientoX = (cssAncho - MUNDO_ANCHO * escala) / 2;
+                desplazamientoY = (cssAlto - MUNDO_ALTO * escala) / 2;
+
+                if (joystickContainer) {
+                    const rect = joystickContainer.getBoundingClientRect();
+                    joystickCenterX = rect.left + rect.width / 2;
+                    joystickCenterY = rect.top + rect.height / 2;
+                    joystickRadius = rect.width / 2 - 30;
+                }
+            }
+            function establecerTransformacionMundo() {
+                contexto.setTransform(dpr, 0, 0, dpr, 0, 0);
+                contexto.translate(desplazamientoX, desplazamientoY);
+                contexto.scale(escala, escala);
+            }
+
+            // ===== Juego =====
+            function generarBala() {
+                const bx = jugador.x + jugador.ancho / 2 - BALA.ancho / 2;
+                const by = jugador.y - BALA.alto + 6;
+                balas.push({ x: bx, y: by, ancho: BALA.ancho, alto: BALA.alto });
+
+                vibrar(10);
+
+                for (let i = 0; i < 6; i++) {
+                    particulas.push({
+                        x: bx + BALA.ancho / 2,
+                        y: by + BALA.alto / 2,
+                        vx: aleatorio(-30, 30),
+                        vy: aleatorio(-10, 10),
+                        tamaño: aleatorio(3, 6),
+                        vida: aleatorio(0.3, 0.6)
+                    });
+                }
+            }
+
+            function generarEnemigo() {
+                const ex = Math.floor(Math.random() * (MUNDO_ANCHO - ENEMIGO.ancho));
+                const ey = -ENEMIGO.alto;
+                enemigos.push({ x: ex, y: ey, ancho: ENEMIGO.ancho, alto: ENEMIGO.alto, velocidad: velocidadEnemigo });
+            }
+
+            function generarRegalo() {
+                const ex = Math.floor(Math.random() * (MUNDO_ANCHO - REGALO.ancho));
+                const esTrampa = Math.random() < 0.45;
+
+                if (esTrampa) {
+                    regalos.push({ x: ex, y: -REGALO.alto, ancho: REGALO.ancho, alto: REGALO.alto, tipo: 'trampa', emoji: '💣', velocidad: aleatorio(110, 150) });
+                } else {
+                    const tipos = [{ tipo: 'estrella', emoji: '🌠' }, { tipo: 'cohete', emoji: '🚀' }, { tipo: 'telescopio', emoji: '🔭' }];
+                    const t = tipos[(Math.random() * tipos.length) | 0];
+                    regalos.push({ x: ex, y: -REGALO.alto, ancho: REGALO.ancho, alto: REGALO.alto, tipo: t.tipo, emoji: t.emoji, velocidad: aleatorio(110, 150) });
+                }
+            }
+
+            let ultimoTiempo = performance.now();
+            function bucle(ahora) {
+                const dt = Math.min((ahora - ultimoTiempo) / 1000, 0.05); ultimoTiempo = ahora;
+                if (juegoIniciado && !pausado) actualizar(dt);
+                dibujar();
+                requestAnimationFrame(bucle);
+            }
+
+            function actualizar(dt) {
+                for (const corazon of corazonesFondo) {
+                    corazon.y -= corazon.velocidad * dt;
+                    if (corazon.y < -20) {
+                        corazon.y = MUNDO_ALTO + 10;
+                        corazon.x = Math.random() * MUNDO_ANCHO;
+                        corazon.velocidad = aleatorio(8, 18);
+                        corazon.tamaño = aleatorio(6, 14);
+                        corazon.alpha = aleatorio(0.08, 0.18);
+                    }
+                }
+                if (juegoTerminado || victoria) return;
+
+                // Tiempo total desde que empezó la partida (no se reinicia por nivel)
+                tiempoTranscurrido = (performance.now() / 1000) - inicioReloj;
+
+                if (tiempoTranscurrido > 15) {
+                    velocidadEnemigo = VELOCIDAD_BASE_ENEMIGO
+                        + (nivel - 1) * AUMENTO_POR_NIVEL
+                        + Math.min(280, (tiempoTranscurrido - 15) * 6);
+                }
+
+                if (teclas.izquierda) jugador.x -= VELOCIDAD_JUGADOR * dt;
+                if (teclas.derecha) jugador.x += VELOCIDAD_JUGADOR * dt;
+                if (teclas.arriba) jugador.y -= VELOCIDAD_JUGADOR * dt;
+                if (teclas.abajo) jugador.y += VELOCIDAD_JUGADOR * dt;
+
+                jugador.x = limitar(jugador.x, 0, MUNDO_ANCHO - jugador.ancho);
+                jugador.y = limitar(jugador.y, 0, MUNDO_ALTO - jugador.alto);
+
+                temporizadorDisparo -= dt;
+                if (teclas.disparar && temporizadorDisparo <= 0) {
+                    generarBala(); temporizadorDisparo = ENFRIAMIENTO_DISPARO;
+                }
+
+                for (const bala of balas) bala.y -= VELOCIDAD_BALA * dt;
+                balas = balas.filter(b => b.y + b.alto > -4);
+
+                temporizadorAparicion += dt;
+                if (temporizadorAparicion >= siguienteAparicion) {
+                    temporizadorAparicion = 0;
+                    siguienteAparicion = aleatorio(APARICION_MIN, APARICION_MAX);
+                    generarEnemigo();
+                }
+                for (const enemigo of enemigos) enemigo.y += enemigo.velocidad * dt;
+
+                for (let i = enemigos.length - 1; i >= 0; i--) {
+                    if (enemigos[i].y > MUNDO_ALTO) {
+                        puntaje = Math.max(0, puntaje - 150);
+                        actualizarIU();
+                        flotantes.push({ x: enemigos[i].x + enemigos[i].ancho / 2, y: MUNDO_ALTO - 20, vy: -40, vida: 1.5, texto: "-150 😢" });
+                        rachaEliminaciones = 0;
+                        indiceSiguienteHito = 0;
+                        ultimoTiempoEliminacion = 0;
+                        enemigos.splice(i, 1);
+                    }
+                }
+                enemigos = enemigos.filter(e => e.y < MUNDO_ALTO + e.alto + 4);
+
+                temporizadorRegalo += dt;
+                if (temporizadorRegalo >= siguienteRegalo) {
+                    temporizadorRegalo = 0;
+                    siguienteRegalo = aleatorio(REGALO_MIN, REGALO_MAX);
+                    generarRegalo();
+                }
+                for (const regalo of regalos) regalo.y += regalo.velocidad * dt;
+                regalos = regalos.filter(r => r.y < MUNDO_ALTO + r.alto + 4);
+
+                const tActual = performance.now() / 1000;
+                let eliminacionesEnEsteFrame = 0;
+
+                for (let i = enemigos.length - 1; i >= 0; i--) {
+                    const enemigo = enemigos[i];
+                    for (let j = balas.length - 1; j >= 0; j--) {
+                        const bala = balas[j];
+                        if (colisionan(enemigo, bala)) {
+                            enemigos.splice(i, 1);
+                            balas.splice(j, 1);
+                            puntaje += 100;
+                            amor = Math.min(AMOR_MAXIMO, amor + obtenerAmorPorDisparo());
+                            actualizarIU();
+
+                            if (protegerRachaTransicion) { rachaEliminaciones++; protegerRachaTransicion = false; }
+                            else {
+                                if (tActual - ultimoTiempoEliminacion <= 2.0) rachaEliminaciones++;
+                                else { rachaEliminaciones = 1; indiceSiguienteHito = 0; }
+                            }
+                            ultimoTiempoEliminacion = tActual;
+                            eliminacionesEnEsteFrame++;
+
+                            if (indiceSiguienteHito < rachas.length && rachaEliminaciones >= rachas[indiceSiguienteHito]) {
+                                const hito = rachas[indiceSiguienteHito];
+                                mostrarMensajeRacha(`¡Racha de ${hito} eliminaciones! +${hito * 10} puntos`);
+                                puntaje += hito * 10;
+                                indiceSiguienteHito++;
+                                actualizarIU();
+                            }
+
+                            vibrar(50);
+                            flotantes.push({
+                                x: enemigo.x + enemigo.ancho / 2,
+                                y: enemigo.y + enemigo.alto / 2,
+                                vy: -60, vida: 1.0,
+                                texto: Math.random() < 0.5 ? "+100 ❤️" : elegirAleatorio(FRASES_GOLPE)
+                            });
+                            for (let k = 0; k < 12; k++) particulas.push({
+                                x: enemigo.x + enemigo.ancho / 2,
+                                y: enemigo.y + enemigo.alto / 2,
+                                vx: aleatorio(-120, 120),
+                                vy: aleatorio(-160, -40), tamaño: aleatorio(4, 9),
+                                vida: aleatorio(0.5, 0.9)
+                            });
+                            break;
+                        }
+                    }
+                }
+
+                if (eliminacionesEnEsteFrame > 1) {
+                    flotantes.push({ x: jugador.x + jugador.ancho / 2, y: jugador.y - 30, vy: -80, vida: 1.2, texto: `Combo x${eliminacionesEnEsteFrame}!` });
+                }
+
+                // Regalos
+                for (let i = regalos.length - 1; i >= 0; i--) {
+                    const regalo = regalos[i];
+                    if (colisionan(regalo, jugador)) {
+                        regalos.splice(i, 1);
+
+                        if (regalo.tipo === 'trampa') {
+                            puntaje = Math.max(0, puntaje - 500);
+                            flotantes.push({ x: regalo.x + regalo.ancho / 2, y: regalo.y + regalo.alto / 2, vy: -60, vida: 1.5, texto: "-500 💣" });
+                            vibrar(100);
+                            playSfx('trampa');
+                        } else {
+                            amor = Math.min(AMOR_MAXIMO, amor + 5);
+                            flotantes.push({ x: regalo.x + regalo.ancho / 2, y: regalo.y + regalo.alto / 2, vy: -60, vida: 1.0, texto: "+5% 🎁" });
+                            vibrar(30);
+                            playSfx('regalo');
+                        }
+
+                        actualizarIU();
+
+                        for (let k = 0; k < 10; k++) particulas.push({
+                            x: regalo.x + regalo.ancho / 2, y: regalo.y + regalo.alto / 2,
+                            vx: aleatorio(-90, 90), vy: aleatorio(-140, -30),
+                            tamaño: aleatorio(4, 8), vida: aleatorio(0.4, 0.8)
+                        });
+                    }
+                }
+
+                if (!victoria && amor >= AMOR_MAXIMO) {
+                    victoria = true;
+                    if (puntaje > mejorPuntaje) {
+                        mejorPuntaje = puntaje;
+                        localStorage.setItem('puntaje_maximo_amor', String(mejorPuntaje));
+                    }
+                    if (mejorTiempo === 0 || tiempoTranscurrido < mejorTiempo) {
+                        mejorTiempo = tiempoTranscurrido;
+                        localStorage.setItem('mejor_tiempo', String(mejorTiempo));
+                    }
+                    elPuntajeActual.textContent = String(puntaje);
+                    elMejorPuntaje.textContent = String(mejorPuntaje);
+                    elNivelActual.textContent = String(nivel);
+                    elTiempoJugado.textContent = tiempoTranscurrido.toFixed(1) + "s";
+                    titulosuperposicion.textContent = MENSAJES_VICTORIA[nivel] || MENSAJES_VICTORIA[1];
+                    laFraseFinal.textContent = FRASES_VICTORIA[nivel] || FRASES_VICTORIA[1];
+
+                    if (nivel < 10) {
+                        btnReiniciar.textContent = 'Siguiente nivel';
+                    } else {
+                        btnReiniciar.textContent = 'Volver a jugar';
+                    }
+
+                    superposicion.hidden = false;
+                    playSfx('nivel');
+
+                    enviarResultado({
+                        score: puntaje,
+                        time: tiempoTranscurrido,
+                        level: nivel
+                    });
+                }
+
+                for (const enemigo of enemigos) {
+                    if (colisionan(enemigo, jugador)) {
+                        intentos--;
+                        if (intentos <= 0) {
+                            juegoTerminado = true;
+                            if (puntaje > mejorPuntaje) {
+                                mejorPuntaje = puntaje;
+                                localStorage.setItem('puntaje_maximo_amor', String(mejorPuntaje));
+                            }
+                            elPuntajeActual.textContent = String(puntaje);
+                            elMejorPuntaje.textContent = String(mejorPuntaje);
+                            elNivelActual.textContent = String(nivel);
+                            elTiempoJugado.textContent = tiempoTranscurrido.toFixed(1) + "s";
+                            titulosuperposicion.textContent = '💔 Game Over';
+                            btnReiniciar.textContent = 'Reintentar (R)';
+                            laFraseFinal.textContent = elegirAleatorio(FRASES_FIN);
+
+                            vibrar(100);
+                            playSfx('gameover');
+
+                            superposicion.hidden = false;
+
+                            enviarResultado({
+                                score: puntaje,
+                                time: tiempoTranscurrido,
+                                level: nivel
+                            });
+                        } else {
+                            flotantes.push({ x: jugador.x + jugador.ancho / 2, y: jugador.y + jugador.alto / 2, vy: -60, vida: 1.5, texto: "¡Cuidado! Intentos: " + intentos });
+                            enemigos = enemigos.filter(e => e !== enemigo);
+                            vibrar(50);
+                            actualizarIU();
+                        }
+                        break;
+                    }
+                }
+
+                for (const f of flotantes) { f.y += f.vy * dt; f.vida -= dt * 0.8; }
+                flotantes = flotantes.filter(f => f.vida > 0);
+
+                for (const p of particulas) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 240 * dt; p.vida -= dt; }
+                particulas = particulas.filter(p => p.vida > 0);
+            }
+
+            function dibujar() {
+                contexto.setTransform(1, 0, 0, 1, 0, 0);
+                contexto.clearRect(0, 0, lienzo.width, lienzo.height);
+                establecerTransformacionMundo();
+
+                if (IMG.fondo) {
+                    const propImg = IMG.fondo.width / IMG.fondo.height;
+                    const propMundo = MUNDO_ANCHO / MUNDO_ALTO;
+                    let w, h, x, y;
+                    if (propImg > propMundo) {
+                        h = MUNDO_ALTO; w = IMG.fondo.width * (MUNDO_ALTO / IMG.fondo.height);
+                        x = (MUNDO_ANCHO - w) / 2; y = 0;
+                    } else {
+                        w = MUNDO_ANCHO; h = IMG.fondo.height * (MUNDO_ANCHO / IMG.fondo.width);
+                        x = 0; y = (MUNDO_ALTO - h) / 2;
+                    }
+                    contexto.drawImage(IMG.fondo, x, y, w, h);
+                } else {
+                    contexto.fillStyle = '#101018';
+                    contexto.fillRect(0, 0, MUNDO_ANCHO, MUNDO_ALTO);
+                }
+
+                for (const c of corazonesFondo) {
+                    contexto.save();
+                    contexto.globalAlpha = c.alpha;
+                    contexto.fillStyle = '#ff6e8b';
+                    dibujarCorazon(contexto, c.x, c.y, c.tamaño);
+                    contexto.restore();
+                }
+
+                if (juegoIniciado) {
+                    if (IMG.jugador)
+                        contexto.drawImage(IMG.jugador, Math.round(jugador.x), Math.round(jugador.y), jugador.ancho, jugador.alto);
+                    else {
+                        contexto.fillStyle = '#4cf';
+                        contexto.fillRect(Math.round(jugador.x), Math.round(jugador.y), jugador.ancho, jugador.alto);
+                    }
+
+                    for (const bala of balas) {
+                        if (IMG.bala)
+                            contexto.drawImage(IMG.bala, Math.round(bala.x), Math.round(bala.y), bala.ancho, bala.alto);
+                        else {
+                            contexto.fillStyle = '#f36';
+                            contexto.fillRect(Math.round(bala.x), Math.round(bala.y), bala.ancho, bala.alto);
+                        }
+                    }
+
+                    for (const enemigo of enemigos) {
+                        if (IMG.enemigo)
+                            contexto.drawImage(IMG.enemigo, Math.round(enemigo.x), Math.round(enemigo.y), enemigo.ancho, enemigo.alto);
+                        else {
+                            contexto.fillStyle = '#fd6';
+                            contexto.fillRect(Math.round(enemigo.x), Math.round(enemigo.y), enemigo.ancho, enemigo.alto);
+                        }
+                    }
+
+                    contexto.font = '28px system-ui, Apple Color Emoji, Segoe UI Emoji';
+                    contexto.textAlign = 'center';
+                    contexto.textBaseline = 'middle';
+                    for (const regalo of regalos) {
+                        contexto.fillText(regalo.emoji, Math.round(regalo.x + regalo.ancho / 2), Math.round(regalo.y + regalo.alto / 2));
+                    }
+
+                    for (const p of particulas) {
+                        contexto.save();
+                        contexto.globalAlpha = Math.max(0, Math.min(1, p.vida));
+                        contexto.fillStyle = '#ff8cab';
+                        dibujarCorazon(contexto, p.x, p.y, p.tamaño);
+                        contexto.restore();
+                    }
+
+                    contexto.fillStyle = 'rgba(255,255,255,.95)';
+                    contexto.font = '16px system-ui,-apple-system,Segoe UI,Roboto,Arial';
+                    contexto.textAlign = 'left';
+                    contexto.fillText(`Puntaje: ${puntaje}`, 12, 22);
+                    contexto.fillText(`Récord: ${mejorPuntaje}`, 12, 42);
+                    contexto.fillText(`Nivel: ${nivel}`, 12, 62);
+                    contexto.fillText(`Tiempo: ${tiempoTranscurrido.toFixed(1)}s`, 12, 82);
+                    contexto.fillText(`Intentos: ${intentos}`, 12, 102);
+
+                    if (rachaEliminaciones > 1) contexto.fillText(`Racha: ${rachaEliminaciones}`, 12, 122);
+
+                    const anchoMedidor = 280, altoMedidor = 12;
+                    const xMedidor = (MUNDO_ANCHO - anchoMedidor) / 2;
+                    const yMedidor = 10;
+                    contexto.globalAlpha = 0.9;
+                    contexto.fillStyle = 'rgba(255,255,255,0.18)';
+                    contexto.fillRect(xMedidor, yMedidor, anchoMedidor, altoMedidor);
+                    contexto.fillStyle = '#ff6e8b';
+                    contexto.fillRect(xMedidor, yMedidor, anchoMedidor * Math.max(0, Math.min(1, amor / AMOR_MAXIMO)), altoMedidor);
+                    contexto.globalAlpha = 1;
+
+                    if (!juegoTerminado && !victoria) {
+                        contexto.globalAlpha = 0.9;
+                        contexto.fillText('Joystick para moverte • ❤️ disparar • P pausar • R reiniciar', 12, MUNDO_ALTO - 16);
+                        contexto.globalAlpha = 1;
+                    }
+
+                    for (const f of flotantes) {
+                        contexto.save();
+                        contexto.globalAlpha = Math.max(0, Math.min(1, f.vida));
+                        contexto.fillStyle = '#ffe3ea';
+                        contexto.font = 'bold 18px system-ui,-apple-system,Segoe UI,Roboto,Arial';
+                        contexto.textAlign = 'center';
+                        contexto.fillText(f.texto, Math.round(f.x), Math.round(f.y));
+                        contexto.restore();
+                    }
+                }
+            }
+
+            function actualizarIU() {
+                IUPuntaje.textContent = `Puntaje: ${puntaje} • Récord: ${mejorPuntaje} • %: ${Math.round((amor / AMOR_MAXIMO) * 100)} • Nivel: ${nivel} • Tiempo: ${tiempoTranscurrido.toFixed(1)}s • Intentos: ${intentos}`;
+            }
+
+            // ===== Inicio =====
+            function comenzarJuego() {
+                juegoIniciado = true;
+                pantallaInicio.hidden = true;
+                inicioReloj = performance.now() / 1000; // arranca reloj global
+                reiniciarJuego(); // prepara todo
+            }
+
+            function iniciar() {
+                configurarEntradas();
+                redimensionar();
+                inicializarCorazonesFondo();
+                actualizarIU();
+                exigirSesionOLogin();
+
+                window.addEventListener('resize', redimensionar);
+                window.addEventListener('orientationchange', () => setTimeout(redimensionar, 250));
+                requestAnimationFrame(bucle);
+            }
+
+        })();
+    </script>
+
+</body>
+
+</html>
