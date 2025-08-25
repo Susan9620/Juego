@@ -238,10 +238,13 @@
         }
 
         @keyframes flotar {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translateY(0px) rotate(0deg);
                 opacity: 0.3;
             }
+
             50% {
                 transform: translateY(-20px) rotate(10deg);
                 opacity: 0.6;
@@ -284,12 +287,11 @@
                     <p class="juego-descripcion">Dispara corazones y conquista el espacio</p>
                 </a>
 
-                <div class="juego-card proximo">
-                    <div class="proximo-badge">Próximo</div>
-                    <span class="juego-emoji">🍭</span>
-                    <h3 class="juego-titulo">Candy Crush ❤️</h3>
-                    <p class="juego-descripcion">Combina dulces románticos</p>
-                </div>
+                <a href="candy.html" class="juego-card disponible">
+                    <span class="juego-emoji">💝</span>
+                    <h3 class="juego-titulo">Love Crush ❤️</h3>
+                    <p class="juego-descripcion">Combina corazones</p>
+                </a>
 
                 <div class="juego-card proximo">
                     <div class="proximo-badge">Próximo</div>
@@ -324,8 +326,8 @@
 
                 <div class="creditos">
                     <p>🎮 Colección de mini juegos románticos<br>
-                    💫 Más juegos llegando pronto<br>
-                    ❤️ ¡Disfruta jugando!</p>
+                        💫 Más juegos llegando pronto<br>
+                        ❤️ ¡Disfruta jugando!</p>
                 </div>
             </div>
         </div>
@@ -335,16 +337,16 @@
         // === Fondo animado con corazones ===
         const lienzo = document.getElementById('fondo');
         const contexto = lienzo.getContext('2d');
-        
+
         let corazones = [];
         let dpr = 1;
         let escala = 1;
-        
+
         // Utilidades
         function aleatorio(min, max) {
             return Math.random() * (max - min) + min;
         }
-        
+
         function dibujarCorazon(ctx, x, y, tamaño) {
             ctx.beginPath();
             ctx.moveTo(x, y);
@@ -355,7 +357,7 @@
             ctx.closePath();
             ctx.fill();
         }
-        
+
         function inicializarCorazones() {
             corazones = [];
             for (let i = 0; i < 25; i++) {
@@ -371,7 +373,7 @@
                 });
             }
         }
-        
+
         function redimensionar() {
             dpr = Math.min(window.devicePixelRatio || 1, 2);
             lienzo.width = window.innerWidth * dpr;
@@ -379,13 +381,13 @@
             contexto.scale(dpr, dpr);
             inicializarCorazones();
         }
-        
+
         function actualizar(dt) {
             for (const corazon of corazones) {
                 corazon.y -= corazon.velocidadY * dt;
                 corazon.x += corazon.velocidadX * dt;
                 corazon.rotacion += corazon.velocidadRotacion;
-                
+
                 // Wrap around
                 if (corazon.y < -30) {
                     corazon.y = window.innerHeight + 20;
@@ -395,10 +397,10 @@
                 if (corazon.x > window.innerWidth + 30) corazon.x = -20;
             }
         }
-        
+
         function dibujar() {
             contexto.clearRect(0, 0, lienzo.width, lienzo.height);
-            
+
             // Gradient background
             const gradient = contexto.createRadialGradient(
                 window.innerWidth / 2, window.innerHeight * 0.2, 0,
@@ -407,10 +409,10 @@
             gradient.addColorStop(0, '#1a1625');
             gradient.addColorStop(0.6, '#0f0f14');
             gradient.addColorStop(1, '#0a0a0d');
-            
+
             contexto.fillStyle = gradient;
             contexto.fillRect(0, 0, window.innerWidth, window.innerHeight);
-            
+
             // Dibujar corazones
             for (const corazon of corazones) {
                 contexto.save();
@@ -422,29 +424,29 @@
                 contexto.restore();
             }
         }
-        
+
         let ultimoTiempo = performance.now();
         function bucle(ahora) {
             const dt = Math.min((ahora - ultimoTiempo) / 1000, 0.05);
             ultimoTiempo = ahora;
-            
+
             actualizar(dt);
             dibujar();
             requestAnimationFrame(bucle);
         }
-        
+
         // Inicialización
         function iniciar() {
             redimensionar();
             requestAnimationFrame(bucle);
         }
-        
+
         // Event listeners
         window.addEventListener('resize', redimensionar);
         window.addEventListener('orientationchange', () => {
             setTimeout(redimensionar, 250);
         });
-        
+
         // Efectos de hover adicionales
         document.querySelectorAll('.juego-card.disponible').forEach(card => {
             card.addEventListener('mouseenter', () => {
@@ -457,7 +459,7 @@
                         corazon.style.left = aleatorio(0, card.offsetWidth) + 'px';
                         corazon.style.top = card.offsetHeight + 'px';
                         card.appendChild(corazon);
-                        
+
                         setTimeout(() => {
                             if (corazon.parentNode) {
                                 corazon.parentNode.removeChild(corazon);
@@ -467,7 +469,7 @@
                 }
             });
         });
-        
+
         // Iniciar aplicación
         iniciar();
     </script>
