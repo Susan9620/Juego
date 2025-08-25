@@ -456,8 +456,8 @@
             <input id="username" type="text" placeholder="Usuario" autocomplete="username">
             <input id="password" type="password" placeholder="Contraseña" autocomplete="current-password">
             <div class="fila">
-                <button id="btnLogin" class="cta">Iniciar sesión</button>
-                <button id="btnRegister" class="cta">Registrarse</button>
+                <button id="btnLogin" class="cta" type="button">Iniciar sesión</button>
+                <button id="btnRegister" class="cta" type="button">Registrarse</button>
             </div>
             <p id="msgLogin"></p>
         </div>
@@ -508,6 +508,11 @@
         var AUTH_TOKEN = localStorage.getItem('auth_token') || null;
         var USERNAME = localStorage.getItem('username') || '';
 
+        if (AUTH_TOKEN === 'null') {
+            localStorage.removeItem('auth_token');
+            AUTH_TOKEN = null;
+        }
+
         // Identidad del jugador (persistente en el navegador)
         let PLAYER_ID = localStorage.getItem('player_id');
         if (!PLAYER_ID) {
@@ -529,12 +534,16 @@
                 });
 
                 if (res.status === 401) {
-                    // Token inválido: limpiar y mostrar login
                     localStorage.removeItem('auth_token');
                     AUTH_TOKEN = null;
-                    document.getElementById('pantallaLogin').hidden = false;
-                    document.getElementById('pantallaInicio').hidden = true;
-                    document.getElementById('msgLogin').textContent = 'Vuelve a iniciar sesión';
+                    const login = document.getElementById('pantallaLogin');
+                    const inicio = document.getElementById('pantallaInicio');
+                    const msg = document.getElementById('msgLogin');
+                    if (login && inicio && msg) {
+                        login.hidden = false;
+                        inicio.hidden = true;
+                        msg.textContent = 'Vuelve a iniciar sesión';
+                    }
                     return;
                 }
 
@@ -653,8 +662,21 @@
                 }
             }
 
-            btnLogin?.addEventListener('click', () => loginRegister('login'));
-            btnRegister?.addEventListener('click', () => loginRegister('register'));
+            if (!btnLogin || !btnRegister) {
+                console.error('No se encontraron los botones de login/registro');
+            }
+
+            btnLogin.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('click login');
+                loginRegister('login');
+            });
+
+            btnRegister.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('click register');
+                loginRegister('register');
+            });
 
             function exigirSesionOLogin() {
                 if (AUTH_TOKEN) {
