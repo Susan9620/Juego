@@ -1,6 +1,11 @@
-@"
-node_modules/
-.env
-npm-debug.log*
+# comunes
 .DS_Store
-"@ | Out-File -Encoding utf8 .gitignore
+npm-debug.log*
+
+# backend
+backend/node_modules/
+backend/.env
+
+# (si tu frontend usa build)
+frontend/node_modules/
+frontend/dist/
