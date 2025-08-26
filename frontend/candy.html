@@ -335,7 +335,7 @@
         const CORAZONES_BASICOS = ['🩷', '🧡', '💛', '💚', '🩵', '💜'];
         const CORAZONES_ESPECIALES = {
             RAYADO: '💘',
-            ENVUELTO: '💝', 
+            ENVUELTO: '💝',
             DORADO: '❤️‍🔥'
         };
 
@@ -398,23 +398,23 @@
             try {
                 const osc = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
-                
+
                 osc.type = type;
                 osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
                 osc.connect(gainNode);
                 gainNode.connect(masterGain);
-                
+
                 gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-                
+
                 osc.start(audioCtx.currentTime);
                 osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {}
+            } catch (e) { }
         }
 
         function playSoundEffect(type) {
             if (!audioCtx) return;
-            
+
             switch (type) {
                 case 'match':
                     playTone(523, 0.15); // Do
@@ -468,14 +468,14 @@
             const cssAncho = window.innerWidth;
             const cssAlto = window.innerHeight;
             dpr = Math.min(window.devicePixelRatio || 1, 3);
-            
+
             lienzo.width = Math.floor(cssAncho * dpr);
             lienzo.height = Math.floor(cssAlto * dpr);
-            
+
             const escalaX = cssAncho / MUNDO_ANCHO;
             const escalaY = cssAlto / MUNDO_ALTO;
             escala = Math.min(escalaX, escalaY);
-            
+
             desplazamientoX = (cssAncho - MUNDO_ANCHO * escala) / 2;
             desplazamientoY = (cssAlto - MUNDO_ALTO * escala) / 2;
         }
@@ -496,7 +496,7 @@
                     do {
                         corazon = elegirAleatorio(CORAZONES_BASICOS);
                     } while (verificarMatchInicial(fila, col, corazon));
-                    
+
                     tablero[fila][col] = corazon;
                 }
             }
@@ -504,19 +504,19 @@
 
         function verificarMatchInicial(fila, col, corazon) {
             // Verificar horizontal
-            if (col >= 2 && 
-                tablero[fila][col - 1] === corazon && 
+            if (col >= 2 &&
+                tablero[fila][col - 1] === corazon &&
                 tablero[fila][col - 2] === corazon) {
                 return true;
             }
-            
+
             // Verificar vertical
-            if (fila >= 2 && 
-                tablero[fila - 1][col] === corazon && 
+            if (fila >= 2 &&
+                tablero[fila - 1][col] === corazon &&
                 tablero[fila - 2][col] === corazon) {
                 return true;
             }
-            
+
             return false;
         }
 
@@ -524,7 +524,7 @@
         function obtenerPosicionTablero(x, y) {
             const col = Math.floor((x - MARGEN_X) / TAMAÑO_CELDA);
             const fila = Math.floor((y - MARGEN_Y) / TAMAÑO_CELDA);
-            
+
             if (col >= 0 && col < COLUMNAS && fila >= 0 && fila < FILAS) {
                 return { fila, col };
             }
@@ -538,7 +538,7 @@
             btnContinuar.addEventListener('click', continuarJuego);
             btnReiniciar.addEventListener('click', reiniciarNivel);
             btnPista.addEventListener('click', mostrarPista);
-            
+
             // Boosters
             document.getElementById('btnBooster1').addEventListener('click', () => usarBooster('tinder'));
             document.getElementById('btnBooster2').addEventListener('click', () => usarBooster('cupido'));
@@ -547,16 +547,16 @@
 
         function manejarClick(e) {
             if (!juegoIniciado || animando) return;
-            
+
             e.preventDefault();
-            
+
             const rect = lienzo.getBoundingClientRect();
             const x = (e.clientX - rect.left - desplazamientoX) / escala;
             const y = (e.clientY - rect.top - desplazamientoY) / escala;
-            
+
             const pos = obtenerPosicionTablero(x, y);
             if (!pos) return;
-            
+
             if (!seleccionado) {
                 // Primer click - seleccionar
                 seleccionado = pos;
@@ -581,22 +581,22 @@
         function sonAdyacentes(pos1, pos2) {
             const deltaFila = Math.abs(pos1.fila - pos2.fila);
             const deltaCol = Math.abs(pos1.col - pos2.col);
-            
+
             return (deltaFila === 1 && deltaCol === 0) || (deltaFila === 0 && deltaCol === 1);
         }
 
         function intentarIntercambio(pos1, pos2) {
             if (animando) return;
-            
+
             // Intercambiar temporalmente
             const temp = tablero[pos1.fila][pos1.col];
             tablero[pos1.fila][pos1.col] = tablero[pos2.fila][pos2.col];
             tablero[pos2.fila][pos2.col] = temp;
-            
+
             // Verificar si hay matches
             const matches1 = encontrarMatches(pos1.fila, pos1.col);
             const matches2 = encontrarMatches(pos2.fila, pos2.col);
-            
+
             if (matches1.length > 0 || matches2.length > 0) {
                 // Movimiento válido
                 movimientos--;
@@ -616,12 +616,12 @@
         function encontrarMatches(fila, col) {
             const corazon = tablero[fila][col];
             if (!CORAZONES_BASICOS.includes(corazon)) return [];
-            
+
             let matches = [];
-            
+
             // Buscar horizontal
             let horizontal = [{ fila, col }];
-            
+
             // Izquierda
             for (let c = col - 1; c >= 0; c--) {
                 if (tablero[fila][c] === corazon) {
@@ -630,7 +630,7 @@
                     break;
                 }
             }
-            
+
             // Derecha
             for (let c = col + 1; c < COLUMNAS; c++) {
                 if (tablero[fila][c] === corazon) {
@@ -639,14 +639,14 @@
                     break;
                 }
             }
-            
+
             if (horizontal.length >= 3) {
                 matches = matches.concat(horizontal);
             }
-            
+
             // Buscar vertical
             let vertical = [{ fila, col }];
-            
+
             // Arriba
             for (let f = fila - 1; f >= 0; f--) {
                 if (tablero[f][col] === corazon) {
@@ -655,7 +655,7 @@
                     break;
                 }
             }
-            
+
             // Abajo
             for (let f = fila + 1; f < FILAS; f++) {
                 if (tablero[f][col] === corazon) {
@@ -664,11 +664,11 @@
                     break;
                 }
             }
-            
+
             if (vertical.length >= 3) {
                 matches = matches.concat(vertical);
             }
-            
+
             // Remover duplicados
             const uniqueMatches = [];
             matches.forEach(match => {
@@ -676,13 +676,13 @@
                     uniqueMatches.push(match);
                 }
             });
-            
+
             return uniqueMatches;
         }
 
         function encontrarTodosLosMatches() {
             let todosLosMatches = [];
-            
+
             for (let fila = 0; fila < FILAS; fila++) {
                 for (let col = 0; col < COLUMNAS; col++) {
                     const matches = encontrarMatches(fila, col);
@@ -693,35 +693,35 @@
                     });
                 }
             }
-            
+
             return todosLosMatches;
         }
 
         function procesarMatches() {
             animando = true;
-            
+
             setTimeout(() => {
                 let matches = encontrarTodosLosMatches();
-                
+
                 if (matches.length > 0) {
                     // Crear efectos especiales basados en el patrón
                     crearEfectosEspeciales(matches);
-                    
+
                     // Eliminar matches y sumar puntos
                     matches.forEach(match => {
                         crearParticulas(match.fila, match.col);
                         tablero[match.fila][match.col] = null;
                         puntaje += 100;
                     });
-                    
+
                     actualizarUI();
-                    
+
                     // Aplicar gravedad
                     aplicarGravedad();
-                    
+
                     // Llenar espacios vacíos
                     llenarEspaciosVacios();
-                    
+
                     // Buscar más matches después de un delay
                     setTimeout(() => {
                         procesarMatches();
@@ -736,7 +736,7 @@
         function crearEfectosEspeciales(matches) {
             // Buscar patrones especiales
             const grupos = agruparMatchesPorLinea(matches);
-            
+
             grupos.forEach(grupo => {
                 if (grupo.length === 4) {
                     // Crear corazón rayado
@@ -761,35 +761,35 @@
         function agruparMatchesPorLinea(matches) {
             const grupos = [];
             const procesados = new Set();
-            
+
             matches.forEach(match => {
                 const key = `${match.fila}-${match.col}`;
                 if (procesados.has(key)) return;
-                
+
                 // Buscar grupo horizontal
-                let grupoH = matches.filter(m => 
-                    m.fila === match.fila && 
+                let grupoH = matches.filter(m =>
+                    m.fila === match.fila &&
                     Math.abs(m.col - match.col) <= 2
                 ).sort((a, b) => a.col - b.col);
-                
+
                 if (grupoH.length >= 3) {
                     grupos.push(grupoH);
                     grupoH.forEach(m => procesados.add(`${m.fila}-${m.col}`));
                 }
-                
+
                 // Buscar grupo vertical
-                let grupoV = matches.filter(m => 
-                    m.col === match.col && 
+                let grupoV = matches.filter(m =>
+                    m.col === match.col &&
                     Math.abs(m.fila - match.fila) <= 2 &&
                     !procesados.has(`${m.fila}-${m.col}`)
                 ).sort((a, b) => a.fila - b.fila);
-                
+
                 if (grupoV.length >= 3) {
                     grupos.push(grupoV);
                     grupoV.forEach(m => procesados.add(`${m.fila}-${m.col}`));
                 }
             });
-            
+
             return grupos;
         }
 
@@ -797,7 +797,7 @@
         function aplicarGravedad() {
             for (let col = 0; col < COLUMNAS; col++) {
                 let vacios = 0;
-                
+
                 // Contar espacios vacíos desde abajo hacia arriba
                 for (let fila = FILAS - 1; fila >= 0; fila--) {
                     if (tablero[fila][col] === null) {
@@ -825,7 +825,7 @@
         function crearParticulas(fila, col) {
             const x = MARGEN_X + col * TAMAÑO_CELDA + TAMAÑO_CELDA / 2;
             const y = MARGEN_Y + fila * TAMAÑO_CELDA + TAMAÑO_CELDA / 2;
-            
+
             for (let i = 0; i < 15; i++) {
                 particulas.push({
                     x,
@@ -847,7 +847,7 @@
                 p.vx *= 0.95;
                 p.vy *= 0.95;
                 p.vida--;
-                
+
                 if (p.vida <= 0) {
                     particulas.splice(i, 1);
                 }
@@ -933,7 +933,7 @@
 
         function usarBooster(tipo) {
             if (animando) return;
-            
+
             switch (tipo) {
                 case 'tinder':
                     mostrarMensaje('🔥 Tinder Mágico activado!');
@@ -949,57 +949,43 @@
 
         // Bucle principal
         function buclePrincipal() {
+            // Reset de la transformación antes de cada frame
+            contexto.setTransform(1, 0, 0, 1, 0, 0);
+            contexto.clearRect(0, 0, lienzo.width, lienzo.height);
+
+            // Aplicar transformaciones al "mundo" escalado
             establecerTransformacionMundo();
-            
-            // Limpiar canvas
-            contexto.clearRect(0, 0, MUNDO_ANCHO, MUNDO_ALTO);
-            
-            // Dibujar fondo
-            contexto.fillStyle = '#1a1625';
-            contexto.fillRect(0, 0, MUNDO_ANCHO, MUNDO_ALTO);
-            
+
             // Dibujar tablero
             for (let fila = 0; fila < FILAS; fila++) {
                 for (let col = 0; col < COLUMNAS; col++) {
-                    const x = MARGEN_X + col * TAMAÑO_CELDA;
-                    const y = MARGEN_Y + fila * TAMAÑO_CELDA;
-                    
-                    // Dibujar celda
-                    contexto.fillStyle = 'rgba(255, 255, 255, 0.65)';
-                    contexto.fillRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
-                    contexto.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-                    contexto.strokeRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
-                    
-                    // Dibujar corazón
-                    if (tablero[fila][col]) {
-                        contexto.font = '40px Arial';
-                        contexto.textAlign = 'center';
-                        contexto.textBaseline = 'middle';
-                        contexto.fillText(tablero[fila][col], x + TAMAÑO_CELDA / 2, y + TAMAÑO_CELDA / 2);
-                    }
-                    
-                    // Resaltar selección
-                    if (seleccionado && seleccionado.fila === fila && seleccionado.col === col) {
-                        contexto.strokeStyle = '#ff6b9d';
-                        contexto.lineWidth = 3;
-                        contexto.strokeRect(x + 2, y + 2, TAMAÑO_CELDA - 4, TAMAÑO_CELDA - 4);
+                    const corazon = tablero[fila][col];
+                    if (corazon) {
+                        const x = MARGEN_X + col * TAMAÑO_CELDA;
+                        const y = MARGEN_Y + fila * TAMAÑO_CELDA;
+
+                        contexto.font = "40px serif";
+                        contexto.textAlign = "center";
+                        contexto.textBaseline = "middle";
+                        contexto.fillText(corazon, x + TAMAÑO_CELDA / 2, y + TAMAÑO_CELDA / 2);
                     }
                 }
             }
-            
+
             // Actualizar y dibujar partículas
             actualizarParticulas();
             particulas.forEach(p => {
                 contexto.globalAlpha = p.vida / 30;
-                contexto.font = `${p.radio * 10}px Arial`;
-                contexto.textAlign = 'center';
-                contexto.textBaseline = 'middle';
-                contexto.fillText(p.color, p.x, p.y);
+                contexto.beginPath();
+                contexto.arc(p.x, p.y, p.radio, 0, Math.PI * 2);
+                contexto.fillStyle = "#ff6b9d";
+                contexto.fill();
                 contexto.globalAlpha = 1;
             });
-            
+
             requestAnimationFrame(buclePrincipal);
         }
+
 
         // Inicialización
         function inicializar() {
