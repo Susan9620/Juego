@@ -433,7 +433,7 @@
     <!-- Indicador de Pausa -->
     <div id="pausado" hidden>⏸ Pausa</div>
 
-    <!-- Pantalla de Login / Registro -->
+    <!-- Pantalla de Login / Registro 
     <div id="pantallaLogin">
         <div class="form-login">
             <h1>Disparando ❤️</h1>
@@ -445,7 +445,7 @@
             </div>
             <p id="msgLogin"></p>
         </div>
-    </div>
+    </div> -->
 
     <!-- Pantalla de inicio -->
     <div id="pantallaInicio">
@@ -1110,12 +1110,16 @@
 
             // ===== Responsive =====
             function redimensionar() {
-                cssAncho = window.innerWidth; cssAlto = window.innerHeight;
+                cssAncho = window.innerWidth; 
+                cssAlto = window.innerHeight;
                 dpr = Math.min(window.devicePixelRatio || 1, 3);
+
                 lienzo.width = Math.floor(cssAncho * dpr);
                 lienzo.height = Math.floor(cssAlto * dpr);
+
                 const escalaX = cssAncho / MUNDO_ANCHO, escalaY = cssAlto / MUNDO_ALTO;
                 escala = Math.min(escalaX, escalaY);
+                
                 desplazamientoX = (cssAncho - MUNDO_ANCHO * escala) / 2;
                 desplazamientoY = (cssAlto - MUNDO_ALTO * escala) / 2;
 

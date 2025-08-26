@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-    <title>Corazones Enamorados 💕</title>
+    <title>Love Crush 💕</title>
     <style>
         :root {
             --acento-1: #ff6b9d;
@@ -23,6 +23,7 @@
             touch-action: none;
         }
 
+        /* Canvas a pantalla completa debajo de la interfaz de usuario */
         #contenedor {
             position: fixed;
             inset: 0;
@@ -42,6 +43,7 @@
         .interfazUsuario {
             position: fixed;
             top: env(safe-area-inset-top);
+            margin-top: 10%;
             left: 0;
             right: 0;
             display: flex;
@@ -190,7 +192,7 @@
             padding: 30px 25px;
             border-radius: 16px;
             text-align: center;
-            width: min(90vw, 400px);
+            width: min(90vw, 310px);
         }
 
         .panel-inicio h1 {
@@ -290,7 +292,7 @@
 
     <div id="pantallaInicio">
         <div class="panel-inicio">
-            <h1>Corazones Enamorados 💕</h1>
+            <h1>Love Crush 💕</h1>
             <div class="instrucciones">
                 <p><strong>Cómo jugar:</strong></p>
                 <ul>
@@ -304,7 +306,7 @@
                     <li>💖 Tienes 5 vidas - ¡úsalas sabiamente!</li>
                 </ul>
             </div>
-            <button id="btnComenzar" class="cta">💕 Comenzar a Amar</button>
+            <button id="btnComenzar" class="cta">💕 Comenzar</button>
         </div>
     </div>
 
@@ -465,7 +467,7 @@
         function redimensionar() {
             const cssAncho = window.innerWidth;
             const cssAlto = window.innerHeight;
-            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            dpr = Math.min(window.devicePixelRatio || 1, 3);
             
             lienzo.width = Math.floor(cssAncho * dpr);
             lienzo.height = Math.floor(cssAlto * dpr);
@@ -963,9 +965,9 @@
                     const y = MARGEN_Y + fila * TAMAÑO_CELDA;
                     
                     // Dibujar celda
-                    contexto.fillStyle = 'rgba(255, 255, 255, 0.05)';
+                    contexto.fillStyle = 'rgba(255, 255, 255, 0.65)';
                     contexto.fillRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
-                    contexto.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                    contexto.strokeStyle = 'rgba(255, 255, 255, 0.15)';
                     contexto.strokeRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
                     
                     // Dibujar corazón
