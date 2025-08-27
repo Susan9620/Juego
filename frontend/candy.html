@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-    <title>Love Crush 💕</title>
+    <title>Love Crush</title>
     <style>
         :root {
             --acento-1: #ff6b9d;
@@ -23,7 +23,6 @@
             touch-action: none;
         }
 
-        /* Canvas a pantalla completa debajo de la interfaz de usuario */
         #contenedor {
             position: fixed;
             inset: 0;
@@ -43,7 +42,7 @@
         .interfazUsuario {
             position: fixed;
             top: env(safe-area-inset-top);
-            margin-top: 10%;
+            margin-top: 5%;
             left: 0;
             right: 0;
             display: flex;
@@ -82,6 +81,7 @@
             font-size: 14px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
             cursor: pointer;
+            pointer-events: all;
         }
 
         .controles {
@@ -112,6 +112,7 @@
             -webkit-backdrop-filter: blur(6px);
             touch-action: manipulation;
             cursor: pointer;
+            pointer-events: all;
         }
 
         .btn:active {
@@ -193,6 +194,8 @@
             border-radius: 16px;
             text-align: center;
             width: min(90vw, 310px);
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .panel-inicio h1 {
@@ -205,12 +208,12 @@
             margin: 15px 0 20px 0;
             text-align: left;
             color: #ffe3ea;
-            font-size: 15px;
-            line-height: 1.5;
+            font-size: 13px;
+            line-height: 1.4;
         }
 
         .instrucciones li {
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .mensaje-temporal {
@@ -277,46 +280,52 @@
         <div class="chip" id="IUPuntaje">Nivel: 1 • Puntaje: 0 • Movimientos: 25</div>
     </div>
 
-    <div class="vidas" id="IUVidas">💖 5</div>
+    <div class="vidas" id="IUVidas">Vidas: 5</div>
 
     <div class="barra-superior">
-        <button id="btnReiniciar" class="pildora">🔄 Reiniciar</button>
-        <button id="btnPista" class="pildora">💡 Pista</button>
+        <button id="btnReiniciar" class="pildora">Reiniciar</button>
+        <button id="btnPista" class="pildora">Pista</button>
     </div>
 
     <div class="controles">
-        <button class="btn" id="btnBooster1">🔥 Tinder</button>
-        <button class="btn" id="btnBooster2">🏹 Cupido</button>
-        <button class="btn" id="btnBooster3">✨ Big Bang</button>
+        <button class="btn" id="btnBooster1">Tinder</button>
+        <button class="btn" id="btnBooster2">Cupido</button>
+        <button class="btn" id="btnBooster3">Big Bang</button>
     </div>
 
     <div id="pantallaInicio">
         <div class="panel-inicio">
-            <h1>Love Crush 💕</h1>
+            <h1>Love Crush</h1>
             <div class="instrucciones">
-                <p><strong>Cómo jugar:</strong></p>
+                <p><strong>Como jugar:</strong></p>
                 <ul>
-                    <li>🩷 Intercambia corazones adyacentes para hacer match de 3+</li>
-                    <li>💘 4 en línea = Corazón Rayado (destruye fila/columna)</li>
-                    <li>💝 Forma L/T = Corazón Envuelto (explosión 3x3)</li>
-                    <li>❤️‍🔥 5 en línea = Corazón Dorado (destruye todos del color)</li>
-                    <li>🖤 Rompe Corazones de Piedra con matches adyacentes</li>
-                    <li>💋 Lleva los besos abajo para completar el nivel</li>
-                    <li>🧸 Une las almas gemelas tocándolas</li>
-                    <li>💖 Tienes 5 vidas - ¡úsalas sabiamente!</li>
+                    <li>Intercambia corazones adyacentes para hacer match de 3+</li>
+                    <li>4 en linea = Corazon Rayado (destruye fila/columna)</li>
+                    <li>Forma L/T = Corazon Envuelto (explosion 3x3)</li>
+                    <li>5 en linea = Corazon Arcoiris (destruye todos del color)</li>
+                    <li>Rompe Corazones de Piedra con matches adyacentes</li>
+                    <li>Evita las Nubes de Duda que oscurecen el tablero</li>
+                    <li>Lleva los besos abajo o empareja los osos segun el nivel</li>
+                    <li>Tienes 5 vidas - usalas sabiamente!</li>
+                </ul>
+                <p><strong>Niveles:</strong></p>
+                <ul>
+                    <li>1-3: Alcanzar puntuacion objetivo</li>
+                    <li>4-6: Entregar besos</li>
+                    <li>7-10: Emparejar osos de peluche</li>
                 </ul>
             </div>
-            <button id="btnComenzar" class="cta">💕 Comenzar</button>
+            <button id="btnComenzar" class="cta">Comenzar</button>
         </div>
     </div>
 
     <div id="superposicion" hidden>
         <div class="panel">
-            <h1 id="tituloSuperposicion">💔 Nivel Fallido</h1>
+            <h1 id="tituloSuperposicion">Nivel Fallido</h1>
             <p class="linea">Nivel: <b id="nivelActual">1</b></p>
             <p class="linea">Puntaje: <b id="puntajeActual">0</b></p>
-            <p class="linea">Objetivo: <b id="objetivoTexto">Alcanzar puntuación</b></p>
-            <p class="frase" id="fraseFinal">"El amor verdadero nunca se rinde 💕"</p>
+            <p class="linea">Objetivo: <b id="objetivoTexto">Alcanzar puntuacion</b></p>
+            <p class="frase" id="fraseFinal">"El amor verdadero nunca se rinde"</p>
             <button id="btnContinuar" class="cta">Continuar</button>
         </div>
     </div>
@@ -324,29 +333,76 @@
     <script>
         // === Constantes del juego ===
         const MUNDO_ANCHO = 600;
-        const MUNDO_ALTO = 775;
-        const FILAS = 8;
-        const COLUMNAS = 7;
-        const TAMAÑO_CELDA = 60;
+        const MUNDO_ALTO = 900;
+        const FILAS = 12;
+        const COLUMNAS = 8;
+        const TAMAÑO_CELDA = 50;
         const MARGEN_X = (MUNDO_ANCHO - COLUMNAS * TAMAÑO_CELDA) / 2;
-        const MARGEN_Y = 120;
+        const MARGEN_Y = 80;
 
-        // Tipos de corazones
-        const CORAZONES_BASICOS = ['🩷', '🧡', '💛', '💚', '🩵', '💜'];
-        const CORAZONES_ESPECIALES = {
-            RAYADO: '💘',
-            ENVUELTO: '💝', 
-            DORADO: '❤️‍🔥'
+        // Imágenes de corazones
+        const IMAGENES_CORAZONES = {
+            ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245910/Coraz%C3%B3n_Rosado_dbcttm.png',
+            MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245910/Coraz%C3%B3n_Morado_diuu3y.png',
+            AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245909/Coraz%C3%B3n_Amarillo_mfdy9h.png',
+            NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245910/Coraz%C3%B3n_Naranja_bcvdii.png',
+            VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245911/Coraz%C3%B3n_Verde_jhh5ld.png',
+            CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245910/Coraz%C3%B3n_Celeste_xstszc.png'
+        };
+
+        const IMAGENES_ESPECIALES = {
+            RAYADO_ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245940/Rayado_Rosado_wirbzt.png',
+            RAYADO_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245938/Rayado_Morado_uk1g7m.png',
+            RAYADO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245937/Rayado_Amarillo_xbpkki.png',
+            RAYADO_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245939/Rayado_Naranja_ll57hu.png',
+            RAYADO_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245942/Rayado_Verde_fuc65g.png',
+            RAYADO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245937/Rayado_Celeste_snsvwv.png',
+            ENVUELTO_ROSADO: 'img/corazon-envuelto-rosa.png',
+            ENVUELTO_MORADO: 'img/corazon-envuelto-morado.png',
+            ENVUELTO_AMARILLO: 'img/corazon-envuelto-amarillo.png',
+            ENVUELTO_NARANJA: 'img/corazon-envuelto-naranja.png',
+            ENVUELTO_VERDE: 'img/corazon-envuelto-verde.png',
+            ENVUELTO_CELESTE: 'img/corazon-envuelto-celeste.png',
+            ARCOIRIS: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245910/Coraz%C3%B3n_Arcoiris_vtxthu.png'
+        };
+
+        const IMAGENES_ELEMENTOS = {
+            PIEDRA: 'img/piedra.png',
+            NUBE: 'img/nube.png',
+            BESO: 'img/beso.png',
+            OSO: 'img/oso.png'
+        };
+
+        const CORAZONES_BASICOS = Object.keys(IMAGENES_CORAZONES);
+
+        // Tipos especiales
+        const TIPOS_ESPECIALES = {
+            RAYADO: 'striped',
+            ENVUELTO: 'wrapped',
+            ARCOIRIS: 'rainbow'
         };
 
         // Obstáculos y objetivos
         const ELEMENTOS = {
-            PIEDRA: '🖤',
-            NUBE: '☁️',
-            MURO: '🧱',
-            BESO: '💋',
-            ALMA: '🧸'
+            PIEDRA: 'stone',
+            NUBE: 'cloud',
+            BESO: 'kiss',
+            OSO: 'bear'
         };
+
+        // Configuración de niveles
+        const NIVELES_CONFIG = [
+            { nivel: 1, objetivo: 'puntuacion', valor: 1500, movimientos: 25, obstaculos: [] },
+            { nivel: 2, objetivo: 'puntuacion', valor: 2500, movimientos: 25, obstaculos: [] },
+            { nivel: 3, objetivo: 'puntuacion', valor: 4000, movimientos: 25, obstaculos: ['piedra'] },
+            { nivel: 4, objetivo: 'besos', valor: 3, movimientos: 30, obstaculos: ['piedra'] },
+            { nivel: 5, objetivo: 'besos', valor: 5, movimientos: 30, obstaculos: ['nube'] },
+            { nivel: 6, objetivo: 'besos', valor: 8, movimientos: 35, obstaculos: ['nube'] },
+            { nivel: 7, objetivo: 'osos', valor: 3, movimientos: 35, obstaculos: ['piedra', 'nube'] },
+            { nivel: 8, objetivo: 'osos', valor: 4, movimientos: 40, obstaculos: ['piedra', 'nube'] },
+            { nivel: 9, objetivo: 'osos', valor: 5, movimientos: 40, obstaculos: ['piedra', 'nube'] },
+            { nivel: 10, objetivo: 'osos', valor: 6, movimientos: 45, obstaculos: ['piedra', 'nube'] }
+        ];
 
         // Referencias DOM
         const lienzo = document.getElementById('juego');
@@ -355,10 +411,6 @@
         const IUVidas = document.getElementById('IUVidas');
         const pantallaInicio = document.getElementById('pantallaInicio');
         const superposicion = document.getElementById('superposicion');
-        const btnComenzar = document.getElementById('btnComenzar');
-        const btnContinuar = document.getElementById('btnContinuar');
-        const btnReiniciar = document.getElementById('btnReiniciar');
-        const btnPista = document.getElementById('btnPista');
 
         // Estado del juego
         let tablero = [];
@@ -370,9 +422,10 @@
         let seleccionado = null;
         let animando = false;
         let objetivo = 'puntuacion';
-        let objetivoValor = 5000;
+        let objetivoValor = 1500;
         let particulas = [];
-        let efectosVisuales = [];
+        let besosEntregados = 0;
+        let ososEmparejados = 0;
 
         // Variables responsive
         let dpr = 1;
@@ -380,74 +433,70 @@
         let desplazamientoX = 0;
         let desplazamientoY = 0;
 
-        // Audio simple con Web Audio API
+        // Audio
         let audioCtx = null;
         let masterGain = null;
 
-        async function setupAudio() {
-            if (audioCtx) return;
-            const AC = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AC();
-            masterGain = audioCtx.createGain();
-            masterGain.gain.value = 0.3;
-            masterGain.connect(audioCtx.destination);
+        // Precargar imágenes
+        let imagenesCargadas = {};
+        let imagenesCargando = 0;
+
+        function cargarImagenes() {
+            const todasImagenes = { ...IMAGENES_CORAZONES, ...IMAGENES_ESPECIALES, ...IMAGENES_ELEMENTOS };
+
+            Object.keys(todasImagenes).forEach(key => {
+                imagenesCargando++;
+                const img = new Image();
+                img.onload = () => {
+                    imagenesCargadas[key] = img;
+                    imagenesCargando--;
+                };
+                img.onerror = () => {
+                    console.error('Error cargando imagen:', todasImagenes[key]);
+                    imagenesCargando--;
+                };
+                img.src = todasImagenes[key];
+            });
         }
 
-        function playTone(frequency, duration = 0.1, type = 'sine') {
+        async function setupAudio() {
+            if (audioCtx) return;
+            try {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AC();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0.3;
+                masterGain.connect(audioCtx.destination);
+            } catch (e) {
+                console.log('Audio no disponible');
+            }
+        }
+
+        function playTone(frequency, duration = 0.1) {
             if (!audioCtx) return;
             try {
                 const osc = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
-                
-                osc.type = type;
+
                 osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
                 osc.connect(gainNode);
                 gainNode.connect(masterGain);
-                
+
                 gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-                
+
                 osc.start(audioCtx.currentTime);
                 osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {}
+            } catch (e) { }
         }
 
-        function playSoundEffect(type) {
-            if (!audioCtx) return;
-            
-            switch (type) {
-                case 'match':
-                    playTone(523, 0.15); // Do
-                    setTimeout(() => playTone(659, 0.15), 50); // Mi
-                    break;
-                case 'special':
-                    playTone(659, 0.2); // Mi
-                    setTimeout(() => playTone(784, 0.2), 100); // Sol
-                    setTimeout(() => playTone(988, 0.3), 200); // Si
-                    break;
-                case 'fail':
-                    playTone(208, 0.5); // Sol bemol grave
-                    break;
-                case 'success':
-                    playTone(523, 0.2); // Do
-                    setTimeout(() => playTone(659, 0.2), 100); // Mi
-                    setTimeout(() => playTone(784, 0.2), 200); // Sol
-                    setTimeout(() => playTone(1047, 0.4), 300); // Do alto
-                    break;
-            }
-        }
-
-        // Funciones de utilidad
+        // Utilidades
         function aleatorio(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
         function elegirAleatorio(arr) {
             return arr[Math.floor(Math.random() * arr.length)];
-        }
-
-        function vibrar(duracion) {
-            if (navigator.vibrate) navigator.vibrate(duracion);
         }
 
         function mostrarMensaje(texto) {
@@ -467,15 +516,15 @@
         function redimensionar() {
             const cssAncho = window.innerWidth;
             const cssAlto = window.innerHeight;
-            dpr = Math.min(window.devicePixelRatio || 1, 3);
-            
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+
             lienzo.width = Math.floor(cssAncho * dpr);
             lienzo.height = Math.floor(cssAlto * dpr);
-            
+
             const escalaX = cssAncho / MUNDO_ANCHO;
             const escalaY = cssAlto / MUNDO_ALTO;
-            escala = Math.min(escalaX, escalaY);
-            
+            escala = Math.min(escalaX, escalaY) * 0.9;
+
             desplazamientoX = (cssAncho - MUNDO_ANCHO * escala) / 2;
             desplazamientoY = (cssAlto - MUNDO_ALTO * escala) / 2;
         }
@@ -488,90 +537,108 @@
 
         // Inicialización del tablero
         function crearTablero() {
+            const config = NIVELES_CONFIG[nivel - 1];
             tablero = [];
+            besosEntregados = 0;
+            ososEmparejados = 0;
+
             for (let fila = 0; fila < FILAS; fila++) {
                 tablero[fila] = [];
                 for (let col = 0; col < COLUMNAS; col++) {
-                    let corazon;
-                    do {
-                        corazon = elegirAleatorio(CORAZONES_BASICOS);
-                    } while (verificarMatchInicial(fila, col, corazon));
-                    
-                    tablero[fila][col] = corazon;
+                    // Agregar obstáculos según configuración del nivel
+                    if (config.obstaculos.includes('piedra') && Math.random() < 0.1) {
+                        tablero[fila][col] = { tipo: 'obstaculo', elemento: ELEMENTOS.PIEDRA };
+                    } else if (config.obstaculos.includes('nube') && Math.random() < 0.08) {
+                        tablero[fila][col] = { tipo: 'obstaculo', elemento: ELEMENTOS.NUBE };
+                    } else if (config.objetivo === 'besos' && fila === 0 && Math.random() < 0.3) {
+                        tablero[fila][col] = { tipo: 'objetivo', elemento: ELEMENTOS.BESO };
+                    } else if (config.objetivo === 'osos' && Math.random() < 0.15) {
+                        tablero[fila][col] = { tipo: 'objetivo', elemento: ELEMENTOS.OSO, pareja: aleatorio(1, 3) };
+                    } else {
+                        let corazon;
+                        do {
+                            corazon = elegirAleatorio(CORAZONES_BASICOS);
+                        } while (verificarMatchInicial(fila, col, corazon));
+
+                        tablero[fila][col] = { tipo: 'normal', color: corazon };
+                    }
                 }
             }
+
+            // Configurar objetivos y movimientos para el nivel
+            objetivo = config.objetivo;
+            objetivoValor = config.valor;
+            movimientos = config.movimientos;
         }
 
         function verificarMatchInicial(fila, col, corazon) {
             // Verificar horizontal
-            if (col >= 2 && 
-                tablero[fila][col - 1] === corazon && 
-                tablero[fila][col - 2] === corazon) {
-                return true;
+            if (col >= 2) {
+                const celda1 = tablero[fila][col - 1];
+                const celda2 = tablero[fila][col - 2];
+                if (celda1 && celda1.tipo === 'normal' && celda1.color === corazon &&
+                    celda2 && celda2.tipo === 'normal' && celda2.color === corazon) {
+                    return true;
+                }
             }
-            
+
             // Verificar vertical
-            if (fila >= 2 && 
-                tablero[fila - 1][col] === corazon && 
-                tablero[fila - 2][col] === corazon) {
-                return true;
+            if (fila >= 2) {
+                const celda1 = tablero[fila - 1][col];
+                const celda2 = tablero[fila - 2][col];
+                if (celda1 && celda1.tipo === 'normal' && celda1.color === corazon &&
+                    celda2 && celda2.tipo === 'normal' && celda2.color === corazon) {
+                    return true;
+                }
             }
-            
+
             return false;
         }
 
-        // Obtener posición del tablero desde coordenadas del canvas
+        // Posicionamiento y eventos
         function obtenerPosicionTablero(x, y) {
             const col = Math.floor((x - MARGEN_X) / TAMAÑO_CELDA);
             const fila = Math.floor((y - MARGEN_Y) / TAMAÑO_CELDA);
-            
+
             if (col >= 0 && col < COLUMNAS && fila >= 0 && fila < FILAS) {
                 return { fila, col };
             }
             return null;
         }
 
-        // Manejo de eventos
         function configurarEventos() {
             lienzo.addEventListener('pointerdown', manejarClick);
-            btnComenzar.addEventListener('click', iniciarJuego);
-            btnContinuar.addEventListener('click', continuarJuego);
-            btnReiniciar.addEventListener('click', reiniciarNivel);
-            btnPista.addEventListener('click', mostrarPista);
-            
-            // Boosters
-            document.getElementById('btnBooster1').addEventListener('click', () => usarBooster('tinder'));
-            document.getElementById('btnBooster2').addEventListener('click', () => usarBooster('cupido'));
-            document.getElementById('btnBooster3').addEventListener('click', () => usarBooster('bigbang'));
+            document.getElementById('btnComenzar').addEventListener('click', iniciarJuego);
+            document.getElementById('btnContinuar').addEventListener('click', continuarJuego);
+            document.getElementById('btnReiniciar').addEventListener('click', reiniciarNivel);
+            document.getElementById('btnPista').addEventListener('click', mostrarPista);
         }
 
         function manejarClick(e) {
             if (!juegoIniciado || animando) return;
-            
+
             e.preventDefault();
-            
+
             const rect = lienzo.getBoundingClientRect();
             const x = (e.clientX - rect.left - desplazamientoX) / escala;
             const y = (e.clientY - rect.top - desplazamientoY) / escala;
-            
+
             const pos = obtenerPosicionTablero(x, y);
             if (!pos) return;
-            
+
+            const celda = tablero[pos.fila][pos.col];
+            if (!celda || celda.tipo === 'obstaculo') return;
+
             if (!seleccionado) {
-                // Primer click - seleccionar
                 seleccionado = pos;
                 playTone(440, 0.1);
             } else {
-                // Segundo click - intentar intercambio
                 if (pos.fila === seleccionado.fila && pos.col === seleccionado.col) {
-                    // Click en la misma celda - deseleccionar
                     seleccionado = null;
                 } else if (sonAdyacentes(seleccionado, pos)) {
-                    // Intercambiar si son adyacentes
                     intentarIntercambio(seleccionado, pos);
                     seleccionado = null;
                 } else {
-                    // Seleccionar nueva posición
                     seleccionado = pos;
                     playTone(440, 0.1);
                 }
@@ -581,94 +648,319 @@
         function sonAdyacentes(pos1, pos2) {
             const deltaFila = Math.abs(pos1.fila - pos2.fila);
             const deltaCol = Math.abs(pos1.col - pos2.col);
-            
             return (deltaFila === 1 && deltaCol === 0) || (deltaFila === 0 && deltaCol === 1);
         }
 
         function intentarIntercambio(pos1, pos2) {
-            if (animando) return;
-            
-            // Intercambiar temporalmente
-            const temp = tablero[pos1.fila][pos1.col];
-            tablero[pos1.fila][pos1.col] = tablero[pos2.fila][pos2.col];
-            tablero[pos2.fila][pos2.col] = temp;
-            
-            // Verificar si hay matches
-            const matches1 = encontrarMatches(pos1.fila, pos1.col);
-            const matches2 = encontrarMatches(pos2.fila, pos2.col);
-            
-            if (matches1.length > 0 || matches2.length > 0) {
-                // Movimiento válido
+            const celda1 = tablero[pos1.fila][pos1.col];
+            const celda2 = tablero[pos2.fila][pos2.col];
+
+            // Solo permitir intercambio entre corazones normales/especiales
+            if (celda1.tipo === 'obstaculo' || celda2.tipo === 'obstaculo') return;
+
+            // Verificar si es un intercambio especial (corazón especial + normal)
+            const esIntercambioEspecial = (
+                (celda1.especial && celda2.tipo === 'normal' && !celda2.especial) ||
+                (celda2.especial && celda1.tipo === 'normal' && !celda1.especial)
+            );
+
+            // Intercambiar
+            tablero[pos1.fila][pos1.col] = celda2;
+            tablero[pos2.fila][pos2.col] = celda1;
+
+            let hayMatch = false;
+
+            if (esIntercambioEspecial) {
+                // Procesar efecto especial
+                const efectoActivado = activarEfectoEspecial(pos1, pos2);
+                hayMatch = efectoActivado;
+
+                if (efectoActivado) {
+                    // Aplicar gravedad y llenar espacios después del efecto especial
+                    setTimeout(() => {
+                        aplicarGravedad();
+                        llenarEspaciosVacios();
+                        // Buscar más matches después del efecto
+                        setTimeout(() => {
+                            procesarMatches();
+                        }, 300);
+                    }, 200);
+                }
+            } else if (hayCombinaciónEspecial(pos1, pos2)) {
+                procesarCombinaciónEspecial(pos1, pos2);
+                hayMatch = true;
+            } else {
+                const matches1 = encontrarMatches(pos1.fila, pos1.col);
+                const matches2 = encontrarMatches(pos2.fila, pos2.col);
+
+                if (matches1.length > 0 || matches2.length > 0) {
+                    hayMatch = true;
+                }
+            }
+
+            if (hayMatch) {
                 movimientos--;
                 actualizarUI();
-                procesarMatches();
-                playSoundEffect('match');
-                vibrar(30);
+                if (!esIntercambioEspecial) {
+                    procesarMatches();
+                }
+                playTone(523, 0.15);
             } else {
-                // Movimiento inválido - revertir
+                // Revertir intercambio
                 tablero[pos2.fila][pos2.col] = tablero[pos1.fila][pos1.col];
-                tablero[pos1.fila][pos1.col] = temp;
-                playSoundEffect('fail');
+                tablero[pos1.fila][pos1.col] = celda1;
+                playTone(208, 0.3);
+            }
+        }
+
+        function obtenerColorDeEspecial(especial) {
+            if (especial.startsWith('RAYADO_')) {
+                return especial.replace('RAYADO_', '');
+            } else if (especial.startsWith('ENVUELTO_')) {
+                return especial.replace('ENVUELTO_', '');
+            }
+            return null;
+        }
+
+        function activarEfectoEspecial(pos1, pos2) {
+            const celda1 = tablero[pos1.fila][pos1.col];
+            const celda2 = tablero[pos2.fila][pos2.col];
+
+            // Determinar cuál es el especial y cuál es el normal
+            let especialPos, normalPos, especial, colorEspecial, colorNormal;
+
+            if (celda1.especial) {
+                especialPos = pos1;
+                normalPos = pos2;
+                especial = celda1.especial;
+                colorEspecial = obtenerColorDeEspecial(especial);
+                colorNormal = celda2.color;
+            } else {
+                especialPos = pos2;
+                normalPos = pos1;
+                especial = celda2.especial;
+                colorEspecial = obtenerColorDeEspecial(especial);
+                colorNormal = celda1.color;
+            }
+
+            // Verificar que el color coincida para rayados y envueltos
+            if ((especial.startsWith('RAYADO_') || especial.startsWith('ENVUELTO_')) && colorEspecial !== colorNormal) {
+                // Los colores no coinciden, revertir intercambio
+                tablero[normalPos.fila][normalPos.col] = tablero[especialPos.fila][especialPos.col];
+                tablero[especialPos.fila][especialPos.col] = celda1.especial ? celda2 : celda1;
+                playTone(208, 0.3);
+                return false;
+            }
+
+            // Ejecutar efecto según tipo de corazón especial
+            if (especial.startsWith('RAYADO_')) {
+                // Corazón rayado - destruir fila o columna completa
+                const direccion = determinarDireccionRayado(especialPos, normalPos);
+                destruirFilaOColumna(especialPos, direccion);
+                mostrarMensaje('¡Rayado activado!');
+
+            } else if (especial.startsWith('ENVUELTO_')) {
+                // Corazón envuelto - explosión 3x3
+                explosion3x3(especialPos);
+                mostrarMensaje('¡Envuelto activado!');
+
+            } else if (especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                // Corazón arcoíris - eliminar todos del mismo color (puede ser cualquier color)
+                eliminarTodosDelColor(colorNormal);
+                mostrarMensaje('¡Arcoíris activado!');
+            }
+
+            // Eliminar el corazón especial después de usarlo
+            tablero[especialPos.fila][especialPos.col] = null;
+            return true;
+        }
+
+        function determinarDireccionRayado(especialPos, normalPos) {
+            // Si están en la misma fila, es horizontal (destruir fila)
+            if (especialPos.fila === normalPos.fila) return 'horizontal';
+            // Si están en la misma columna, es vertical (destruir columna)
+            if (especialPos.col === normalPos.col) return 'vertical';
+            // Por defecto, usar horizontal
+            return 'horizontal';
+        }
+
+        function destruirFilaOColumna(pos, direccion) {
+            if (direccion === 'horizontal') {
+                // Destruir toda la fila
+                for (let col = 0; col < COLUMNAS; col++) {
+                    if (tablero[pos.fila][col] && tablero[pos.fila][col].tipo === 'normal') {
+                        crearParticulas(pos.fila, col);
+                        tablero[pos.fila][col] = null;
+                        puntaje += 100;
+                    }
+                }
+            } else {
+                // Destruir toda la columna
+                for (let fila = 0; fila < FILAS; fila++) {
+                    if (tablero[fila][pos.col] && tablero[fila][pos.col].tipo === 'normal') {
+                        crearParticulas(fila, pos.col);
+                        tablero[fila][pos.col] = null;
+                        puntaje += 100;
+                    }
+                }
+            }
+        }
+
+        function explosion3x3(pos) {
+            // Destruir área 3x3 alrededor de la posición
+            for (let df = -1; df <= 1; df++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    const nuevaFila = pos.fila + df;
+                    const nuevaCol = pos.col + dc;
+
+                    if (nuevaFila >= 0 && nuevaFila < FILAS && nuevaCol >= 0 && nuevaCol < COLUMNAS) {
+                        if (tablero[nuevaFila][nuevaCol] && tablero[nuevaFila][nuevaCol].tipo === 'normal') {
+                            crearParticulas(nuevaFila, nuevaCol);
+                            tablero[nuevaFila][nuevaCol] = null;
+                            puntaje += 100;
+                        }
+                    }
+                }
+            }
+        }
+
+        function eliminarTodosDelColor(color) {
+            // Eliminar todos los corazones del color especificado
+            for (let fila = 0; fila < FILAS; fila++) {
+                for (let col = 0; col < COLUMNAS; col++) {
+                    const celda = tablero[fila][col];
+                    if (celda && celda.tipo === 'normal' && celda.color === color) {
+                        crearParticulas(fila, col);
+                        tablero[fila][col] = null;
+                        puntaje += 200;
+                    }
+                }
+            }
+        }
+
+        function hayCombinaciónEspecial(pos1, pos2) {
+            const celda1 = tablero[pos1.fila][pos1.col];
+            const celda2 = tablero[pos2.fila][pos2.col];
+
+            return (celda1.especial || celda2.especial);
+        }
+
+        function procesarCombinaciónEspecial(pos1, pos2) {
+            const celda1 = tablero[pos1.fila][pos1.col];
+            const celda2 = tablero[pos2.fila][pos2.col];
+
+            if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS && celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                // Arcoíris + Arcoíris = Limpiar todo el tablero
+                limpiarTableroCompleto();
+                mostrarMensaje('¡Explosion Total!');
+            } else if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS || celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                // Arcoíris + Cualquier otro = Convertir todos del color
+                const colorObjetivo = celda1.especial === TIPOS_ESPECIALES.ARCOIRIS ? celda2.color : celda1.color;
+                eliminarTodosDelColor(colorObjetivo);
+                mostrarMensaje('¡Poder Arcoiris!');
+            } else if ((celda1.especial && celda1.especial.startsWith('RAYADO_') && celda2.especial && celda2.especial.startsWith('RAYADO_')) ||
+                (celda1.especial && celda1.especial.startsWith('RAYADO_') && celda2.especial && celda2.especial.startsWith('ENVUELTO_')) ||
+                (celda1.especial && celda1.especial.startsWith('ENVUELTO_') && celda2.especial && celda2.especial.startsWith('RAYADO_'))) {
+                // Combinaciones de rayado y envuelto - destruir filas y columnas cruzadas
+                destruirCruzado(pos1, pos2);
+                mostrarMensaje('¡Combinacion Especial!');
+            } else if (celda1.especial && celda1.especial.startsWith('ENVUELTO_') && celda2.especial && celda2.especial.startsWith('ENVUELTO_')) {
+                // Envuelto + Envuelto = Gran explosión 5x5
+                explosion5x5(pos1, pos2);
+                mostrarMensaje('¡Gran Explosion!');
+            }
+        }
+
+        function destruirCruzado(pos1, pos2) {
+            // Destruir fila y columna de ambas posiciones
+            destruirFilaOColumna(pos1, 'horizontal');
+            destruirFilaOColumna(pos1, 'vertical');
+            destruirFilaOColumna(pos2, 'horizontal');
+            destruirFilaOColumna(pos2, 'vertical');
+        }
+
+        function explosion5x5(pos1, pos2) {
+            const centroFila = Math.floor((pos1.fila + pos2.fila) / 2);
+            const centroCol = Math.floor((pos1.col + pos2.col) / 2);
+
+            for (let df = -2; df <= 2; df++) {
+                for (let dc = -2; dc <= 2; dc++) {
+                    const fila = centroFila + df;
+                    const col = centroCol + dc;
+
+                    if (fila >= 0 && fila < FILAS && col >= 0 && col < COLUMNAS) {
+                        if (tablero[fila][col] && tablero[fila][col].tipo === 'normal') {
+                            crearParticulas(fila, col);
+                            tablero[fila][col] = null;
+                            puntaje += 100;
+                        }
+                    }
+                }
             }
         }
 
         // Sistema de matches
         function encontrarMatches(fila, col) {
-            const corazon = tablero[fila][col];
-            if (!CORAZONES_BASICOS.includes(corazon)) return [];
-            
+            const celda = tablero[fila][col];
+            if (!celda || celda.tipo !== 'normal' || celda.especial) return [];
+
             let matches = [];
-            
+            const color = celda.color;
+
             // Buscar horizontal
             let horizontal = [{ fila, col }];
-            
+
             // Izquierda
             for (let c = col - 1; c >= 0; c--) {
-                if (tablero[fila][c] === corazon) {
+                const celdaActual = tablero[fila][c];
+                if (celdaActual && celdaActual.tipo === 'normal' && celdaActual.color === color && !celdaActual.especial) {
                     horizontal.unshift({ fila, col: c });
                 } else {
                     break;
                 }
             }
-            
+
             // Derecha
             for (let c = col + 1; c < COLUMNAS; c++) {
-                if (tablero[fila][c] === corazon) {
+                const celdaActual = tablero[fila][c];
+                if (celdaActual && celdaActual.tipo === 'normal' && celdaActual.color === color && !celdaActual.especial) {
                     horizontal.push({ fila, col: c });
                 } else {
                     break;
                 }
             }
-            
+
             if (horizontal.length >= 3) {
                 matches = matches.concat(horizontal);
             }
-            
+
             // Buscar vertical
             let vertical = [{ fila, col }];
-            
+
             // Arriba
             for (let f = fila - 1; f >= 0; f--) {
-                if (tablero[f][col] === corazon) {
+                const celdaActual = tablero[f][col];
+                if (celdaActual && celdaActual.tipo === 'normal' && celdaActual.color === color && !celdaActual.especial) {
                     vertical.unshift({ fila: f, col });
                 } else {
                     break;
                 }
             }
-            
+
             // Abajo
             for (let f = fila + 1; f < FILAS; f++) {
-                if (tablero[f][col] === corazon) {
+                const celdaActual = tablero[f][col];
+                if (celdaActual && celdaActual.tipo === 'normal' && celdaActual.color === color && !celdaActual.especial) {
                     vertical.push({ fila: f, col });
                 } else {
                     break;
                 }
             }
-            
+
             if (vertical.length >= 3) {
                 matches = matches.concat(vertical);
             }
-            
+
             // Remover duplicados
             const uniqueMatches = [];
             matches.forEach(match => {
@@ -676,13 +968,13 @@
                     uniqueMatches.push(match);
                 }
             });
-            
+
             return uniqueMatches;
         }
 
         function encontrarTodosLosMatches() {
             let todosLosMatches = [];
-            
+
             for (let fila = 0; fila < FILAS; fila++) {
                 for (let col = 0; col < COLUMNAS; col++) {
                     const matches = encontrarMatches(fila, col);
@@ -693,117 +985,306 @@
                     });
                 }
             }
-            
+
             return todosLosMatches;
         }
 
         function procesarMatches() {
             animando = true;
-            
+
             setTimeout(() => {
                 let matches = encontrarTodosLosMatches();
-                
+
                 if (matches.length > 0) {
                     // Crear efectos especiales basados en el patrón
                     crearEfectosEspeciales(matches);
-                    
+
                     // Eliminar matches y sumar puntos
                     matches.forEach(match => {
                         crearParticulas(match.fila, match.col);
                         tablero[match.fila][match.col] = null;
                         puntaje += 100;
                     });
-                    
+
+                    // Romper obstáculos adyacentes
+                    romperObstaculosAdyacentes(matches);
+
                     actualizarUI();
-                    
+
                     // Aplicar gravedad
                     aplicarGravedad();
-                    
+
                     // Llenar espacios vacíos
                     llenarEspaciosVacios();
-                    
-                    // Buscar más matches después de un delay
+
+                    // Buscar más matches
                     setTimeout(() => {
                         procesarMatches();
                     }, 300);
                 } else {
                     animando = false;
+                    verificarObjetivosEspeciales();
                     verificarEstadoJuego();
                 }
             }, 200);
         }
 
         function crearEfectosEspeciales(matches) {
-            // Buscar patrones especiales
             const grupos = agruparMatchesPorLinea(matches);
-            
+
             grupos.forEach(grupo => {
                 if (grupo.length === 4) {
-                    // Crear corazón rayado
+                    // Crear corazón rayado del color correspondiente
                     const pos = grupo[Math.floor(grupo.length / 2)];
+                    const color = tablero[pos.fila][pos.col].color;
                     setTimeout(() => {
-                        tablero[pos.fila][pos.col] = CORAZONES_ESPECIALES.RAYADO;
+                        if (tablero[pos.fila][pos.col]) {
+                            tablero[pos.fila][pos.col] = {
+                                tipo: 'normal',
+                                color: color,
+                                especial: `RAYADO_${color}` // Ahora guarda el tipo especial con color
+                            };
+                        }
                     }, 250);
-                    mostrarMensaje('¡Corazón Rayado! 💘');
+                    mostrarMensaje('Corazon Rayado!');
                 } else if (grupo.length === 5) {
-                    // Crear corazón dorado
+                    // Crear corazón arcoíris
                     const pos = grupo[Math.floor(grupo.length / 2)];
                     setTimeout(() => {
-                        tablero[pos.fila][pos.col] = CORAZONES_ESPECIALES.DORADO;
+                        if (tablero[pos.fila][pos.col]) {
+                            tablero[pos.fila][pos.col] = {
+                                tipo: 'normal',
+                                especial: TIPOS_ESPECIALES.ARCOIRIS
+                            };
+                        }
                     }, 250);
-                    mostrarMensaje('¡Corazón Dorado! ❤️‍🔥');
-                    playSoundEffect('special');
+                    mostrarMensaje('Corazon Arcoiris!');
+                    playTone(988, 0.3);
                 }
-                // Para el corazón envuelto (L o T) necesitaríamos una lógica más compleja
+            });
+
+            // Detectar patrones L y T para corazón envuelto
+            detectarPatronesLT(matches);
+        }
+
+        function detectarPatronesLT(matches) {
+            const matchesMap = new Map();
+            matches.forEach(match => {
+                matchesMap.set(`${match.fila}-${match.col}`, match);
+            });
+
+            matches.forEach(match => {
+                let esPatronL = false;
+                let esPatronT = false;
+
+                // Verificar patrón L (horizontal + vertical desde una esquina)
+                const horizontales = matches.filter(m => m.fila === match.fila && Math.abs(m.col - match.col) <= 2);
+                const verticales = matches.filter(m => m.col === match.col && Math.abs(m.fila - match.fila) <= 2);
+
+                if (horizontales.length >= 3 && verticales.length >= 3) {
+                    // Es un patrón L o T
+                    setTimeout(() => {
+                        if (tablero[match.fila][match.col]) {
+                            const color = tablero[match.fila][match.col].color;
+                            tablero[match.fila][match.col] = {
+                                tipo: 'normal',
+                                color: color,
+                                especial: `ENVUELTO_${color}` // Ahora guarda el tipo especial con color
+                            };
+                        }
+                    }, 250);
+                    mostrarMensaje('Corazon Envuelto!');
+                    return;
+                }
             });
         }
 
         function agruparMatchesPorLinea(matches) {
             const grupos = [];
             const procesados = new Set();
-            
+
             matches.forEach(match => {
                 const key = `${match.fila}-${match.col}`;
                 if (procesados.has(key)) return;
-                
+
                 // Buscar grupo horizontal
-                let grupoH = matches.filter(m => 
-                    m.fila === match.fila && 
-                    Math.abs(m.col - match.col) <= 2
+                let grupoH = matches.filter(m =>
+                    m.fila === match.fila &&
+                    Math.abs(m.col - match.col) <= 4
                 ).sort((a, b) => a.col - b.col);
-                
+
                 if (grupoH.length >= 3) {
                     grupos.push(grupoH);
                     grupoH.forEach(m => procesados.add(`${m.fila}-${m.col}`));
                 }
-                
-                // Buscar grupo vertical
-                let grupoV = matches.filter(m => 
-                    m.col === match.col && 
-                    Math.abs(m.fila - match.fila) <= 2 &&
-                    !procesados.has(`${m.fila}-${m.col}`)
-                ).sort((a, b) => a.fila - b.fila);
-                
-                if (grupoV.length >= 3) {
-                    grupos.push(grupoV);
-                    grupoV.forEach(m => procesados.add(`${m.fila}-${m.col}`));
+
+                // Buscar grupo vertical si no fue procesado
+                if (!procesados.has(key)) {
+                    let grupoV = matches.filter(m =>
+                        m.col === match.col &&
+                        Math.abs(m.fila - match.fila) <= 4 &&
+                        !procesados.has(`${m.fila}-${m.col}`)
+                    ).sort((a, b) => a.fila - b.fila);
+
+                    if (grupoV.length >= 3) {
+                        grupos.push(grupoV);
+                        grupoV.forEach(m => procesados.add(`${m.fila}-${m.col}`));
+                    }
                 }
             });
-            
+
             return grupos;
+        }
+
+        function romperObstaculosAdyacentes(matches) {
+            matches.forEach(match => {
+                const direcciones = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+                direcciones.forEach(([df, dc]) => {
+                    const nuevaFila = match.fila + df;
+                    const nuevaCol = match.col + dc;
+
+                    if (nuevaFila >= 0 && nuevaFila < FILAS && nuevaCol >= 0 && nuevaCol < COLUMNAS) {
+                        const celda = tablero[nuevaFila][nuevaCol];
+                        if (celda && celda.tipo === 'obstaculo' && celda.elemento === ELEMENTOS.PIEDRA) {
+                            // Romper piedra
+                            tablero[nuevaFila][nuevaCol] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
+                            crearParticulas(nuevaFila, nuevaCol);
+                        }
+                    }
+                });
+            });
+        }
+
+        function verificarObjetivosEspeciales() {
+            const config = NIVELES_CONFIG[nivel - 1];
+
+            if (config.objetivo === 'besos') {
+                // Verificar si los besos llegaron al fondo
+                for (let col = 0; col < COLUMNAS; col++) {
+                    const celda = tablero[FILAS - 1][col];
+                    if (celda && celda.tipo === 'objetivo' && celda.elemento === ELEMENTOS.BESO) {
+                        besosEntregados++;
+                        tablero[FILAS - 1][col] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
+                        mostrarMensaje(`Beso entregado! ${besosEntregados}/${config.valor}`);
+                    }
+                }
+            } else if (config.objetivo === 'osos') {
+                // Verificar osos adyacentes del mismo tipo
+                for (let fila = 0; fila < FILAS; fila++) {
+                    for (let col = 0; col < COLUMNAS; col++) {
+                        const celda = tablero[fila][col];
+                        if (celda && celda.tipo === 'objetivo' && celda.elemento === ELEMENTOS.OSO) {
+                            verificarEmparejamientoOsos(fila, col, celda.pareja);
+                        }
+                    }
+                }
+            }
+        }
+
+        function verificarEmparejamientoOsos(fila, col, tipoPareja) {
+            const direcciones = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+            direcciones.forEach(([df, dc]) => {
+                const nuevaFila = fila + df;
+                const nuevaCol = col + dc;
+
+                if (nuevaFila >= 0 && nuevaFila < FILAS && nuevaCol >= 0 && nuevaCol < COLUMNAS) {
+                    const celda = tablero[nuevaFila][nuevaCol];
+                    if (celda && celda.tipo === 'objetivo' &&
+                        celda.elemento === ELEMENTOS.OSO && celda.pareja === tipoPareja) {
+
+                        // Emparejar osos
+                        ososEmparejados++;
+                        tablero[fila][col] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
+                        tablero[nuevaFila][nuevaCol] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
+
+                        const config = NIVELES_CONFIG[nivel - 1];
+                        mostrarMensaje(`Osos emparejados! ${ososEmparejados}/${config.valor}`);
+
+                        crearParticulas(fila, col);
+                        crearParticulas(nuevaFila, nuevaCol);
+
+                        return;
+                    }
+                }
+            });
+        }
+
+        // Activaciones especiales
+        function activarArcoiris(colorObjetivo) {
+            for (let fila = 0; fila < FILAS; fila++) {
+                for (let col = 0; col < COLUMNAS; col++) {
+                    const celda = tablero[fila][col];
+                    if (celda && celda.tipo === 'normal' && celda.color === colorObjetivo) {
+                        crearParticulas(fila, col);
+                        tablero[fila][col] = null;
+                        puntaje += 200;
+                    }
+                }
+            }
+        }
+
+        function activarCombinaciónEspecial(pos1, pos2) {
+            // Destruir fila y columna completas
+            for (let i = 0; i < COLUMNAS; i++) {
+                if (tablero[pos1.fila][i]) {
+                    crearParticulas(pos1.fila, i);
+                    tablero[pos1.fila][i] = null;
+                    puntaje += 150;
+                }
+            }
+
+            for (let i = 0; i < FILAS; i++) {
+                if (tablero[i][pos1.col]) {
+                    crearParticulas(i, pos1.col);
+                    tablero[i][pos1.col] = null;
+                    puntaje += 150;
+                }
+            }
+        }
+
+        function activarGranExplosion(pos1, pos2) {
+            const centroFila = Math.floor((pos1.fila + pos2.fila) / 2);
+            const centroCol = Math.floor((pos1.col + pos2.col) / 2);
+
+            for (let df = -3; df <= 3; df++) {
+                for (let dc = -3; dc <= 3; dc++) {
+                    const fila = centroFila + df;
+                    const col = centroCol + dc;
+
+                    if (fila >= 0 && fila < FILAS && col >= 0 && col < COLUMNAS) {
+                        if (tablero[fila][col]) {
+                            crearParticulas(fila, col);
+                            tablero[fila][col] = null;
+                            puntaje += 100;
+                        }
+                    }
+                }
+            }
+        }
+
+        function limpiarTableroCompleto() {
+            for (let fila = 0; fila < FILAS; fila++) {
+                for (let col = 0; col < COLUMNAS; col++) {
+                    if (tablero[fila][col] && tablero[fila][col].tipo === 'normal') {
+                        crearParticulas(fila, col);
+                        tablero[fila][col] = null;
+                        puntaje += 300;
+                    }
+                }
+            }
         }
 
         // Gravedad y llenado
         function aplicarGravedad() {
             for (let col = 0; col < COLUMNAS; col++) {
                 let vacios = 0;
-                
-                // Contar espacios vacíos desde abajo hacia arriba
+
                 for (let fila = FILAS - 1; fila >= 0; fila--) {
                     if (tablero[fila][col] === null) {
                         vacios++;
                     } else if (vacios > 0) {
-                        // Mover elemento hacia abajo
                         tablero[fila + vacios][col] = tablero[fila][col];
                         tablero[fila][col] = null;
                     }
@@ -815,26 +1296,26 @@
             for (let col = 0; col < COLUMNAS; col++) {
                 for (let fila = 0; fila < FILAS; fila++) {
                     if (tablero[fila][col] === null) {
-                        tablero[fila][col] = elegirAleatorio(CORAZONES_BASICOS);
+                        tablero[fila][col] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
                     }
                 }
             }
         }
 
-        // Sistema de partículas para efectos visuales
+        // Sistema de partículas
         function crearParticulas(fila, col) {
             const x = MARGEN_X + col * TAMAÑO_CELDA + TAMAÑO_CELDA / 2;
             const y = MARGEN_Y + fila * TAMAÑO_CELDA + TAMAÑO_CELDA / 2;
-            
-            for (let i = 0; i < 15; i++) {
+
+            for (let i = 0; i < 8; i++) {
                 particulas.push({
                     x,
                     y,
-                    vx: (Math.random() - 0.5) * 8,
-                    vy: (Math.random() - 0.5) * 8,
-                    radio: Math.random() * 3 + 1,
-                    color: tablero[fila][col],
-                    vida: 30
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    radio: Math.random() * 2 + 1,
+                    color: '#ff6b9d',
+                    vida: 20
                 });
             }
         }
@@ -847,7 +1328,7 @@
                 p.vx *= 0.95;
                 p.vy *= 0.95;
                 p.vida--;
-                
+
                 if (p.vida <= 0) {
                     particulas.splice(i, 1);
                 }
@@ -856,23 +1337,38 @@
 
         // UI y estado del juego
         function actualizarUI() {
-            IUPuntaje.textContent = `Nivel: ${nivel} • Puntaje: ${puntaje} • Movimientos: ${movimientos}`;
-            IUVidas.textContent = `💖 ${vidas}`;
+            const config = NIVELES_CONFIG[nivel - 1];
+            let objetivoTexto = '';
+
+            if (config.objetivo === 'puntuacion') {
+                objetivoTexto = `Objetivo: ${puntaje}/${config.valor}`;
+            } else if (config.objetivo === 'besos') {
+                objetivoTexto = `Besos: ${besosEntregados}/${config.valor}`;
+            } else if (config.objetivo === 'osos') {
+                objetivoTexto = `Osos: ${ososEmparejados}/${config.valor}`;
+            }
+
+            IUPuntaje.textContent = `Nivel: ${nivel} • ${objetivoTexto} • Movimientos: ${movimientos}`;
+            IUVidas.textContent = `Vidas: ${vidas}`;
         }
 
         function verificarEstadoJuego() {
-            if (movimientos <= 0) {
-                if (puntaje >= objetivoValor) {
-                    // Victoria
-                    mostrarSuperposicion('¡Nivel Completado! 💕', '¡Eres un experto en amor! 💘');
-                } else {
-                    // Derrota
-                    vidas--;
-                    mostrarSuperposicion('💔 Nivel Fallido', 'El amor verdadero nunca se rinde 💕');
-                }
-            } else if (puntaje >= objetivoValor) {
-                // Victoria por alcanzar puntuación
-                mostrarSuperposicion('¡Nivel Completado! 💕', '¡Eres un experto en amor! 💘');
+            const config = NIVELES_CONFIG[nivel - 1];
+            let objetivoCompleto = false;
+
+            if (config.objetivo === 'puntuacion') {
+                objetivoCompleto = puntaje >= config.valor;
+            } else if (config.objetivo === 'besos') {
+                objetivoCompleto = besosEntregados >= config.valor;
+            } else if (config.objetivo === 'osos') {
+                objetivoCompleto = ososEmparejados >= config.valor;
+            }
+
+            if (objetivoCompleto) {
+                mostrarSuperposicion('Nivel Completado!', 'Eres un experto en amor!');
+            } else if (movimientos <= 0) {
+                vidas--;
+                mostrarSuperposicion('Nivel Fallido', 'El amor verdadero nunca se rinde');
             }
         }
 
@@ -880,12 +1376,23 @@
             document.getElementById('tituloSuperposicion').textContent = titulo;
             document.getElementById('nivelActual').textContent = nivel;
             document.getElementById('puntajeActual').textContent = puntaje;
-            document.getElementById('objetivoTexto').textContent = `Alcanzar ${objetivoValor} puntos`;
+
+            const config = NIVELES_CONFIG[nivel - 1];
+            let objetivoTexto = '';
+            if (config.objetivo === 'puntuacion') {
+                objetivoTexto = `Alcanzar ${config.valor} puntos`;
+            } else if (config.objetivo === 'besos') {
+                objetivoTexto = `Entregar ${config.valor} besos`;
+            } else if (config.objetivo === 'osos') {
+                objetivoTexto = `Emparejar ${config.valor} osos`;
+            }
+
+            document.getElementById('objetivoTexto').textContent = objetivoTexto;
             document.getElementById('fraseFinal').textContent = frase;
             superposicion.hidden = false;
         }
 
-        // Funciones de juego
+        // Funciones de control
         function iniciarJuego() {
             pantallaInicio.hidden = true;
             juegoIniciado = true;
@@ -897,107 +1404,197 @@
 
         function continuarJuego() {
             superposicion.hidden = true;
+
             if (vidas <= 0) {
-                // Game over
+                // Game over - reiniciar
                 vidas = 5;
                 nivel = 1;
                 puntaje = 0;
-                movimientos = 25;
-                crearTablero();
-            } else if (puntaje >= objetivoValor) {
-                // Siguiente nivel
-                nivel++;
-                movimientos = 25;
-                objetivoValor = Math.floor(objetivoValor * 1.3);
                 crearTablero();
             } else {
-                // Reintentar nivel
-                movimientos = 25;
-                crearTablero();
+                const config = NIVELES_CONFIG[nivel - 1];
+                let objetivoCompleto = false;
+
+                if (config.objetivo === 'puntuacion') {
+                    objetivoCompleto = puntaje >= config.valor;
+                } else if (config.objetivo === 'besos') {
+                    objetivoCompleto = besosEntregados >= config.valor;
+                } else if (config.objetivo === 'osos') {
+                    objetivoCompleto = ososEmparejados >= config.valor;
+                }
+
+                if (objetivoCompleto) {
+                    // Siguiente nivel
+                    if (nivel < 10) {
+                        nivel++;
+                        puntaje = 0;
+                        crearTablero();
+                    } else {
+                        // Juego completado
+                        mostrarMensaje('Juego Completado! Felicidades!');
+                        vidas = 5;
+                        nivel = 1;
+                        puntaje = 0;
+                        crearTablero();
+                    }
+                } else {
+                    // Reintentar nivel
+                    crearTablero();
+                }
             }
+
             actualizarUI();
         }
 
         function reiniciarNivel() {
             if (animando) return;
-            movimientos = 25;
-            puntaje = 0;
             crearTablero();
+            puntaje = 0;
             actualizarUI();
         }
 
         function mostrarPista() {
-            // Implementar lógica para mostrar pistas
-            mostrarMensaje('💡 Encuentra matches de 4 o más!');
+            mostrarMensaje('Busca matches largos para crear especiales!');
         }
 
-        function usarBooster(tipo) {
-            if (animando) return;
-            
-            switch (tipo) {
-                case 'tinder':
-                    mostrarMensaje('🔥 Tinder Mágico activado!');
-                    break;
-                case 'cupido':
-                    mostrarMensaje('🏹 Ojo de Cupido activado!');
-                    break;
-                case 'bigbang':
-                    mostrarMensaje('✨ Big Bang Amoroso activado!');
-                    break;
+        // Renderizado
+        function dibujarCelda(fila, col, x, y) {
+            const celda = tablero[fila][col];
+            if (!celda) return;
+
+            // Dibujar fondo de celda
+            contexto.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            contexto.fillRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
+            contexto.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            contexto.strokeRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
+
+            const centroX = x + TAMAÑO_CELDA / 2;
+            const centroY = y + TAMAÑO_CELDA / 2;
+
+            if (celda.tipo === 'normal') {
+                // Dibujar imagen según el tipo de corazón
+                let imagen;
+
+                if (celda.especial && celda.especial.startsWith('RAYADO_')) {
+                    const colorEspecial = celda.especial.replace('RAYADO_', '');
+                    imagen = imagenesCargadas[`RAYADO_${colorEspecial}`];
+                } else if (celda.especial && celda.especial.startsWith('ENVUELTO_')) {
+                    const colorEspecial = celda.especial.replace('ENVUELTO_', '');
+                    imagen = imagenesCargadas[`ENVUELTO_${colorEspecial}`];
+                } else if (celda.especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                    imagen = imagenesCargadas.ARCOIRIS;
+                } else {
+                    imagen = imagenesCargadas[celda.color];
+                }
+
+                if (imagen) {
+                    contexto.drawImage(imagen, x + 5, y + 5, TAMAÑO_CELDA - 10, TAMAÑO_CELDA - 10);
+                } else {
+                    // Fallback a colores si las imágenes no están cargadas
+                    const coloresFallback = {
+                        ROSADO: '#ff6b9d',
+                        MORADO: '#9b59b6',
+                        AMARILLO: '#f1c40f',
+                        NARANJA: '#e67e22',
+                        VERDE: '#2ecc71',
+                        CELESTE: '#3498db'
+                    };
+                    contexto.fillStyle = coloresFallback[celda.color] || '#ff6b9d';
+                    contexto.fillRect(x + 10, y + 10, TAMAÑO_CELDA - 20, TAMAÑO_CELDA - 20);
+                }
+            } else if (celda.tipo === 'obstaculo') {
+                if (celda.elemento === ELEMENTOS.PIEDRA) {
+                    if (imagenesCargadas.PIEDRA) {
+                        contexto.drawImage(imagenesCargadas.PIEDRA, x + 5, y + 5, TAMAÑO_CELDA - 10, TAMAÑO_CELDA - 10);
+                    } else {
+                        contexto.fillStyle = '#7f8c8d';
+                        contexto.fillRect(x + 5, y + 5, TAMAÑO_CELDA - 10, TAMAÑO_CELDA - 10);
+                    }
+                } else if (celda.elemento === ELEMENTOS.NUBE) {
+                    if (imagenesCargadas.NUBE) {
+                        contexto.drawImage(imagenesCargadas.NUBE, x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
+                    } else {
+                        contexto.fillStyle = 'rgba(128, 128, 128, 0.7)';
+                        contexto.fillRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
+                    }
+                }
+            } else if (celda.tipo === 'objetivo') {
+                if (celda.elemento === ELEMENTOS.BESO) {
+                    if (imagenesCargadas.BESO) {
+                        contexto.drawImage(imagenesCargadas.BESO, centroX - 15, centroY - 15, 30, 30);
+                    } else {
+                        contexto.fillStyle = '#e74c3c';
+                        contexto.beginPath();
+                        contexto.arc(centroX, centroY, 15, 0, Math.PI * 2);
+                        contexto.fill();
+                    }
+                } else if (celda.elemento === ELEMENTOS.OSO) {
+                    if (imagenesCargadas.OSO) {
+                        contexto.drawImage(imagenesCargadas.OSO, centroX - 12, centroY - 12, 24, 24);
+                        contexto.fillStyle = 'white';
+                        contexto.font = '12px Arial';
+                        contexto.textAlign = 'center';
+                        contexto.textBaseline = 'middle';
+                        contexto.fillText(celda.pareja.toString(), centroX, centroY + 8);
+                    } else {
+                        const coloresOso = ['#8B4513', '#CD853F', '#A0522D'];
+                        contexto.fillStyle = coloresOso[celda.pareja - 1] || '#8B4513';
+                        contexto.fillRect(centroX - 12, centroY - 12, 24, 24);
+                        contexto.fillStyle = 'white';
+                        contexto.font = '12px Arial';
+                        contexto.textAlign = 'center';
+                        contexto.textBaseline = 'middle';
+                        contexto.fillText(celda.pareja.toString(), centroX, centroY);
+                    }
+                }
+            }
+
+            // Resaltar selección
+            if (seleccionado && seleccionado.fila === fila && seleccionado.col === col) {
+                contexto.strokeStyle = '#ff6b9d';
+                contexto.lineWidth = 3;
+                contexto.strokeRect(x + 2, y + 2, TAMAÑO_CELDA - 4, TAMAÑO_CELDA - 4);
             }
         }
 
         // Bucle principal
         function buclePrincipal() {
             establecerTransformacionMundo();
-            
+
             // Limpiar canvas
             contexto.clearRect(0, 0, MUNDO_ANCHO, MUNDO_ALTO);
-            
+
             // Dibujar fondo
-            contexto.fillStyle = '#1a1625';
+            const gradiente = contexto.createRadialGradient(
+                MUNDO_ANCHO / 2, MUNDO_ALTO / 4, 0,
+                MUNDO_ANCHO / 2, MUNDO_ALTO / 4, MUNDO_ANCHO
+            );
+            gradiente.addColorStop(0, '#2a1f3d');
+            gradiente.addColorStop(0.5, '#1e1530');
+            gradiente.addColorStop(1, '#151122');
+            contexto.fillStyle = gradiente;
             contexto.fillRect(0, 0, MUNDO_ANCHO, MUNDO_ALTO);
-            
+
             // Dibujar tablero
             for (let fila = 0; fila < FILAS; fila++) {
                 for (let col = 0; col < COLUMNAS; col++) {
                     const x = MARGEN_X + col * TAMAÑO_CELDA;
                     const y = MARGEN_Y + fila * TAMAÑO_CELDA;
-                    
-                    // Dibujar celda
-                    contexto.fillStyle = 'rgba(255, 255, 255, 0.65)';
-                    contexto.fillRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
-                    contexto.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-                    contexto.strokeRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
-                    
-                    // Dibujar corazón
-                    if (tablero[fila][col]) {
-                        contexto.font = '40px Arial';
-                        contexto.textAlign = 'center';
-                        contexto.textBaseline = 'middle';
-                        contexto.fillText(tablero[fila][col], x + TAMAÑO_CELDA / 2, y + TAMAÑO_CELDA / 2);
-                    }
-                    
-                    // Resaltar selección
-                    if (seleccionado && seleccionado.fila === fila && seleccionado.col === col) {
-                        contexto.strokeStyle = '#ff6b9d';
-                        contexto.lineWidth = 3;
-                        contexto.strokeRect(x + 2, y + 2, TAMAÑO_CELDA - 4, TAMAÑO_CELDA - 4);
-                    }
+                    dibujarCelda(fila, col, x, y);
                 }
             }
-            
+
             // Actualizar y dibujar partículas
             actualizarParticulas();
             particulas.forEach(p => {
-                contexto.globalAlpha = p.vida / 30;
-                contexto.font = `${p.radio * 10}px Arial`;
-                contexto.textAlign = 'center';
-                contexto.textBaseline = 'middle';
-                contexto.fillText(p.color, p.x, p.y);
+                contexto.globalAlpha = p.vida / 20;
+                contexto.fillStyle = p.color;
+                contexto.beginPath();
+                contexto.arc(p.x, p.y, p.radio, 0, Math.PI * 2);
+                contexto.fill();
                 contexto.globalAlpha = 1;
             });
-            
+
             requestAnimationFrame(buclePrincipal);
         }
 
@@ -1006,10 +1603,10 @@
             redimensionar();
             window.addEventListener('resize', redimensionar);
             configurarEventos();
+            cargarImagenes();
             actualizarUI();
         }
 
-        // Iniciar cuando el documento esté listo
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', inicializar);
         } else {
