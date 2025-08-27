@@ -332,45 +332,45 @@
 
     <script>
         // === Constantes del juego ===
-        const MUNDO_ANCHO = 600;
-        const MUNDO_ALTO = 900;
+        const MUNDO_ANCHO = 500;
+        const MUNDO_ALTO = 750;
         const FILAS = 12;
         const COLUMNAS = 8;
-        const TAMAÑO_CELDA = 50;
+        const TAMAÑO_CELDA = 60;
         const MARGEN_X = (MUNDO_ANCHO - COLUMNAS * TAMAÑO_CELDA) / 2;
-        const MARGEN_Y = 80;
+        const MARGEN_Y = 15;
 
         // Imágenes de corazones
         const IMAGENES_CORAZONES = {
-            ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245910/Coraz%C3%B3n_Rosado_dbcttm.png',
-            MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245910/Coraz%C3%B3n_Morado_diuu3y.png',
-            AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245909/Coraz%C3%B3n_Amarillo_mfdy9h.png',
-            NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245910/Coraz%C3%B3n_Naranja_bcvdii.png',
-            VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245911/Coraz%C3%B3n_Verde_jhh5ld.png',
-            CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245910/Coraz%C3%B3n_Celeste_xstszc.png'
+            ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756271397/Coraz%C3%B3n_Rosado_zipc1c.png',
+            MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756271405/Coraz%C3%B3n_Morado_mq3bjf.png',
+            AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756271398/Coraz%C3%B3n_Amarillo_azvkcn.png',
+            NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756271399/Coraz%C3%B3n_Naranja_q9um5u.png',
+            VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756271403/Coraz%C3%B3n_Verde_b0akys.png',
+            CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756271402/Coraz%C3%B3n_Celeste_ms0p5r.png'
         };
 
         const IMAGENES_ESPECIALES = {
             RAYADO_ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245940/Rayado_Rosado_wirbzt.png',
-            RAYADO_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245938/Rayado_Morado_uk1g7m.png',
-            RAYADO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245937/Rayado_Amarillo_xbpkki.png',
-            RAYADO_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245939/Rayado_Naranja_ll57hu.png',
-            RAYADO_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245942/Rayado_Verde_fuc65g.png',
-            RAYADO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245937/Rayado_Celeste_snsvwv.png',
-            ENVUELTO_ROSADO: 'img/corazon-envuelto-rosa.png',
-            ENVUELTO_MORADO: 'img/corazon-envuelto-morado.png',
-            ENVUELTO_AMARILLO: 'img/corazon-envuelto-amarillo.png',
-            ENVUELTO_NARANJA: 'img/corazon-envuelto-naranja.png',
-            ENVUELTO_VERDE: 'img/corazon-envuelto-verde.png',
-            ENVUELTO_CELESTE: 'img/corazon-envuelto-celeste.png',
-            ARCOIRIS: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245910/Coraz%C3%B3n_Arcoiris_vtxthu.png'
+            RAYADO_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273143/Rayado_Rosado_xj6w9o.png',
+            RAYADO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273135/Rayado_Amarillo_yu7bni.png',
+            RAYADO_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273141/Rayado_Naranja_kroan0.png',
+            RAYADO_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273145/Rayado_Verde_cmuppx.png',
+            RAYADO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273136/Rayado_Celeste_i0xsxl.png',
+            ENVUELTO_ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268133/Envuelto_Rosado_bjpyot.png',
+            ENVUELTO_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268130/Envuelto_Morado_zzajds.png',
+            ENVUELTO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268137/Envuelto_Amarillo_atxwml.png',
+            ENVUELTO_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268134/Envuelto_Naranja_shgnmj.png',
+            ENVUELTO_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268129/Envuelto_Verde_bfvef2.png',
+            ENVUELTO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268129/Envuelto_Celeste_lpywrf.png',
+            ARCOIRIS: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756272399/Coraz%C3%B3n_Arcoiris_tn2bzn.png'
         };
 
         const IMAGENES_ELEMENTOS = {
-            PIEDRA: 'img/piedra.png',
-            NUBE: 'img/nube.png',
-            BESO: 'img/beso.png',
-            OSO: 'img/oso.png'
+            PIEDRA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756272270/Piedras_btiubc.png',
+            NUBE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756272179/Nubes_mrj0eq.png',
+            BESO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756269140/Beso_fcfonz.png',
+            OSO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268766/Oso_de_Peluche_mubaz3.png'
         };
 
         const CORAZONES_BASICOS = Object.keys(IMAGENES_CORAZONES);
@@ -1462,12 +1462,6 @@
             const celda = tablero[fila][col];
             if (!celda) return;
 
-            // Dibujar fondo de celda
-            contexto.fillStyle = 'rgba(255, 255, 255, 0.1)';
-            contexto.fillRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
-            contexto.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-            contexto.strokeRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
-
             const centroX = x + TAMAÑO_CELDA / 2;
             const centroY = y + TAMAÑO_CELDA / 2;
 
@@ -1564,16 +1558,27 @@
             // Limpiar canvas
             contexto.clearRect(0, 0, MUNDO_ANCHO, MUNDO_ALTO);
 
-            // Dibujar fondo
-            const gradiente = contexto.createRadialGradient(
-                MUNDO_ANCHO / 2, MUNDO_ALTO / 4, 0,
-                MUNDO_ANCHO / 2, MUNDO_ALTO / 4, MUNDO_ANCHO
+            // Dibujar fondo con gradiente suave
+            const gradiente = contexto.createLinearGradient(
+                0, 0,
+                MUNDO_ANCHO, MUNDO_ALTO
             );
-            gradiente.addColorStop(0, '#2a1f3d');
-            gradiente.addColorStop(0.5, '#1e1530');
-            gradiente.addColorStop(1, '#151122');
+            gradiente.addColorStop(0, '#1a1625');
+            gradiente.addColorStop(0.5, '#151022');
+            gradiente.addColorStop(1, '#0f0f14');
             contexto.fillStyle = gradiente;
             contexto.fillRect(0, 0, MUNDO_ANCHO, MUNDO_ALTO);
+
+            // Dibujar patrón de estrellas sutiles en el fondo
+            contexto.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            for (let i = 0; i < 50; i++) {
+                const starX = Math.random() * MUNDO_ANCHO;
+                const starY = Math.random() * MUNDO_ALTO;
+                const size = Math.random() * 1.5;
+                contexto.beginPath();
+                contexto.arc(starX, starY, size, 0, Math.PI * 2);
+                contexto.fill();
+            }
 
             // Dibujar tablero
             for (let fila = 0; fila < FILAS; fila++) {
