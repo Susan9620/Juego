@@ -325,7 +325,7 @@
             <p class="linea">Nivel: <b id="nivelActual">1</b></p>
             <p class="linea">Puntaje: <b id="puntajeActual">0</b></p>
             <p class="linea">Objetivo: <b id="objetivoTexto">Alcanzar puntuacion</b></p>
-            <p class="frase" id="fraseFinal">"El amor verdadero nunca se rinde"</p>
+            <p class="frase" id="fraseFinal">"Inténtalo de nuevo ♥"</p>
             <button id="btnContinuar" class="cta">Continuar</button>
         </div>
     </div>
@@ -351,15 +351,15 @@
         };
 
         const IMAGENES_ESPECIALES = {
-            RAYADO_ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756245940/Rayado_Rosado_wirbzt.png',
-            RAYADO_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273143/Rayado_Rosado_xj6w9o.png',
+            RAYADO_ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273143/Rayado_Rosado_xj6w9o.png',
+            RAYADO_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273139/Rayado_Morado_cn82wc.png',
             RAYADO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273135/Rayado_Amarillo_yu7bni.png',
             RAYADO_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273141/Rayado_Naranja_kroan0.png',
             RAYADO_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273145/Rayado_Verde_cmuppx.png',
             RAYADO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273136/Rayado_Celeste_i0xsxl.png',
             ENVUELTO_ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268133/Envuelto_Rosado_bjpyot.png',
             ENVUELTO_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268130/Envuelto_Morado_zzajds.png',
-            ENVUELTO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268137/Envuelto_Amarillo_atxwml.png',
+            ENVUELTO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756274417/Envuelto_Amarillo_ljnri5.png',
             ENVUELTO_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268134/Envuelto_Naranja_shgnmj.png',
             ENVUELTO_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268129/Envuelto_Verde_bfvef2.png',
             ENVUELTO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268129/Envuelto_Celeste_lpywrf.png',
@@ -392,9 +392,9 @@
 
         // Configuración de niveles
         const NIVELES_CONFIG = [
-            { nivel: 1, objetivo: 'puntuacion', valor: 1500, movimientos: 25, obstaculos: [] },
-            { nivel: 2, objetivo: 'puntuacion', valor: 2500, movimientos: 25, obstaculos: [] },
-            { nivel: 3, objetivo: 'puntuacion', valor: 4000, movimientos: 25, obstaculos: ['piedra'] },
+            { nivel: 1, objetivo: 'puntuacion', valor: 3500, movimientos: 25, obstaculos: [] },
+            { nivel: 2, objetivo: 'puntuacion', valor: 6000, movimientos: 25, obstaculos: [] },
+            { nivel: 3, objetivo: 'puntuacion', valor: 10000, movimientos: 25, obstaculos: ['piedra'] },
             { nivel: 4, objetivo: 'besos', valor: 3, movimientos: 30, obstaculos: ['piedra'] },
             { nivel: 5, objetivo: 'besos', valor: 5, movimientos: 30, obstaculos: ['nube'] },
             { nivel: 6, objetivo: 'besos', valor: 8, movimientos: 35, obstaculos: ['nube'] },
@@ -422,7 +422,7 @@
         let seleccionado = null;
         let animando = false;
         let objetivo = 'puntuacion';
-        let objetivoValor = 1500;
+        let objetivoValor = 3500;
         let particulas = [];
         let besosEntregados = 0;
         let ososEmparejados = 0;
@@ -655,62 +655,131 @@
             const celda1 = tablero[pos1.fila][pos1.col];
             const celda2 = tablero[pos2.fila][pos2.col];
 
-            // Solo permitir intercambio entre corazones normales/especiales
             if (celda1.tipo === 'obstaculo' || celda2.tipo === 'obstaculo') return;
 
-            // Verificar si es un intercambio especial (corazón especial + normal)
-            const esIntercambioEspecial = (
-                (celda1.especial && celda2.tipo === 'normal' && !celda2.especial) ||
-                (celda2.especial && celda1.tipo === 'normal' && !celda1.especial)
-            );
+            // Verificar si es una combinación especial Rayado + Envuelto
+            const esRayadoYEnvuelto =
+                ((celda1.especial && celda1.especial.startsWith('RAYADO_')) &&
+                    (celda2.especial && celda2.especial.startsWith('ENVUELTO_'))) ||
+                ((celda1.especial && celda1.especial.startsWith('ENVUELTO_')) &&
+                    (celda2.especial && celda2.especial.startsWith('RAYADO_')));
+
+            if (esRayadoYEnvuelto) {
+                // Activar efecto especial de cruz extendida
+                destruirCruzExtendida(pos1, pos2);
+                movimientos--;
+                actualizarUI();
+
+                // Aplicar gravedad y llenar espacios
+                setTimeout(() => {
+                    aplicarGravedad();
+                    llenarEspaciosVacios();
+                    procesarMatches();
+                }, 300);
+
+                return;
+            }
+
+            // Verificar si es un intercambio entre especial y normal
+            const esEspecialYNormal =
+                ((celda1.especial && (celda1.especial.startsWith('RAYADO_') || celda1.especial.startsWith('ENVUELTO_'))) &&
+                    !celda2.especial) ||
+                ((celda2.especial && (celda2.especial.startsWith('RAYADO_') || celda2.especial.startsWith('ENVUELTO_'))) &&
+                    !celda1.especial);
+
+            if (esEspecialYNormal) {
+                // Validar si el intercambio resulta en combinaciones válidas
+                if (!validarIntercambioEspecialNormal(pos1, pos2)) {
+                    playTone(208, 0.3); // Sonido de error
+                    return;
+                }
+            }
+
+            // Guardar estado original para posible reversión
+            const celda1Original = { ...celda1 };
+            const celda2Original = { ...celda2 };
 
             // Intercambiar
             tablero[pos1.fila][pos1.col] = celda2;
             tablero[pos2.fila][pos2.col] = celda1;
 
+            // Verificar si hay corazones especiales involucrados
+            const hayEspecial = (celda1.especial && !celda1.especial.includes('ARCOIRIS')) ||
+                (celda2.especial && !celda2.especial.includes('ARCOIRIS'));
+
             let hayMatch = false;
 
-            if (esIntercambioEspecial) {
-                // Procesar efecto especial
-                const efectoActivado = activarEfectoEspecial(pos1, pos2);
-                hayMatch = efectoActivado;
+            if (hayEspecial) {
+                // Caso especial: si hay un corazón especial, verificar matches en TODO el tablero
+                const todosLosMatches = encontrarTodosLosMatches();
+                hayMatch = todosLosMatches.length >= 3;
 
-                if (efectoActivado) {
-                    // Aplicar gravedad y llenar espacios después del efecto especial
-                    setTimeout(() => {
-                        aplicarGravedad();
-                        llenarEspaciosVacios();
-                        // Buscar más matches después del efecto
-                        setTimeout(() => {
-                            procesarMatches();
-                        }, 300);
-                    }, 200);
-                }
-            } else if (hayCombinaciónEspecial(pos1, pos2)) {
-                procesarCombinaciónEspecial(pos1, pos2);
-                hayMatch = true;
-            } else {
-                const matches1 = encontrarMatches(pos1.fila, pos1.col);
-                const matches2 = encontrarMatches(pos2.fila, pos2.col);
-
-                if (matches1.length > 0 || matches2.length > 0) {
+                // También verificar si el intercambio activa un efecto especial
+                if (!hayMatch && hayCombinaciónEspecial(pos1, pos2)) {
                     hayMatch = true;
                 }
+            } else {
+                // Caso normal: verificar solo alrededor de las posiciones intercambiadas
+                const matches1 = encontrarMatches(pos1.fila, pos1.col);
+                const matches2 = encontrarMatches(pos2.fila, pos2.col);
+                hayMatch = matches1.length >= 3 || matches2.length >= 3;
             }
 
             if (hayMatch) {
                 movimientos--;
                 actualizarUI();
-                if (!esIntercambioEspecial) {
-                    procesarMatches();
-                }
+                procesarMatches();
                 playTone(523, 0.15);
             } else {
                 // Revertir intercambio
-                tablero[pos2.fila][pos2.col] = tablero[pos1.fila][pos1.col];
-                tablero[pos1.fila][pos1.col] = celda1;
+                tablero[pos1.fila][pos1.col] = celda1Original;
+                tablero[pos2.fila][pos2.col] = celda2Original;
                 playTone(208, 0.3);
             }
+        }
+
+        // Función para validar intercambios entre corazones especiales y normales
+        function validarIntercambioEspecialNormal(pos1, pos2) {
+            const celda1 = tablero[pos1.fila][pos1.col];
+            const celda2 = tablero[pos2.fila][pos2.col];
+
+            // Determinar cuál es el especial y cuál es el normal
+            let especialPos, normalPos, especial, colorEspecial, colorNormal;
+
+            if (celda1.especial && (celda1.especial.startsWith('RAYADO_') || celda1.especial.startsWith('ENVUELTO_'))) {
+                especialPos = pos1;
+                normalPos = pos2;
+                especial = celda1.especial;
+                colorEspecial = obtenerColorDeEspecial(especial);
+                colorNormal = celda2.color;
+            } else {
+                especialPos = pos2;
+                normalPos = pos1;
+                especial = celda2.especial;
+                colorEspecial = obtenerColorDeEspecial(especial);
+                colorNormal = celda1.color;
+            }
+
+            // Los colores deben coincidir para que sea válido
+            if (colorEspecial !== colorNormal) {
+                return false;
+            }
+
+            // Simular el intercambio temporalmente
+            tablero[especialPos.fila][especialPos.col] = { tipo: 'normal', color: colorNormal };
+            tablero[normalPos.fila][normalPos.col] = { tipo: 'normal', color: colorNormal, especial: especial };
+
+            // Verificar si hay matches después del intercambio
+            const matchesEspecial = encontrarMatches(normalPos.fila, normalPos.col);
+            const matchesNormal = encontrarMatches(especialPos.fila, especialPos.col);
+            const todosLosMatches = encontrarTodosLosMatches();
+
+            // Revertir la simulación
+            tablero[especialPos.fila][especialPos.col] = celda1;
+            tablero[normalPos.fila][normalPos.col] = celda2;
+
+            // Permitir el intercambio si hay al menos 3 matches en cualquier parte del tablero
+            return matchesEspecial.length >= 3 || matchesNormal.length >= 3 || todosLosMatches.length >= 3;
         }
 
         function obtenerColorDeEspecial(especial) {
@@ -849,26 +918,158 @@
             const celda1 = tablero[pos1.fila][pos1.col];
             const celda2 = tablero[pos2.fila][pos2.col];
 
-            if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS && celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
-                // Arcoíris + Arcoíris = Limpiar todo el tablero
-                limpiarTableroCompleto();
-                mostrarMensaje('¡Explosion Total!');
-            } else if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS || celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
-                // Arcoíris + Cualquier otro = Convertir todos del color
-                const colorObjetivo = celda1.especial === TIPOS_ESPECIALES.ARCOIRIS ? celda2.color : celda1.color;
-                eliminarTodosDelColor(colorObjetivo);
-                mostrarMensaje('¡Poder Arcoiris!');
-            } else if ((celda1.especial && celda1.especial.startsWith('RAYADO_') && celda2.especial && celda2.especial.startsWith('RAYADO_')) ||
-                (celda1.especial && celda1.especial.startsWith('RAYADO_') && celda2.especial && celda2.especial.startsWith('ENVUELTO_')) ||
-                (celda1.especial && celda1.especial.startsWith('ENVUELTO_') && celda2.especial && celda2.especial.startsWith('RAYADO_'))) {
-                // Combinaciones de rayado y envuelto - destruir filas y columnas cruzadas
-                destruirCruzado(pos1, pos2);
-                mostrarMensaje('¡Combinacion Especial!');
-            } else if (celda1.especial && celda1.especial.startsWith('ENVUELTO_') && celda2.especial && celda2.especial.startsWith('ENVUELTO_')) {
-                // Envuelto + Envuelto = Gran explosión 5x5
-                explosion5x5(pos1, pos2);
-                mostrarMensaje('¡Gran Explosion!');
+            // Rayado + Rayado = Cruz completa
+            if ((celda1.especial && celda1.especial.startsWith('RAYADO_')) &&
+                (celda2.especial && celda2.especial.startsWith('RAYADO_'))) {
+                destruirFilaOColumna(pos1, 'horizontal');
+                destruirFilaOColumna(pos1, 'vertical');
+                mostrarMensaje('¡Cruz completa!');
             }
+            // Rayado + Envuelto = Cruz con filas/columnas adyacentes
+            else if (((celda1.especial && celda1.especial.startsWith('RAYADO_')) &&
+                (celda2.especial && celda2.especial.startsWith('ENVUELTO_'))) ||
+                ((celda1.especial && celda1.especial.startsWith('ENVUELTO_')) &&
+                    (celda2.especial && celda2.especial.startsWith('RAYADO_')))) {
+                destruirCruzExtendida(pos1);
+                mostrarMensaje('¡Cruz extendida!');
+            }
+            // Envuelto + Envuelto = Explosión 5x5
+            else if ((celda1.especial && celda1.especial.startsWith('ENVUELTO_')) &&
+                (celda2.especial && celda2.especial.startsWith('ENVUELTO_'))) {
+                explosion5x5(pos1, pos2);
+                mostrarMensaje('¡Gran explosión!');
+            }
+            // Arcoíris + Rayado = Convertir todos del color en rayados y explotar
+            else if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS &&
+                celda2.especial && celda2.especial.startsWith('RAYADO_')) {
+                const color = celda2.especial.replace('RAYADO_', '');
+                convertirYExplotarRayados(color);
+            }
+            else if (celda2.especial === TIPOS_ESPECIALES.ARCOIRIS &&
+                celda1.especial && celda1.especial.startsWith('RAYADO_')) {
+                const color = celda1.especial.replace('RAYADO_', '');
+                convertirYExplotarRayados(color);
+            }
+            // Arcoíris + Envuelto = Convertir todos del color en envueltos y explotar
+            else if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS &&
+                celda2.especial && celda2.especial.startsWith('ENVUELTO_')) {
+                const color = celda2.especial.replace('ENVUELTO_', '');
+                convertirYExplotarEnvueltos(color);
+            }
+            else if (celda2.especial === TIPOS_ESPECIALES.ARCOIRIS &&
+                celda1.especial && celda1.especial.startsWith('ENVUELTO_')) {
+                const color = celda1.especial.replace('ENVUELTO_', '');
+                convertirYExplotarEnvueltos(color);
+            }
+            // Arcoíris + Arcoíris = Limpiar tablero completo
+            else if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS &&
+                celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                limpiarTableroCompleto();
+                mostrarMensaje('¡Explosión total!');
+            }
+            // Arcoíris + Normal = Eliminar todos del color
+            else if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                eliminarTodosDelColor(celda2.color);
+                mostrarMensaje('¡Poder arcoíris!');
+            }
+            else if (celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                eliminarTodosDelColor(celda1.color);
+                mostrarMensaje('¡Poder arcoíris!');
+            }
+        }
+
+        function destruirCruzExtendida(pos1, pos2) {
+            // Determinar el centro de la explosión (punto medio entre las dos posiciones)
+            const centroFila = Math.floor((pos1.fila + pos2.fila) / 2);
+            const centroCol = Math.floor((pos1.col + pos2.col) / 2);
+
+            // Destruir 3 filas (centro, arriba y abajo)
+            for (let df = -1; df <= 1; df++) {
+                const fila = centroFila + df;
+                if (fila >= 0 && fila < FILAS) {
+                    for (let col = 0; col < COLUMNAS; col++) {
+                        if (tablero[fila][col] && tablero[fila][col].tipo === 'normal') {
+                            crearParticulas(fila, col);
+                            tablero[fila][col] = null;
+                            puntaje += 100;
+                        }
+                    }
+                }
+            }
+
+            // Destruir 3 columnas (centro, izquierda y derecha)
+            for (let dc = -1; dc <= 1; dc++) {
+                const col = centroCol + dc;
+                if (col >= 0 && col < COLUMNAS) {
+                    for (let fila = 0; fila < FILAS; fila++) {
+                        // Evitar duplicar la destrucción en el centro
+                        if (fila < centroFila - 1 || fila > centroFila + 1) {
+                            if (tablero[fila][col] && tablero[fila][col].tipo === 'normal') {
+                                crearParticulas(fila, col);
+                                tablero[fila][col] = null;
+                                puntaje += 100;
+                            }
+                        }
+                    }
+                }
+            }
+
+            mostrarMensaje('¡Combinación especial! ¡Cruz extendida!');
+            playTone(659, 0.3); // Nota musical para efecto especial
+        }
+
+        function convertirYExplotarRayados(color) {
+            // Primero convertir todos los normales del color en rayados
+            const posicionesConvertidas = [];
+            for (let fila = 0; fila < FILAS; fila++) {
+                for (let col = 0; col < COLUMNAS; col++) {
+                    const celda = tablero[fila][col];
+                    if (celda && celda.tipo === 'normal' && celda.color === color && !celda.especial) {
+                        tablero[fila][col] = {
+                            tipo: 'normal',
+                            color: color,
+                            especial: `RAYADO_${color}`
+                        };
+                        posicionesConvertidas.push({ fila, col });
+                    }
+                }
+            }
+
+            // Luego explotar todos los rayados de ese color
+            setTimeout(() => {
+                posicionesConvertidas.forEach(pos => {
+                    destruirFilaOColumna(pos, 'horizontal');
+                });
+                aplicarGravedad();
+                llenarEspaciosVacios();
+            }, 200);
+        }
+
+        function convertirYExplotarEnvueltos(color) {
+            // Primero convertir todos los normales del color en envueltos
+            const posicionesConvertidas = [];
+            for (let fila = 0; fila < FILAS; fila++) {
+                for (let col = 0; col < COLUMNAS; col++) {
+                    const celda = tablero[fila][col];
+                    if (celda && celda.tipo === 'normal' && celda.color === color && !celda.especial) {
+                        tablero[fila][col] = {
+                            tipo: 'normal',
+                            color: color,
+                            especial: `ENVUELTO_${color}`
+                        };
+                        posicionesConvertidas.push({ fila, col });
+                    }
+                }
+            }
+
+            // Luego explotar todos los envueltos de ese color
+            setTimeout(() => {
+                posicionesConvertidas.forEach(pos => {
+                    explosion3x3(pos);
+                });
+                aplicarGravedad();
+                llenarEspaciosVacios();
+            }, 200);
         }
 
         function destruirCruzado(pos1, pos2) {
@@ -902,10 +1103,19 @@
         // Sistema de matches
         function encontrarMatches(fila, col) {
             const celda = tablero[fila][col];
-            if (!celda || celda.tipo !== 'normal' || celda.especial) return [];
+            if (!celda || celda.tipo !== 'normal') return [];
 
             let matches = [];
-            const color = celda.color;
+            let color;
+
+            // Determinar el color base para la comparación
+            if (celda.especial) {
+                color = obtenerColorDeEspecial(celda.especial);
+                // Si no podemos determinar el color (arcoíris), no hacer match
+                if (!color) return [];
+            } else {
+                color = celda.color;
+            }
 
             // Buscar horizontal
             let horizontal = [{ fila, col }];
@@ -913,7 +1123,17 @@
             // Izquierda
             for (let c = col - 1; c >= 0; c--) {
                 const celdaActual = tablero[fila][c];
-                if (celdaActual && celdaActual.tipo === 'normal' && celdaActual.color === color && !celdaActual.especial) {
+                if (!celdaActual || celdaActual.tipo !== 'normal') break;
+
+                let colorActual;
+                if (celdaActual.especial) {
+                    colorActual = obtenerColorDeEspecial(celdaActual.especial);
+                    if (!colorActual) break;
+                } else {
+                    colorActual = celdaActual.color;
+                }
+
+                if (colorActual === color) {
                     horizontal.unshift({ fila, col: c });
                 } else {
                     break;
@@ -923,7 +1143,17 @@
             // Derecha
             for (let c = col + 1; c < COLUMNAS; c++) {
                 const celdaActual = tablero[fila][c];
-                if (celdaActual && celdaActual.tipo === 'normal' && celdaActual.color === color && !celdaActual.especial) {
+                if (!celdaActual || celdaActual.tipo !== 'normal') break;
+
+                let colorActual;
+                if (celdaActual.especial) {
+                    colorActual = obtenerColorDeEspecial(celdaActual.especial);
+                    if (!colorActual) break;
+                } else {
+                    colorActual = celdaActual.color;
+                }
+
+                if (colorActual === color) {
                     horizontal.push({ fila, col: c });
                 } else {
                     break;
@@ -940,7 +1170,17 @@
             // Arriba
             for (let f = fila - 1; f >= 0; f--) {
                 const celdaActual = tablero[f][col];
-                if (celdaActual && celdaActual.tipo === 'normal' && celdaActual.color === color && !celdaActual.especial) {
+                if (!celdaActual || celdaActual.tipo !== 'normal') break;
+
+                let colorActual;
+                if (celdaActual.especial) {
+                    colorActual = obtenerColorDeEspecial(celdaActual.especial);
+                    if (!colorActual) break;
+                } else {
+                    colorActual = celdaActual.color;
+                }
+
+                if (colorActual === color) {
                     vertical.unshift({ fila: f, col });
                 } else {
                     break;
@@ -950,7 +1190,17 @@
             // Abajo
             for (let f = fila + 1; f < FILAS; f++) {
                 const celdaActual = tablero[f][col];
-                if (celdaActual && celdaActual.tipo === 'normal' && celdaActual.color === color && !celdaActual.especial) {
+                if (!celdaActual || celdaActual.tipo !== 'normal') break;
+
+                let colorActual;
+                if (celdaActual.especial) {
+                    colorActual = obtenerColorDeEspecial(celdaActual.especial);
+                    if (!colorActual) break;
+                } else {
+                    colorActual = celdaActual.color;
+                }
+
+                if (colorActual === color) {
                     vertical.push({ fila: f, col });
                 } else {
                     break;
@@ -977,12 +1227,16 @@
 
             for (let fila = 0; fila < FILAS; fila++) {
                 for (let col = 0; col < COLUMNAS; col++) {
-                    const matches = encontrarMatches(fila, col);
-                    matches.forEach(match => {
-                        if (!todosLosMatches.some(m => m.fila === match.fila && m.col === match.col)) {
-                            todosLosMatches.push(match);
-                        }
-                    });
+                    const celda = tablero[fila][col];
+                    // Solo buscar matches en corazones normales (sin especial) o que ya existían antes
+                    if (celda && celda.tipo === 'normal' && (!celda.especial || celda.especial === TIPOS_ESPECIALES.ARCOIRIS)) {
+                        const matches = encontrarMatches(fila, col);
+                        matches.forEach(match => {
+                            if (!todosLosMatches.some(m => m.fila === match.fila && m.col === match.col)) {
+                                todosLosMatches.push(match);
+                            }
+                        });
+                    }
                 }
             }
 
@@ -996,15 +1250,20 @@
                 let matches = encontrarTodosLosMatches();
 
                 if (matches.length > 0) {
-                    // Crear efectos especiales basados en el patrón
-                    crearEfectosEspeciales(matches);
+                    // Verificar si hay corazones especiales en los matches y activar sus efectos
+                    const efectosActivados = activarEfectosEspecialesEnMatches(matches);
 
-                    // Eliminar matches y sumar puntos
-                    matches.forEach(match => {
-                        crearParticulas(match.fila, match.col);
-                        tablero[match.fila][match.col] = null;
-                        puntaje += 100;
-                    });
+                    if (!efectosActivados) {
+                        // Si no se activaron efectos especiales, procesar como match normal
+                        crearEfectosEspeciales(matches);
+
+                        // Eliminar matches y sumar puntos
+                        matches.forEach(match => {
+                            crearParticulas(match.fila, match.col);
+                            tablero[match.fila][match.col] = null;
+                            puntaje += 100;
+                        });
+                    }
 
                     // Romper obstáculos adyacentes
                     romperObstaculosAdyacentes(matches);
@@ -1020,6 +1279,15 @@
                     // Buscar más matches
                     setTimeout(() => {
                         procesarMatches();
+                        // Limpiar bandera de recién creado después del primer procesamiento
+                        for (let fila = 0; fila < FILAS; fila++) {
+                            for (let col = 0; col < COLUMNAS; col++) {
+                                const celda = tablero[fila][col];
+                                if (celda && celda.recienCreado) {
+                                    delete celda.recienCreado;
+                                }
+                            }
+                        }
                     }, 300);
                 } else {
                     animando = false;
@@ -1029,8 +1297,50 @@
             }, 200);
         }
 
+        function activarEfectosEspecialesEnMatches(matches) {
+            let efectosActivados = false;
+
+            // Buscar corazones especiales en los matches (ignorar los recién creados)
+            for (const match of matches) {
+                const celda = tablero[match.fila][match.col];
+                if (celda && celda.especial && !celda.recienCreado &&
+                    (celda.especial.startsWith('RAYADO_') || celda.especial.startsWith('ENVUELTO_'))) {
+
+                    // Activar efecto según el tipo de corazón especial
+                    if (celda.especial.startsWith('RAYADO_')) {
+                        // Determinar dirección basada en el patrón del match
+                        const esHorizontal = matches.some(m => m.fila === match.fila && m.col !== match.col);
+                        const direccion = esHorizontal ? 'horizontal' : 'vertical';
+
+                        destruirFilaOColumna(match, direccion);
+                        tablero[match.fila][match.col] = null;
+                        efectosActivados = true;
+                        mostrarMensaje('¡Rayado activado!');
+
+                    } else if (celda.especial.startsWith('ENVUELTO_')) {
+                        explosion3x3(match);
+                        tablero[match.fila][match.col] = null;
+                        efectosActivados = true;
+                        mostrarMensaje('¡Envuelto activado!');
+                    }
+
+                    // Si se activó un efecto, salir del bucle para evitar procesamientos múltiples
+                    if (efectosActivados) break;
+                }
+            }
+
+            return efectosActivados;
+        }
+
         function crearEfectosEspeciales(matches) {
             const grupos = agruparMatchesPorLinea(matches);
+
+            // Verificar si ya hay un corazón especial en el grupo
+            const tieneEspecial = grupos.some(grupo =>
+                grupo.some(match => tablero[match.fila][match.col].especial)
+            );
+
+            if (tieneEspecial) return; // No crear nuevo especial si ya hay uno
 
             grupos.forEach(grupo => {
                 if (grupo.length === 4) {
@@ -1042,7 +1352,8 @@
                             tablero[pos.fila][pos.col] = {
                                 tipo: 'normal',
                                 color: color,
-                                especial: `RAYADO_${color}` // Ahora guarda el tipo especial con color
+                                especial: `RAYADO_${color}`,
+                                recienCreado: true // Marcar como recién creado
                             };
                         }
                     }, 250);
@@ -1054,7 +1365,8 @@
                         if (tablero[pos.fila][pos.col]) {
                             tablero[pos.fila][pos.col] = {
                                 tipo: 'normal',
-                                especial: TIPOS_ESPECIALES.ARCOIRIS
+                                especial: TIPOS_ESPECIALES.ARCOIRIS,
+                                recienCreado: true // Marcar como recién creado
                             };
                         }
                     }, 250);
@@ -1068,32 +1380,28 @@
         }
 
         function detectarPatronesLT(matches) {
-            const matchesMap = new Map();
-            matches.forEach(match => {
-                matchesMap.set(`${match.fila}-${match.col}`, match);
-            });
+            // Buscar exactamente patrones L con 5 corazones
+            const gruposL = [];
 
             matches.forEach(match => {
-                let esPatronL = false;
-                let esPatronT = false;
+                // Contar corazones en fila y columna desde este punto
+                const enFila = matches.filter(m => m.fila === match.fila).length;
+                const enColumna = matches.filter(m => m.col === match.col).length;
 
-                // Verificar patrón L (horizontal + vertical desde una esquina)
-                const horizontales = matches.filter(m => m.fila === match.fila && Math.abs(m.col - match.col) <= 2);
-                const verticales = matches.filter(m => m.col === match.col && Math.abs(m.fila - match.fila) <= 2);
-
-                if (horizontales.length >= 3 && verticales.length >= 3) {
-                    // Es un patrón L o T
+                // Si hay exactamente 3 en fila y 3 en columna (el central cuenta para ambos = 5 total)
+                if (enFila === 3 && enColumna === 3) {
+                    const color = tablero[match.fila][match.col].color;
                     setTimeout(() => {
                         if (tablero[match.fila][match.col]) {
-                            const color = tablero[match.fila][match.col].color;
                             tablero[match.fila][match.col] = {
                                 tipo: 'normal',
                                 color: color,
-                                especial: `ENVUELTO_${color}` // Ahora guarda el tipo especial con color
+                                especial: `ENVUELTO_${color}`,
+                                recienCreado: true
                             };
                         }
                     }, 250);
-                    mostrarMensaje('Corazon Envuelto!');
+                    mostrarMensaje('¡Corazón Envuelto!');
                     return;
                 }
             });
