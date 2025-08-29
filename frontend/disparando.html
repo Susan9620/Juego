@@ -417,7 +417,6 @@
         <button id="btnAudio" class="pildora">🔊 Activar sonido</button>
         <button id="btnPausa" class="pildora">⏸ Pausar</button>
         <button id="btnSalir" class="pildora">🏠 Menú</button>
-        <button id="btnLogout" class="pildora">🚪 Cerrar sesión</button>
     </div>
 
     <!-- Controles táctiles: joystick para movimiento y botón de disparo -->
@@ -434,20 +433,6 @@
 
     <!-- Indicador de Pausa -->
     <div id="pausado" hidden>⏸ Pausa</div>
-
-    <!-- Pantalla de Login / Registro 
-    <div id="pantallaLogin">
-        <div class="form-login">
-            <h1>Disparando ❤️</h1>
-            <input id="username" type="text" placeholder="Usuario" autocomplete="username">
-            <input id="password" type="password" placeholder="Contraseña" autocomplete="current-password">
-            <div class="fila">
-                <button id="btnLogin" class="cta" type="button">Iniciar sesión</button>
-                <button id="btnRegister" class="cta" type="button">Registrarse</button>
-            </div>
-            <p id="msgLogin"></p>
-        </div>
-    </div>-->
 
     <!-- Pantalla de inicio -->
     <div id="pantallaInicio">
@@ -494,6 +479,13 @@
         var AUTH_TOKEN = localStorage.getItem('auth_token') || null;
         var USERNAME = localStorage.getItem('username') || '';
 
+        // Redirigir al menú con modal si NO hay sesión
+        if (!AUTH_TOKEN || AUTH_TOKEN === 'null') {
+            localStorage.removeItem('auth_token');
+            const target = encodeURIComponent('disparando.html');
+            window.location.href = `index.html?login=1&redir=${target}`;
+        }
+
         if (AUTH_TOKEN === 'null') {
             localStorage.removeItem('auth_token');
             AUTH_TOKEN = null;
@@ -516,20 +508,20 @@
                 const res = await fetch(`${API_BASE}/api/runs`, {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify({ playerId: PLAYER_ID, name: USERNAME || PLAYER_NAME, score, time, level })
+                    body: JSON.stringify({
+                        playerId: PLAYER_ID,
+                        name: USERNAME || PLAYER_NAME,
+                        score,
+                        time,
+                        level,
+                        game: 'disparando'
+                    })
                 });
 
                 if (res.status === 401) {
                     localStorage.removeItem('auth_token');
                     AUTH_TOKEN = null;
-                    const login = document.getElementById('pantallaLogin');
-                    const inicio = document.getElementById('pantallaInicio');
-                    const msg = document.getElementById('msgLogin');
-                    if (login && inicio && msg) {
-                        login.hidden = false;
-                        inicio.hidden = true;
-                        msg.textContent = 'Vuelve a iniciar sesión';
-                    }
+                    console.warn('No autenticado: resultado no guardado.');
                     return;
                 }
 
@@ -542,7 +534,7 @@
 
         async function cargarTop() {
             try {
-                const res = await fetch(`${API_BASE}/api/leaderboard?limit=5`);
+                const res = await fetch(`${API_BASE}/api/leaderboard?limit=5&game=disparando`);
                 const data = await res.json();
                 console.table(data.leaderboard);
                 // aquí podrías escribirlo en tu UI si quieres
@@ -608,71 +600,6 @@
                 bala: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1755920216/Coraz%C3%B3n_rh4fmm.png',
                 enemigo: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1755989490/Alien_rhbowg.png',
             };
-
-            // === Login / Registro ===
-            const pantallaLogin = document.getElementById('pantallaLogin');
-            const msgLogin = document.getElementById('msgLogin');
-            const btnLogin = document.getElementById('btnLogin');
-            const btnRegister = document.getElementById('btnRegister');
-            const inpUser = document.getElementById('username');
-            const inpPass = document.getElementById('password');
-
-            async function loginRegister(endpoint) {
-                const username = inpUser.value.trim();
-                const password = inpPass.value.trim();
-                if (!username || !password) {
-                    msgLogin.textContent = "Completa usuario y contraseña";
-                    return;
-                }
-                try {
-                    const res = await fetch(`${API_BASE}/api/${endpoint}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || "Error");
-
-                    if (endpoint === 'login') {
-                        AUTH_TOKEN = data.token;
-                        USERNAME = data.username;
-                        localStorage.setItem('auth_token', AUTH_TOKEN);
-                        localStorage.setItem('username', USERNAME);
-                        pantallaLogin.hidden = true;
-                        pantallaInicio.hidden = false;
-                    } else {
-                        msgLogin.textContent = "✅ Registrada. Ahora inicia sesión.";
-                    }
-                } catch (e) {
-                    msgLogin.textContent = "❌ " + e.message;
-                }
-            }
-
-            if (!btnLogin || !btnRegister) {
-                console.error('No se encontraron los botones de login/registro');
-            }
-
-            btnLogin.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('click login');
-                loginRegister('login');
-            });
-
-            btnRegister.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('click register');
-                loginRegister('register');
-            });
-
-            function exigirSesionOLogin() {
-                if (AUTH_TOKEN) {
-                    pantallaLogin.hidden = true;
-                    pantallaInicio.hidden = false;
-                } else {
-                    pantallaLogin.hidden = false;
-                    pantallaInicio.hidden = true;
-                }
-            }
 
             function cargarImagen(src) {
                 return new Promise((resolver, rechazar) => {
@@ -1087,12 +1014,6 @@
                 });
 
                 btnComenzar.addEventListener('click', async () => {
-                    if (!AUTH_TOKEN) {
-                        pantallaLogin.hidden = false;
-                        pantallaInicio.hidden = true;
-                        msgLogin.textContent = "Primero inicia sesión 💖";
-                        return;
-                    }
                     await setupAudio();
                     comenzarJuego();
                     iniciarMusicaHTML();
@@ -1538,7 +1459,6 @@
                 redimensionar();
                 inicializarCorazonesFondo();
                 actualizarIU();
-                exigirSesionOLogin();
 
                 window.addEventListener('resize', redimensionar);
                 window.addEventListener('orientationchange', () => setTimeout(redimensionar, 250));

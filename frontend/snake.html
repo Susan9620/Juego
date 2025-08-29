@@ -7,14 +7,6 @@
     <title>Snake Xenzia 🐍</title>
     <link rel="stylesheet" href="global.css" />
     <style>
-        :root {
-            --acento-1: #FF7AA2;
-            --acento-2: #ff4d6d;
-            --panel: rgba(0, 0, 0, .6);
-            --texto: #fff;
-            --atenuado: #ffffffcc;
-        }
-
         body {
             margin: 0;
             overflow: hidden;
@@ -310,7 +302,6 @@
         <button id="btnAudio" class="pildora">🔊 Sonido</button>
         <button id="btnPausa" class="pildora">⏸ Pausar</button>
         <button id="btnSalir" class="pildora">🏠 Menú</button>
-        <button id="btnLogout" class="pildora">🚪 Cerrar sesión</button>
     </div>
 
     <div class="controles" aria-hidden="false">
@@ -373,6 +364,68 @@
     </audio>
 
     <script>
+        // === Backend API común ===
+        const API_BASE = 'https://juego-xexm.onrender.com';
+
+        let AUTH_TOKEN_SNAKE = localStorage.getItem('auth_token') || null;
+        if (AUTH_TOKEN_SNAKE === 'null') { localStorage.removeItem('auth_token'); AUTH_TOKEN_SNAKE = null; }
+
+        // Redirigir al menú con modal si NO hay sesión
+        if (!AUTH_TOKEN_SNAKE) {
+            const target = encodeURIComponent('snake.html');
+            window.location.href = `index.html?login=1&redir=${target}`;
+        }
+
+        // Identidad local del jugador (reutilizamos el mismo ID que usa Disparando si existe)
+        let PLAYER_ID_SNAKE = localStorage.getItem('player_id');
+        if (!PLAYER_ID_SNAKE) {
+            PLAYER_ID_SNAKE = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2);
+            localStorage.setItem('player_id', PLAYER_ID_SNAKE);
+        }
+        const PLAYER_NAME_SNAKE = localStorage.getItem('username') || localStorage.getItem('player_name') || '';
+
+        async function enviarResultadoSnake({ score, time, level }) {
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (AUTH_TOKEN_SNAKE) headers.Authorization = `Bearer ${AUTH_TOKEN_SNAKE}`;
+
+                const res = await fetch(`${API_BASE}/api/runs`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        playerId: PLAYER_ID_SNAKE,
+                        name: PLAYER_NAME_SNAKE,
+                        score,
+                        time,
+                        level,
+                        game: 'snake'
+                    })
+                });
+
+                if (res.status === 401) {
+                    localStorage.removeItem('auth_token');
+                    AUTH_TOKEN_SNAKE = null;
+                    console.warn('Snake: no autenticada, run no guardado en cuenta.');
+                    return;
+                }
+
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data?.ok) console.warn('Snake: respuesta no OK', data);
+            } catch (e) {
+                console.error('Snake: error enviando resultado', e);
+            }
+        }
+
+        async function cargarTopSnake() {
+            try {
+                const res = await fetch(`${API_BASE}/api/leaderboard?limit=5&game=snake`);
+                const data = await res.json();
+                console.table(data.leaderboard);
+            } catch (e) {
+                console.error('Snake: no se pudo cargar el ranking', e);
+            }
+        }
+
         (function () {
             // === Configuración del juego ===
             const GRID_SIZE = 20;
@@ -488,6 +541,8 @@
             let velocidad = 1;
             let ultimoTiempo = 0;
             let intervaloJuego = 200; // ms entre movimientos
+            let inicioReloj = 0;
+            let tiempoTranscurrido = 0;
 
             // Variables responsive
             let dpr = 1, escala = 1, desplazamientoX = 0, desplazamientoY = 0;
@@ -651,6 +706,13 @@
                 laFraseFinal.textContent = elegirAleatorio(FRASES_GAME_OVER);
 
                 superposicion.hidden = false;
+
+                // Enviar resultado a la BD
+                enviarResultadoSnake({
+                    score: puntaje,                 // puntaje final
+                    time: Number(tiempoTranscurrido.toFixed(2)), // tiempo total en segundos
+                    level: 1                        // Snake no tiene niveles; usa 1
+                });
             }
 
             function reiniciarJuego() {
@@ -945,6 +1007,8 @@
 
             function bucleJuego(timestamp) {
                 if (juegoIniciado && !pausado && !juegoTerminado) {
+                    // tiempo total de la partida
+                    tiempoTranscurrido = (performance.now() / 1000) - inicioReloj;
                     if (timestamp - ultimoMovimiento >= intervaloJuego) {
                         moverSerpiente();
                         ultimoMovimiento = timestamp;
@@ -969,6 +1033,9 @@
                     console.log("Error reproduciendo música:", e);
                 }
 
+                inicioReloj = performance.now() / 1000;
+                tiempoTranscurrido = 0;
+
                 reiniciarJuego();
             }
 
@@ -978,6 +1045,7 @@
                 redimensionar();
                 generarComida();
                 actualizarIU();
+                cargarTopSnake();
 
                 window.addEventListener('resize', redimensionar);
                 window.addEventListener('orientationchange', () => {
@@ -999,7 +1067,7 @@
                 localStorage.removeItem('username');
                 try { alert('Sesión cerrada'); } catch (e) { }
             });
-            
+
         })();
     </script>
 

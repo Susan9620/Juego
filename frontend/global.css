@@ -14,3 +14,192 @@ html,
 body {
     height: 100%;
 }
+
+/* ===== Botones tipo "Comenzar" unificados ===== */
+.cta {
+    background: linear-gradient(90deg, var(--acento-1, #FF7AA2), var(--acento-2, #ff4d6d));
+    border: none;
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: .2px;
+    box-shadow: 0 10px 28px rgba(255, 77, 109, .35);
+    cursor: pointer;
+    transition: transform .08s ease, filter .2s ease, box-shadow .2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.cta:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+}
+
+.cta:active {
+    transform: translateY(0);
+    filter: brightness(.96);
+}
+
+.cta--sm {
+    padding: 8px 12px;
+    font-size: 14px;
+    box-shadow: 0 8px 20px rgba(255, 77, 109, .30);
+}
+
+.cta--full {
+    width: 100%;
+}
+
+.cta--secondary {
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .18);
+    box-shadow: none;
+}
+
+/* ===== Inputs del modal ===== */
+.ui-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, .15);
+    background: rgba(0, 0, 0, .35);
+    color: #fff;
+    outline: none;
+}
+
+/* ===== Barra de usuario en el menú ===== */
+.barra-usuario {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0 20px 0;
+}
+
+.estado-usuario {
+    opacity: .9
+}
+
+/* ===== Modal de autenticación ===== */
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, .55);
+    z-index: 9999;
+}
+
+.modal-card {
+    width: min(90vw, 420px);
+    background: rgba(0, 0, 0, .6);
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.modal-card h2 {
+    margin: 0 0 10px 0;
+    color: #ff7aa2;
+    text-align: center
+}
+
+.auth-msg {
+    min-height: 24px;
+    color: #ffd6e3;
+    text-align: center;
+    margin: 0 0 12px 0
+}
+
+.form-row {
+    margin-bottom: 10px
+}
+
+.btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px
+}
+
+.modal-close {
+    margin-top: 8px
+}
+
+/* ===== Mobile tuning para .cta ===== */
+@media (max-width: 480px) {
+    .cta {
+        padding: 10px 14px;
+        font-size: 14px;
+        border-radius: 999px;
+    }
+
+    .cta--sm {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    /* versión compacta */
+    .ui-input {
+        padding: 12px 12px;
+        font-size: 16px;
+    }
+
+    /* evita zoom en iOS */
+}
+
+@media (max-width: 360px) {
+    .cta {
+        padding: 9px 12px;
+        font-size: 13px;
+    }
+
+    .cta--sm {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+}
+
+/* ===== Botones de la barra superior del juego: extra compactos ===== */
+.barra-superior .cta {
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+@media (max-width: 360px) {
+    .barra-superior .cta {
+        padding: 5px 8px;
+        font-size: 11.5px;
+    }
+}
+
+/* ===== Modal auth más estrecho en móvil ===== */
+@media (max-width: 480px) {
+    .modal-card {
+        width: min(94vw, 360px);
+        padding: 16px;
+    }
+
+    .btn-row {
+        grid-template-columns: 1fr;
+    }
+
+    /* Login y Registro en una columna */
+    .barra-usuario {
+        gap: 6px;
+    }
+
+    .barra-usuario .cta {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .btn-row {
+        grid-template-columns: 1fr;
+    }
+}

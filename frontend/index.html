@@ -280,11 +280,10 @@
             <h1 class="titulo-principal">Mini Juegos ❤️</h1>
 
             <!-- BARRA USUARIO: estado + botones -->
-            <div id="barraUsuario"
-                style="display:flex;gap:10px;align-items:center;justify-content:center;margin:10px 0 20px 0;">
-                <span id="estadoUsuario" style="opacity:.9">Invitado</span>
-                <button id="btnAbrirLogin" class="cta" type="button">Iniciar sesión</button>
-                <button id="btnLogout" class="cta" type="button" hidden>Cerrar sesión</button>
+            <div id="barraUsuario" class="barra-usuario">
+                <span id="estadoUsuario" class="estado-usuario">Invitada</span>
+                <button id="btnAbrirLogin" class="cta cta--sm" type="button">Iniciar sesión</button>
+                <button id="btnLogout" class="cta cta--sm" type="button" hidden>Cerrar sesión</button>
             </div>
 
             <p class="subtitulo">Elige tu aventura romántica favorita</p>
@@ -320,11 +319,11 @@
             <div class="info-adicional">
                 <div class="estadisticas">
                     <div class="stat">
-                        <span class="stat-numero">1</span>
+                        <span class="stat-numero">2</span>
                         <span class="stat-label">Juego Disponible</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-numero">3</span>
+                        <span class="stat-numero">2</span>
                         <span class="stat-label">Próximamente</span>
                     </div>
                     <div class="stat">
@@ -334,7 +333,7 @@
                 </div>
 
                 <div class="creditos">
-                    <p>🎮 Colección de mini juegos románticos<br>
+                    <p>🎮 Colección de mini juegos<br>
                         💫 Más juegos llegando pronto<br>
                         ❤️ ¡Disfruta jugando!</p>
                 </div>
@@ -343,24 +342,37 @@
     </div>
 
     <!-- MODAL AUTH -->
-    <div id="modalAuth" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:9999;
-            align-items:center;justify-content:center;padding:20px;">
-        <div style="width:min(90vw,420px);background:rgba(0,0,0,.6);
-              border:1px solid rgba(255,255,255,.15);border-radius:18px;
-              backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-              padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.45);">
-            <h2 style="margin:0 0 10px 0;color:#ff7aa2;text-align:center">Tu cuenta 💕</h2>
-            <p id="authMsg" style="min-height:24px;color:#ffd6e3;text-align:center;margin:0 0 12px 0"></p>
-            <div style="display:flex;flex-direction:column;gap:10px">
-                <input id="authUser" type="text" placeholder="Usuario" autocomplete="username"
-                    style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:#fff;">
-                <input id="authPass" type="password" placeholder="Contraseña" autocomplete="current-password"
-                    style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:#fff;">
-                <div style="display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap">
-                    <button id="btnDoLogin" class="cta" type="button">Iniciar sesión</button>
-                    <button id="btnDoRegister" class="cta" type="button">Registrarme</button>
-                    <button id="btnCerrarModal" class="cta" type="button" style="background:#222">Cancelar</button>
-                </div>
+    <div id="modalAuth" class="modal">
+        <div class="modal-card">
+            <h2>Tu cuenta 💕</h2>
+            <p id="authMsg" class="auth-msg"></p>
+
+            <div class="form-row">
+                <input id="authUser" class="ui-input" type="text" placeholder="Usuario" autocomplete="username">
+            </div>
+            <div class="form-row">
+                <input id="authPass" class="ui-input" type="password" placeholder="Contraseña"
+                    autocomplete="current-password">
+            </div>
+
+            <div class="btn-row">
+                <button id="btnDoLogin" class="cta" type="button">Iniciar sesión</button>
+                <button id="btnDoRegister" class="cta" type="button">Registrarme</button>
+            </div>
+
+            <button id="btnCerrarModal" class="cta cta--secondary cta--full modal-close" type="button">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- MODAL: Confirmar cierre de sesión -->
+    <div id="modalConfirmLogout" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-card" role="document">
+            <h2>¿Cerrar sesión?</h2>
+            <p class="auth-msg">Se cerrará tu sesión y volverás al estado de invitada.</p>
+
+            <div class="btn-row">
+                <button id="btnConfirmLogout" class="cta" type="button">Sí, cerrar sesión</button>
+                <button id="btnCancelLogout" class="cta cta--secondary" type="button">Cancelar</button>
             </div>
         </div>
     </div>
@@ -461,6 +473,62 @@
             actualizarBarraUsuario();
             // no redirigimos; la sesión queda cerrada en el menú
         }
+
+        // ===== Confirmación de cierre de sesión (solo menú) =====
+        const modalConfirmLogout = document.getElementById('modalConfirmLogout');
+        const btnConfirmLogout = document.getElementById('btnConfirmLogout');
+        const btnCancelLogout = document.getElementById('btnCancelLogout');
+
+        const btnAbrirLogin = document.getElementById('btnAbrirLogin'); // ya lo tienes
+        const btnLogoutMenu = document.getElementById('btnLogout');     // botón Cerrar sesión del MENÚ
+        const estadoUsuario = document.getElementById('estadoUsuario');
+
+        function abrirModalConfirmLogout() {
+            modalConfirmLogout.style.display = 'flex';
+            modalConfirmLogout.setAttribute('aria-hidden', 'false');
+        }
+        function cerrarModalConfirmLogout() {
+            modalConfirmLogout.style.display = 'none';
+            modalConfirmLogout.setAttribute('aria-hidden', 'true');
+        }
+
+        // Abre confirmación al hacer clic en "Cerrar sesión" del MENÚ
+        btnLogoutMenu?.addEventListener('click', (e) => {
+            e.preventDefault();
+            abrirModalConfirmLogout();
+        });
+
+        // Confirmar
+        btnConfirmLogout?.addEventListener('click', () => {
+            // limpia sesión
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('username');
+
+            // actualiza UI del MENÚ
+            if (estadoUsuario) estadoUsuario.textContent = 'Invitada';
+            if (btnAbrirLogin) btnAbrirLogin.hidden = false;
+            if (btnLogoutMenu) btnLogoutMenu.hidden = true;
+
+            cerrarModalConfirmLogout();
+
+            // si quieres, limpia parámetros de redirección
+            history.replaceState({}, '', location.pathname);
+        });
+
+        // Cancelar
+        btnCancelLogout?.addEventListener('click', cerrarModalConfirmLogout);
+
+        // Cerrar tocando fuera de la tarjeta
+        modalConfirmLogout?.addEventListener('click', (e) => {
+            if (e.target === modalConfirmLogout) cerrarModalConfirmLogout();
+        });
+
+        // Esc para cerrar
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalConfirmLogout?.style.display === 'flex') {
+                cerrarModalConfirmLogout();
+            }
+        });
 
         function wiringAuthUI() {
             document.getElementById('btnAbrirLogin')?.addEventListener('click', () => abrirModalAuth());
@@ -628,6 +696,17 @@
         actualizarBarraUsuario();
         wiringAuthUI();
         protegerJuegos();
+
+        // --- Abrir modal automáticamente si vienen redirigidos desde un juego ---
+        (function autoAuthFromParams() {
+            const qs = new URLSearchParams(location.search);
+            if (qs.get('login') === '1') {
+                const redir = qs.get('redir') || null; // ej: 'disparando.html' o 'snake.html'
+                abrirModalAuth(redir);
+                // limpiar la URL para que no quede el query string
+                history.replaceState({}, '', location.pathname);
+            }
+        })();
     </script>
 </body>
 
