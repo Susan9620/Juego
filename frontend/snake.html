@@ -386,7 +386,6 @@
 
         async function enviarResultadoSnake({ score, time, level }) {
             try {
-                // ✅ usa SOLO los parámetros; no referencies "puntaje" o "velocidad" aquí
                 const payload = {
                     playerId: PLAYER_ID_SNAKE,
                     name: PLAYER_NAME_SNAKE || '',
@@ -711,9 +710,9 @@
                 try {
                     const tiempo = Math.max(0, (performance.now() / 1000) - inicioRelojSnake);
                     enviarResultadoSnake({
-                        score: puntaje,                      // ← tu variable real de puntaje
+                        score: puntaje,                      // tu variable real
                         time: Number(tiempo.toFixed(2)),     // segundos
-                        level: velocidad                     // ← tu variable real de “nivel/velocidad”
+                        level: velocidad                     // tu variable real
                     });
                 } catch (e) {
                     console.error('Snake: no se pudo enviar el resultado', e);
