@@ -386,35 +386,36 @@
 
         async function enviarResultadoSnake({ score, time, level }) {
             try {
+                // ✅ usa SOLO los parámetros; no referencies "puntaje" o "velocidad" aquí
+                const payload = {
+                    playerId: PLAYER_ID_SNAKE,
+                    name: PLAYER_NAME_SNAKE || '',
+                    score: Number(score) || 0,
+                    time: Number(time) || 0,
+                    level: Number(level) || 1,
+                    game: 'snake'
+                };
+
+                console.log('POST /api/runs snake →', payload);
+
                 const headers = { 'Content-Type': 'application/json' };
                 if (AUTH_TOKEN_SNAKE) headers.Authorization = `Bearer ${AUTH_TOKEN_SNAKE}`;
 
                 const res = await fetch(`${API_BASE}/api/runs`, {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify({
-                        playerId: PLAYER_ID_SNAKE,
-                        name: PLAYER_NAME_SNAKE,
-                        score,
-                        time,
-                        level,
-                        game: 'snake'
-                    })
+                    body: JSON.stringify(payload)
                 });
 
-                if (res.status === 401) {
-                    localStorage.removeItem('auth_token');
-                    AUTH_TOKEN_SNAKE = null;
-                    console.warn('Snake: no autenticada, run no guardado en cuenta.');
-                    return;
-                }
-
                 const data = await res.json().catch(() => ({}));
-                if (!res.ok || !data?.ok) console.warn('Snake: respuesta no OK', data);
+                if (!res.ok || !data?.ok) {
+                    console.warn('Snake: respuesta no OK', data);
+                } else {
+                    console.log('Snake: guardado OK', data);
+                }
             } catch (e) {
                 console.error('Snake: error enviando resultado', e);
             }
-            console.log('POST /api/runs snake', { score: puntaje, time, level: velocidad });
         }
 
         async function cargarTopSnake() {
@@ -707,19 +708,18 @@
                 elLongitudFinal.textContent = String(serpiente.length);
                 laFraseFinal.textContent = elegirAleatorio(FRASES_GAME_OVER);
 
-                superposicion.hidden = false;
-
-                // ⬇️ Guarda el run de Snake
                 try {
                     const tiempo = Math.max(0, (performance.now() / 1000) - inicioRelojSnake);
                     enviarResultadoSnake({
-                        score: puntaje,
-                        time: Number(tiempo.toFixed(2)),   // segundos
-                        level: velocidad                   // puedes guardar la velocidad como "nivel"
+                        score: puntaje,                      // ← tu variable real de puntaje
+                        time: Number(tiempo.toFixed(2)),     // segundos
+                        level: velocidad                     // ← tu variable real de “nivel/velocidad”
                     });
                 } catch (e) {
                     console.error('Snake: no se pudo enviar el resultado', e);
                 }
+
+                superposicion.hidden = false;
 
                 // Enviar resultado a la BD
                 enviarResultadoSnake({
