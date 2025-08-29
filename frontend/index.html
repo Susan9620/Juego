@@ -278,16 +278,25 @@
     <div class="menu-principal">
         <div class="panel-menu">
             <h1 class="titulo-principal">Mini Juegos ❤️</h1>
+
+            <!-- BARRA USUARIO: estado + botones -->
+            <div id="barraUsuario"
+                style="display:flex;gap:10px;align-items:center;justify-content:center;margin:10px 0 20px 0;">
+                <span id="estadoUsuario" style="opacity:.9">Invitado</span>
+                <button id="btnAbrirLogin" class="cta" type="button">Iniciar sesión</button>
+                <button id="btnLogout" class="cta" type="button" hidden>Cerrar sesión</button>
+            </div>
+
             <p class="subtitulo">Elige tu aventura romántica favorita</p>
 
             <div class="juegos-grid">
-                <a href="disparando.html" class="juego-card disponible">
+                <a href="disparando.html" class="juego-card disponible" data-requires-auth="true">
                     <span class="juego-emoji">👽</span>
                     <h3 class="juego-titulo">Disparando ❤️</h3>
                     <p class="juego-descripcion">Dispara corazones y conquista el espacio</p>
                 </a>
 
-                <a href="snake.html" class="juego-card disponible">
+                <a href="disparando.html" class="juego-card disponible" data-requires-auth="true">
                     <span class="juego-emoji">🐍</span>
                     <h3 class="juego-titulo">Snake Xenzia ❤️</h3>
                     <p class="juego-descripcion">Guía a la serpiente</p>
@@ -333,7 +342,151 @@
         </div>
     </div>
 
+    <!-- MODAL AUTH -->
+    <div id="modalAuth" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:9999;
+            align-items:center;justify-content:center;padding:20px;">
+        <div style="width:min(90vw,420px);background:rgba(0,0,0,.6);
+              border:1px solid rgba(255,255,255,.15);border-radius:18px;
+              backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+              padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.45);">
+            <h2 style="margin:0 0 10px 0;color:#ff7aa2;text-align:center">Tu cuenta 💕</h2>
+            <p id="authMsg" style="min-height:24px;color:#ffd6e3;text-align:center;margin:0 0 12px 0"></p>
+            <div style="display:flex;flex-direction:column;gap:10px">
+                <input id="authUser" type="text" placeholder="Usuario" autocomplete="username"
+                    style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:#fff;">
+                <input id="authPass" type="password" placeholder="Contraseña" autocomplete="current-password"
+                    style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:#fff;">
+                <div style="display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap">
+                    <button id="btnDoLogin" class="cta" type="button">Iniciar sesión</button>
+                    <button id="btnDoRegister" class="cta" type="button">Registrarme</button>
+                    <button id="btnCerrarModal" class="cta" type="button" style="background:#222">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // === AUTH CONFIG ===
+        const API_BASE = 'https://juego-xexm.onrender.com';
+
+        let AUTH_TOKEN = localStorage.getItem('auth_token');
+        let USERNAME = localStorage.getItem('username');
+
+        function actualizarBarraUsuario() {
+            const estado = document.getElementById('estadoUsuario');
+            const btnLogin = document.getElementById('btnAbrirLogin');
+            const btnLogout = document.getElementById('btnLogout');
+
+            if (AUTH_TOKEN) {
+                estado.textContent = `Conectada: ${USERNAME || 'Jugador@'}`;
+                btnLogin.hidden = true;
+                btnLogout.hidden = true; // lo mostramos cuando cargue todo; evitamos “parpadeo”
+                // pequeño delay para evitar saltos visuales por layout
+                setTimeout(() => btnLogout.hidden = false, 50);
+            } else {
+                estado.textContent = 'Invitada';
+                btnLogin.hidden = false;
+                btnLogout.hidden = true;
+            }
+        }
+
+        function abrirModalAuth(redirectHref = null) {
+            const modal = document.getElementById('modalAuth');
+            const msg = document.getElementById('authMsg');
+            modal.style.display = 'flex';
+            msg.textContent = '';
+            modal.dataset.redirect = redirectHref || '';
+            document.getElementById('authUser').focus();
+        }
+
+        function cerrarModalAuth() {
+            const modal = document.getElementById('modalAuth');
+            modal.style.display = 'none';
+            modal.dataset.redirect = '';
+        }
+
+        async function authFetch(endpoint, body) {
+            const res = await fetch(`${API_BASE}/api/${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data?.error || `Error en /api/${endpoint}`);
+            return data;
+        }
+
+        async function hacerLogin() {
+            const u = document.getElementById('authUser').value.trim();
+            const p = document.getElementById('authPass').value.trim();
+            const msg = document.getElementById('authMsg');
+            if (!u || !p) { msg.textContent = 'Completa usuario y contraseña'; return; }
+
+            try {
+                const data = await authFetch('login', { username: u, password: p });
+                localStorage.setItem('auth_token', data.token);
+                localStorage.setItem('username', data.username || u);
+                AUTH_TOKEN = data.token;
+                USERNAME = data.username || u;
+                actualizarBarraUsuario();
+
+                const modal = document.getElementById('modalAuth');
+                const redir = modal.dataset.redirect;
+                cerrarModalAuth();
+                if (redir) window.location.href = redir;
+            } catch (e) {
+                msg.textContent = `❌ ${e.message}`;
+            }
+        }
+
+        async function hacerRegistro() {
+            const u = document.getElementById('authUser').value.trim();
+            const p = document.getElementById('authPass').value.trim();
+            const msg = document.getElementById('authMsg');
+            if (!u || !p) { msg.textContent = 'Completa usuario y contraseña'; return; }
+
+            try {
+                await authFetch('register', { username: u, password: p });
+                msg.textContent = '✅ Registrada. Ahora inicia sesión.';
+            } catch (e) {
+                msg.textContent = `❌ ${e.message}`;
+            }
+        }
+
+        function hacerLogout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('username');
+            AUTH_TOKEN = null;
+            USERNAME = null;
+            actualizarBarraUsuario();
+            // no redirigimos; la sesión queda cerrada en el menú
+        }
+
+        function wiringAuthUI() {
+            document.getElementById('btnAbrirLogin')?.addEventListener('click', () => abrirModalAuth());
+            document.getElementById('btnLogout')?.addEventListener('click', hacerLogout);
+            document.getElementById('btnDoLogin')?.addEventListener('click', hacerLogin);
+            document.getElementById('btnDoRegister')?.addEventListener('click', hacerRegistro);
+            document.getElementById('btnCerrarModal')?.addEventListener('click', cerrarModalAuth);
+
+            // Enter para enviar
+            document.getElementById('authPass')?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') hacerLogin();
+            });
+        }
+
+        // Interceptar clic en juegos que requieran sesión
+        function protegerJuegos() {
+            document.querySelectorAll('.juego-card.disponible[data-requires-auth="true"]').forEach(a => {
+                a.addEventListener('click', (e) => {
+                    if (!AUTH_TOKEN) {
+                        e.preventDefault();
+                        abrirModalAuth(a.getAttribute('href'));
+                    }
+                });
+            });
+        }
+
         // === Fondo animado con corazones ===
         const lienzo = document.getElementById('fondo');
         const contexto = lienzo.getContext('2d');
@@ -472,6 +625,9 @@
 
         // Iniciar aplicación
         iniciar();
+        actualizarBarraUsuario();
+        wiringAuthUI();
+        protegerJuegos();
     </script>
 </body>
 

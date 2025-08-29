@@ -416,6 +416,8 @@
     <div class="barra-superior">
         <button id="btnAudio" class="pildora">🔊 Activar sonido</button>
         <button id="btnPausa" class="pildora">⏸ Pausar</button>
+        <button id="btnSalir" class="pildora">🏠 Menú</button>
+        <button id="btnLogout" class="pildora">🚪 Cerrar sesión</button>
     </div>
 
     <!-- Controles táctiles: joystick para movimiento y botón de disparo -->
@@ -1110,7 +1112,7 @@
 
             // ===== Responsive =====
             function redimensionar() {
-                cssAncho = window.innerWidth; 
+                cssAncho = window.innerWidth;
                 cssAlto = window.innerHeight;
                 dpr = Math.min(window.devicePixelRatio || 1, 3);
 
@@ -1542,6 +1544,19 @@
                 window.addEventListener('orientationchange', () => setTimeout(redimensionar, 250));
                 requestAnimationFrame(bucle);
             }
+
+            // Botón: salir al menú
+            document.getElementById('btnSalir')?.addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+
+            // Botón: cerrar sesión
+            document.getElementById('btnLogout')?.addEventListener('click', () => {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('username');
+                // Opcional: feedback rápido
+                try { alert('Sesión cerrada'); } catch (e) { }
+            });
 
         })();
     </script>
