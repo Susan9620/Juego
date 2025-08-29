@@ -62,12 +62,31 @@ app.post('/api/runs', async (req, res) => {
         if (!player) {
             const bestTime = nTime > 0 ? nTime : 0;
             const created = await Player.create({
-                playerId, name, bestScore: nScore, bestTime, lastLevel: nLevel
+                playerId,
+                name,
+                bestScore: nScore,         // global inicia con el score actual 
+                bestTime,
+                lastLevel: nLevel,
+                // inicializa por juego 
+                bestScoreSnake: gameNorm === 'snake' ? nScore : 0,
+                bestScoreDisparando: gameNorm === 'disparando' ? nScore : 0
             });
             return res.json({ ok: true, player: created });
         } else {
             if (name && name !== player.name) player.name = name;
-            if (nScore > player.bestScore) player.bestScore = nScore;
+            // Actualiza por juego
+            if (gameNorm === 'snake') {
+                if (nScore > (player.bestScoreSnake ?? 0)) player.bestScoreSnake = nScore;
+            } else {
+                if (nScore > (player.bestScoreDisparando ?? 0)) player.bestScoreDisparando = nScore;
+            }
+
+            // Global = máximo de los dos por juego 
+            const maxPerGame = Math.max(
+                player.bestScoreSnake ?? 0,
+                player.bestScoreDisparando ?? 0
+            );
+            if (maxPerGame > (player.bestScore ?? 0)) player.bestScore = maxPerGame;
             if (player.bestTime === 0 || (nTime > 0 && nTime < player.bestTime)) player.bestTime = nTime;
             player.lastLevel = nLevel;
             player.updatedAt = new Date();
@@ -132,7 +151,7 @@ app.get('/api/leaderboard', async (req, res) => {
 app.get('/api/player/:playerId', async (req, res) => {
     try {
         const player = await Player.findOne({ playerId: req.params.playerId })
-            .select({ _id: 0, playerId: 1, name: 1, bestScore: 1, bestTime: 1, lastLevel: 1, updatedAt: 1 });
+            .select({ _id: 0, playerId: 1, name: 1, bestScore: 1, bestScoreSnake: 1, bestScoreDisparando: 1, bestTime: 1, lastLevel: 1, updatedAt: 1 });
         if (!player) return res.status(404).json({ error: 'No encontrado' });
         res.json({ ok: true, player });
     } catch (e) {

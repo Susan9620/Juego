@@ -6,6 +6,8 @@ const PlayerSchema = new mongoose.Schema({
   bestScore: { type: Number, default: 0 },      // mayor es mejor
   bestTime: { type: Number, default: 0 },       // 0 = sin marca; menor es mejor
   lastLevel: { type: Number, default: 1 },
+  bestScoreSnake: { type: Number, default: 0 },
+  bestScoreDisparando: { type: Number, default: 0 },
   updatedAt: { type: Date, default: Date.now }
 }, { versionKey: false });
 
