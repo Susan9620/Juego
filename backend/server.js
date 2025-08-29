@@ -27,43 +27,52 @@ mongoose.connect(MONGODB_URI)
  * body: { playerId, name?, score, time, level }
  */
 app.post('/api/runs', async (req, res) => {
-    try {
-        const { playerId, name = '', score, time, level } = req.body || {};
-        if (!playerId || typeof score !== 'number' || typeof time !== 'number' || typeof level !== 'number') {
-            return res.status(400).json({ error: 'Datos inválidos' });
-        }
+  try {
+    const { playerId, name = '', score, time, level, game } = req.body || {};
 
-        // Guarda el run (histórico)
-        await Run.create({
-            playerId,
-            name,
-            score,
-            time,
-            level,
-            game: game === 'snake' ? 'snake' : 'disparando' // default seguro
-        });
+    // Normalizar y validar tipos básicos
+    const nScore = Number(score);
+    const nTime  = Number(time);
+    const nLevel = Number(level);
 
-        // Actualiza/crea el player con mejores marcas
-        const player = await Player.findOne({ playerId });
-        if (!player) {
-            const bestTime = time > 0 ? time : 0;
-            const created = await Player.create({
-                playerId, name, bestScore: score, bestTime, lastLevel: level
-            });
-            return res.json({ ok: true, player: created });
-        } else {
-            if (name && name !== player.name) player.name = name;
-            if (score > player.bestScore) player.bestScore = score;
-            if (player.bestTime === 0 || (time > 0 && time < player.bestTime)) player.bestTime = time;
-            player.lastLevel = level;
-            player.updatedAt = new Date();
-            await player.save();
-            return res.json({ ok: true, player });
-        }
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: 'Error de servidor' });
+    if (!playerId || Number.isNaN(nScore) || Number.isNaN(nTime) || Number.isNaN(nLevel)) {
+      return res.status(400).json({ error: 'Datos inválidos' });
     }
+
+    // Normalizar juego permitido
+    const gameNorm = (game === 'snake') ? 'snake' : 'disparando';
+
+    // Guarda el run (histórico)
+    await Run.create({
+      playerId,
+      name,
+      score: nScore,
+      time: nTime,
+      level: nLevel,
+      game: gameNorm
+    });
+
+    // Actualiza/crea el player con mejores marcas
+    const player = await Player.findOne({ playerId });
+    if (!player) {
+      const bestTime = nTime > 0 ? nTime : 0;
+      const created = await Player.create({
+        playerId, name, bestScore: nScore, bestTime, lastLevel: nLevel
+      });
+      return res.json({ ok: true, player: created });
+    } else {
+      if (name && name !== player.name) player.name = name;
+      if (nScore > player.bestScore) player.bestScore = nScore;
+      if (player.bestTime === 0 || (nTime > 0 && nTime < player.bestTime)) player.bestTime = nTime;
+      player.lastLevel = nLevel;
+      player.updatedAt = new Date();
+      await player.save();
+      return res.json({ ok: true, player });
+    }
+  } catch (e) {
+    console.error('POST /api/runs error:', e, 'BODY:', req.body);
+    res.status(500).json({ error: 'Error de servidor' });
+  }
 });
 
 /**
