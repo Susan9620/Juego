@@ -530,6 +530,7 @@
             } catch (e) {
                 console.error('Error enviando resultado:', e);
             }
+            console.log('POST /api/runs disparando', { score, time, level });
         }
 
         async function cargarTop() {

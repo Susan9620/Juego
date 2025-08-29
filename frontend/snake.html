@@ -414,6 +414,7 @@
             } catch (e) {
                 console.error('Snake: error enviando resultado', e);
             }
+            console.log('POST /api/runs snake', { score: puntaje, time, level: velocidad });
         }
 
         async function cargarTopSnake() {
@@ -543,6 +544,7 @@
             let intervaloJuego = 200; // ms entre movimientos
             let inicioReloj = 0;
             let tiempoTranscurrido = 0;
+            let inicioRelojSnake = 0;
 
             // Variables responsive
             let dpr = 1, escala = 1, desplazamientoX = 0, desplazamientoY = 0;
@@ -707,6 +709,18 @@
 
                 superposicion.hidden = false;
 
+                // ⬇️ Guarda el run de Snake
+                try {
+                    const tiempo = Math.max(0, (performance.now() / 1000) - inicioRelojSnake);
+                    enviarResultadoSnake({
+                        score: puntaje,
+                        time: Number(tiempo.toFixed(2)),   // segundos
+                        level: velocidad                   // puedes guardar la velocidad como "nivel"
+                    });
+                } catch (e) {
+                    console.error('Snake: no se pudo enviar el resultado', e);
+                }
+
                 // Enviar resultado a la BD
                 enviarResultadoSnake({
                     score: puntaje,                 // puntaje final
@@ -716,6 +730,7 @@
             }
 
             function reiniciarJuego() {
+                inicioRelojSnake = performance.now() / 1000;
                 serpiente = [{ x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) }];
                 direccion = { x: 1, y: 0 };
                 siguienteDireccion = { x: 1, y: 0 };
@@ -1021,6 +1036,7 @@
 
             function comenzarJuego() {
                 juegoIniciado = true;
+                inicioRelojSnake = performance.now() / 1000;
                 pantallaInicio.hidden = true;
 
                 // Activar audio y reproducir música
