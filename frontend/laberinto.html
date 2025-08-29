@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <title>Snake Xenzia 🐍</title>
+    <link rel="stylesheet" href="global.css" />
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: radial-gradient(1200px 800px at 50% 20%, #1a1625 0%, #0f0f14 60%, #0a0a0d 100%);
+            color: var(--texto);
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, "Noto Sans";
+            touch-action: none;
+        }
+
+        #contenedor {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+        }
+
+        canvas {
+            display: block;
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .45), 0 2px 12px rgba(0, 0, 0, .6) inset;
+            background: #000;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .interfazUsuario {
+            position: fixed;
+            top: env(safe-area-inset-top);
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 10
+        }
+
+        .chip {
+            margin-top: 50px;
+            background: rgba(0, 0, 0, .35);
+            border: 1px solid rgba(255, 255, 255, .15);
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+        }
+
+        .barra-superior {
+            position: fixed;
+            top: calc(env(safe-area-inset-top) + 8px);
+            right: 8px;
+            display: flex;
+            gap: 8px;
+            z-index: 11
+        }
+
+        .pildora {
+            background: rgba(0, 0, 0, .35);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #fff;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-weight: 800;
+            font-size: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+            cursor: pointer;
+        }
+
+        .pildora.acento {
+            background: linear-gradient(90deg, var(--acento-1), var(--acento-2));
+            border: none
+        }
+
+        #pantallaInicio {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(0, 0, 0, .85);
+            z-index: 30;
+        }
+
+        #pantallaInicio[hidden] {
+            display: none
+        }
+
+        .panel-inicio {
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, .12);
+            padding: 30px 25px;
+            border-radius: 16px;
+            text-align: center;
+            width: min(90vw, 310px);
+        }
+
+        .panel-inicio h1 {
+            margin: 0 0 15px 0;
+            color: var(--acento-1);
+            font-size: 28px;
+        }
+
+        .instrucciones {
+            margin: 15px 0 20px 0;
+            text-align: left;
+            color: #ffe3ea;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .instrucciones li {
+            margin-bottom: 8px;
+        }
+
+        .controles {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: calc(env(safe-area-inset-bottom) + 12px);
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 0 12px;
+            z-index: 10
+        }
+
+        .pad {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pad-fila {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .04));
+            color: #fff;
+            font-size: 20px;
+            font-weight: 900;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            touch-action: manipulation;
+            cursor: pointer;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            filter: brightness(1.15)
+        }
+
+        .btn-accion {
+            width: 76px;
+            height: 76px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--acento-1), var(--acento-2));
+            box-shadow: 0 18px 40px rgba(76, 175, 80, .35);
+        }
+
+        #superposicion {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(0, 0, 0, .35);
+            z-index: 20;
+        }
+
+        #superposicion[hidden] {
+            display: none
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, .12);
+            padding: 22px 22px;
+            border-radius: 16px;
+            text-align: center;
+            width: min(90vw, 380px);
+            margin-bottom: env(safe-area-inset-bottom)
+        }
+
+        .panel h1 {
+            margin: 0 0 10px 0
+        }
+
+        .linea {
+            margin: 6px 0;
+            color: var(--atenuado)
+        }
+
+        .frase {
+            margin: 12px 0 18px 0;
+            font-style: italic;
+            color: #ffe3ea
+        }
+
+        .cta {
+            background: linear-gradient(90deg, var(--acento-1), var(--acento-2));
+            border: none;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 999px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        #pausado {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, .45);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: #fff;
+            font-weight: 800;
+            z-index: 20
+        }
+
+        #pausado[hidden] {
+            display: none
+        }
+
+        .mensaje-logro {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--acento-1);
+            border-radius: 12px;
+            padding: 20px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            z-index: 100;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+        }
+
+        @supports(padding:max(0px)) {
+            .controles {
+                padding-bottom: max(12px, env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="contenedor"><canvas id="juego" aria-label="Juego Snake Xenzia"></canvas></div>
+
+    <div class="interfazUsuario">
+        <div class="chip" id="IUPuntaje">Puntaje: 0 • Récord: 0 • Longitud: 1 • Velocidad: 1</div>
+    </div>
+
+    <div class="barra-superior">
+        <button id="btnAudio" class="pildora">🔊 Sonido</button>
+        <button id="btnPausa" class="pildora">⏸ Pausar</button>
+    </div>
+
+    <div class="controles" aria-hidden="false">
+        <div class="pad">
+            <div class="pad-fila">
+                <button class="btn" id="btnArriba" aria-label="Arriba">↑</button>
+            </div>
+            <div class="pad-fila">
+                <button class="btn" id="btnIzquierda" aria-label="Izquierda">←</button>
+                <button class="btn" id="btnAbajo" aria-label="Abajo">↓</button>
+                <button class="btn" id="btnDerecha" aria-label="Derecha">→</button>
+            </div>
+        </div>
+
+        <button class="btn btn-accion" id="btnPausa2" aria-label="Pausa">⏸</button>
+    </div>
+
+    <div id="pausado" hidden>⏸ Pausa</div>
+
+    <div id="pantallaInicio">
+        <div class="panel-inicio">
+            <h1>Snake Xenzia 🐍</h1>
+
+            <div class="instrucciones">
+                <p><strong>Instrucciones:</strong></p>
+                <ul>
+                    <li>Usa las flechas o botones para controlar la serpiente</li>
+                    <li>Come la comida para crecer y ganar puntos</li>
+                    <li>Evita chocar con las paredes</li>
+                    <li>No te muerdas la cola</li>
+                    <li>La velocidad aumenta cada 5 puntos</li>
+                    <li>Consigue el puntaje más alto posible</li>
+                </ul>
+            </div>
+
+            <button id="btnComenzar" class="cta">🐍 Comenzar</button>
+        </div>
+    </div>
+
+    <div id="superposicion" hidden>
+        <div class="panel">
+            <h1 id="titulosuperposicion">💀 Game Over</h1>
+            <p class="linea">Puntaje: <b id="puntajeActual">0</b></p>
+            <p class="linea">Récord: <b id="mejorPuntaje">0</b></p>
+            <p class="linea">Longitud: <b id="longitudFinal">1</b></p>
+            <p class="frase" id="fraseFinal">"¡Inténtalo de nuevo!"</p>
+            <button id="btnReiniciar" class="cta">Reintentar (R)</button>
+        </div>
+    </div>
+
+    <!-- Elementos de audio -->
+    <audio id="musicaFondo" loop>
+        <source src="https://res.cloudinary.com/dsf9hse1e/video/upload/v1756426932/Laboratory_Mario_Party_2_gu05hu.mp4"
+            type="audio/mpeg">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <audio id="sonidoComer">
+        <source src="" type="audio/mpeg">
+    </audio>
+
+    <script>
+        (function () {
+            // === Configuración del juego ===
+            const GRID_SIZE = 20;
+            // Cambiar dimensiones para 40 filas x 30 columnas
+            const COLS = 30;  // 30 columnas
+            const ROWS = 40;  // 40 filas
+            const MUNDO_ANCHO = COLS * GRID_SIZE;  // 600px
+            const MUNDO_ALTO = ROWS * GRID_SIZE;   // 800px
+
+            // Referencias UI
+            const lienzo = document.getElementById('juego');
+            const contexto = lienzo.getContext('2d');
+            const IUPuntaje = document.getElementById('IUPuntaje');
+            const superposicion = document.getElementById('superposicion');
+            const pantallaInicio = document.getElementById('pantallaInicio');
+            const btnComenzar = document.getElementById('btnComenzar');
+            const btnReiniciar = document.getElementById('btnReiniciar');
+            const btnPausa = document.getElementById('btnPausa');
+            const btnPausa2 = document.getElementById('btnPausa2');
+            const btnAudio = document.getElementById('btnAudio');
+            const indicadorPausado = document.getElementById('pausado');
+            const titulosuperposicion = document.getElementById('titulosuperposicion');
+            const elPuntajeActual = document.getElementById('puntajeActual');
+            const elMejorPuntaje = document.getElementById('mejorPuntaje');
+            const elLongitudFinal = document.getElementById('longitudFinal');
+            const laFraseFinal = document.getElementById('fraseFinal');
+            const musicaFondo = document.getElementById('musicaFondo');
+
+            // Botones direccionales
+            const btnArriba = document.getElementById('btnArriba');
+            const btnAbajo = document.getElementById('btnAbajo');
+            const btnIzquierda = document.getElementById('btnIzquierda');
+            const btnDerecha = document.getElementById('btnDerecha');
+
+            // === Audio ===
+            let audioHabilitado = false;
+            let audioCtx = null;
+
+            function setupAudio() {
+                if (audioCtx) return;
+                const AC = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AC();
+            }
+
+            function sonidoComer() {
+                if (!audioHabilitado || !audioCtx) return;
+
+                // Reproducir sonido de comer generado
+                const duration = 0.1;
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.type = 'triangle';
+                oscillator.frequency.value = 800;
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + duration);
+            }
+
+            function sonidoGameOver() {
+                if (!audioHabilitado || !audioCtx) return;
+
+                const duration = 0.5;
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.value = 150;
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + duration);
+            }
+
+            function sonidoLogro() {
+                if (!audioHabilitado || !audioCtx) return;
+
+                const duration = 0.15;
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.type = 'triangle';
+                oscillator.frequency.value = 1000;
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + duration);
+            }
+
+            // === Estado del juego ===
+            let serpiente = [{ x: 10, y: 10 }];
+            let direccion = { x: 1, y: 0 };
+            let siguienteDireccion = { x: 1, y: 0 };
+            let comida = { x: 15, y: 15 };
+            let puntaje = 0;
+            let mejorPuntaje = parseInt(localStorage.getItem('snake_mejor_puntaje') || '0', 10);
+            let juegoIniciado = false;
+            let juegoTerminado = false;
+            let pausado = false;
+            let velocidad = 1;
+            let ultimoTiempo = 0;
+            let intervaloJuego = 200; // ms entre movimientos
+
+            // Variables responsive
+            let dpr = 1, escala = 1, desplazamientoX = 0, desplazamientoY = 0;
+
+            // === Frases motivacionales ===
+            const FRASES_GAME_OVER = [
+                "¡Inténtalo de nuevo!",
+                "¡Casi lo logras!",
+                "¡Puedes hacerlo mejor!",
+                "¡No te rindas!",
+                "¡La práctica hace al maestro!"
+            ];
+
+            const LOGROS = [
+                { puntos: 5, mensaje: "¡Buen comienzo!" },
+                { puntos: 10, mensaje: "¡Vas bien!" },
+                { puntos: 20, mensaje: "¡Impresionante!" },
+                { puntos: 50, mensaje: "¡Eres una leyenda!" },
+                { puntos: 100, mensaje: "¡MAESTRO SERPIENTE!" }
+            ];
+
+            // === Utilidades ===
+            function aleatorio(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            function elegirAleatorio(arr) {
+                return arr[Math.floor(Math.random() * arr.length)];
+            }
+
+            function vibrar(duracion) {
+                if (navigator.vibrate) navigator.vibrate(duracion);
+            }
+
+            function mostrarLogro(mensaje) {
+                const elemento = document.createElement('div');
+                elemento.className = 'mensaje-logro';
+                elemento.textContent = mensaje;
+                document.body.appendChild(elemento);
+
+                sonidoLogro();
+                vibrar(100);
+
+                setTimeout(() => {
+                    if (elemento.parentNode) {
+                        elemento.parentNode.removeChild(elemento);
+                    }
+                }, 2000);
+            }
+
+            // === Responsive ===
+            function redimensionar() {
+                const cssAncho = window.innerWidth;
+                const cssAlto = window.innerHeight;
+                dpr = Math.min(window.devicePixelRatio || 1, 3);
+
+                lienzo.width = Math.floor(cssAncho * dpr);
+                lienzo.height = Math.floor(cssAlto * dpr);
+
+                // Calcular la escala para mantener la relación de aspecto
+                const escalaX = (cssAncho - 20) / MUNDO_ANCHO;  // Dejar 10px de margen a cada lado
+                const escalaY = (cssAlto - 20) / MUNDO_ALTO;    // Dejar 10px de margen arriba y abajo
+
+                // Usar la escala más pequeña para asegurar que todo el tablero sea visible
+                escala = Math.min(escalaX, escalaY);
+
+                // Calcular desplazamiento para centrar el tablero
+                desplazamientoX = (cssAncho - MUNDO_ANCHO * escala) / 2;
+                desplazamientoY = (cssAlto - MUNDO_ALTO * escala) / 2;
+            }
+
+            function establecerTransformacionMundo() {
+                contexto.setTransform(dpr, 0, 0, dpr, 0, 0);
+                contexto.translate(desplazamientoX, desplazamientoY);
+                contexto.scale(escala, escala);
+            }
+
+            // === Lógica del juego ===
+            function generarComida() {
+                let nuevaComida;
+                do {
+                    nuevaComida = {
+                        x: aleatorio(1, COLS - 2),
+                        y: aleatorio(1, ROWS - 2)
+                    };
+                } while (serpiente.some(segmento => segmento.x === nuevaComida.x && segmento.y === nuevaComida.y));
+
+                comida = nuevaComida;
+            }
+
+            function actualizarVelocidad() {
+                velocidad = Math.floor(puntaje / 5) + 1;
+                intervaloJuego = Math.max(50, 200 - (velocidad - 1) * 15);
+            }
+
+            function moverSerpiente() {
+                direccion = { ...siguienteDireccion };
+
+                const cabeza = { ...serpiente[0] };
+                cabeza.x += direccion.x;
+                cabeza.y += direccion.y;
+
+                // Verificar colisiones con paredes
+                if (cabeza.x < 0 || cabeza.x >= COLS || cabeza.y < 0 || cabeza.y >= ROWS) {
+                    gameOver();
+                    return;
+                }
+
+                // Verificar colisión con el cuerpo
+                if (serpiente.some(segmento => segmento.x === cabeza.x && segmento.y === cabeza.y)) {
+                    gameOver();
+                    return;
+                }
+
+                serpiente.unshift(cabeza);
+
+                // Verificar si comió
+                if (cabeza.x === comida.x && cabeza.y === comida.y) {
+                    puntaje++;
+                    sonidoComer();
+                    vibrar(50);
+                    generarComida();
+                    actualizarVelocidad();
+
+                    // Verificar logros
+                    const logro = LOGROS.find(l => l.puntos === puntaje);
+                    if (logro) {
+                        mostrarLogro(logro.mensaje);
+                    }
+                } else {
+                    serpiente.pop();
+                }
+
+                actualizarIU();
+            }
+
+            function cambiarDireccion(nuevaDireccion) {
+                // Evitar que la serpiente se mueva hacia atrás
+                if (siguienteDireccion.x === -nuevaDireccion.x && siguienteDireccion.y === -nuevaDireccion.y) {
+                    return;
+                }
+                siguienteDireccion = nuevaDireccion;
+            }
+
+            function gameOver() {
+                juegoTerminado = true;
+                sonidoGameOver();
+                vibrar(300);
+
+                if (puntaje > mejorPuntaje) {
+                    mejorPuntaje = puntaje;
+                    localStorage.setItem('snake_mejor_puntaje', String(mejorPuntaje));
+                }
+
+                // Pausar música al terminar el juego
+                musicaFondo.pause();
+
+                elPuntajeActual.textContent = String(puntaje);
+                elMejorPuntaje.textContent = String(mejorPuntaje);
+                elLongitudFinal.textContent = String(serpiente.length);
+                laFraseFinal.textContent = elegirAleatorio(FRASES_GAME_OVER);
+
+                superposicion.hidden = false;
+            }
+
+            function reiniciarJuego() {
+                serpiente = [{ x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) }];
+                direccion = { x: 1, y: 0 };
+                siguienteDireccion = { x: 1, y: 0 };
+                puntaje = 0;
+                velocidad = 1;
+                intervaloJuego = 200;
+                juegoTerminado = false;
+                pausado = false;
+                generarComida();
+                actualizarIU();
+                superposicion.hidden = true;
+                indicadorPausado.hidden = true;
+
+                // Reanudar música si está habilitado
+                if (audioHabilitado) {
+                    try {
+                        musicaFondo.currentTime = 0;
+                        musicaFondo.play();
+                    } catch (e) {
+                        console.log("Error reproduciendo música:", e);
+                    }
+                }
+            }
+
+            function alternarPausa() {
+                if (!juegoIniciado || juegoTerminado) return;
+                pausado = !pausado;
+                indicadorPausado.hidden = !pausado;
+                btnPausa.textContent = pausado ? '▶️ Reanudar' : '⏸ Pausar';
+                btnPausa2.textContent = pausado ? '▶' : '⏸';
+
+                // Pausar/reanudar música
+                if (pausado) {
+                    musicaFondo.pause();
+                } else if (audioHabilitado) {
+                    try {
+                        musicaFondo.play();
+                    } catch (e) {
+                        console.log("Error reproduciendo música:", e);
+                    }
+                }
+            }
+
+            function actualizarIU() {
+                IUPuntaje.textContent = `Puntaje: ${puntaje} • Récord: ${mejorPuntaje} • Longitud: ${serpiente.length} • Velocidad: ${velocidad}`;
+            }
+
+            // === Renderizado ===
+            function dibujar() {
+                contexto.setTransform(1, 0, 0, 1, 0, 0);
+                contexto.clearRect(0, 0, lienzo.width, lienzo.height);
+                establecerTransformacionMundo();
+
+                // Fondo
+                const gradiente = contexto.createRadialGradient(
+                    MUNDO_ANCHO / 2, MUNDO_ALTO / 4, 0,
+                    MUNDO_ANCHO / 2, MUNDO_ALTO / 4, MUNDO_ANCHO
+                );
+                gradiente.addColorStop(0, '#1a1625');
+                gradiente.addColorStop(0.6, '#0f0f14');
+                gradiente.addColorStop(1, '#0a0a0d');
+
+                contexto.fillStyle = gradiente;
+                contexto.fillRect(0, 0, MUNDO_ANCHO, MUNDO_ALTO);
+
+                // Bordes - ahora se verán completos en móviles
+                contexto.strokeStyle = '#ff7aa2';
+                contexto.lineWidth = 2;
+                contexto.strokeRect(0, 0, MUNDO_ANCHO, MUNDO_ALTO);
+
+                if (!juegoIniciado) return;
+
+                // Cuadrícula sutil
+                contexto.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                contexto.lineWidth = 1;
+                for (let x = 0; x <= COLS; x++) {
+                    contexto.beginPath();
+                    contexto.moveTo(x * GRID_SIZE, 0);
+                    contexto.lineTo(x * GRID_SIZE, MUNDO_ALTO);
+                    contexto.stroke();
+                }
+                for (let y = 0; y <= ROWS; y++) {
+                    contexto.beginPath();
+                    contexto.moveTo(0, y * GRID_SIZE);
+                    contexto.lineTo(MUNDO_ANCHO, y * GRID_SIZE);
+                    contexto.stroke();
+                }
+
+                // Serpiente
+                serpiente.forEach((segmento, index) => {
+                    const x = segmento.x * GRID_SIZE;
+                    const y = segmento.y * GRID_SIZE;
+
+                    if (index === 0) {
+                        // Cabeza
+                        const gradienteCabeza = contexto.createRadialGradient(
+                            x + GRID_SIZE / 2, y + GRID_SIZE / 2, 0,
+                            x + GRID_SIZE / 2, y + GRID_SIZE / 2, GRID_SIZE / 2
+                        );
+                        gradienteCabeza.addColorStop(0, '#7AFFF3');
+                        gradienteCabeza.addColorStop(0.33, '#7AB6FF');
+                        gradienteCabeza.addColorStop(0.66, '#7AE0FF');
+                        gradienteCabeza.addColorStop(1, '#7AFFC6');
+
+                        contexto.fillStyle = gradienteCabeza;
+                        contexto.fillRect(x + 1, y + 1, GRID_SIZE - 2, GRID_SIZE - 2);
+
+                        // Ojos
+                        contexto.fillStyle = '#000';
+                        const ojosX = x + GRID_SIZE * 0.3;
+                        const ojosY = y + GRID_SIZE * 0.3;
+                        contexto.fillRect(ojosX, ojosY, 3, 3);
+                        contexto.fillRect(ojosX + GRID_SIZE * 0.4, ojosY, 3, 3);
+                    } else {
+                        const alpha = Math.max(0.6, 1 - (index / serpiente.length) * 0.4);
+                        const gradienteCuerpo = contexto.createLinearGradient(
+                            x, y,
+                            x + GRID_SIZE, y + GRID_SIZE
+                        );
+                        gradienteCuerpo.addColorStop(0, `rgba(122, 255, 243, ${alpha})`);
+                        gradienteCuerpo.addColorStop(0.25, `rgba(122, 182, 255, ${alpha})`);
+                        gradienteCuerpo.addColorStop(0.50, `rgba(122, 224, 255, ${alpha})`);
+                        gradienteCuerpo.addColorStop(0.75, `rgba(122, 255, 198, ${alpha})`);
+                        gradienteCuerpo.addColorStop(1, `rgba(122, 140, 255, ${alpha})`);
+
+                        contexto.fillStyle = gradienteCuerpo;
+                        contexto.fillRect(x + 2, y + 2, GRID_SIZE - 4, GRID_SIZE - 4);
+                    }
+                });
+
+                // Comida
+                const comidaX = comida.x * GRID_SIZE;
+                const comidaY = comida.y * GRID_SIZE;
+
+                const gradienteComida = contexto.createRadialGradient(
+                    comidaX + GRID_SIZE / 2, comidaY + GRID_SIZE / 2, 0,
+                    comidaX + GRID_SIZE / 2, comidaY + GRID_SIZE / 2, GRID_SIZE / 2
+                );
+                gradienteComida.addColorStop(0, '#F6EC76');
+                gradienteComida.addColorStop(1, '#FFF47A');
+
+                contexto.fillStyle = gradienteComida;
+                contexto.beginPath();
+                contexto.arc(comidaX + GRID_SIZE / 2, comidaY + GRID_SIZE / 2, GRID_SIZE / 2 - 2, 0, Math.PI * 2);
+                contexto.fill();
+
+                // Estadísticas en pantalla
+                contexto.fillStyle = 'rgba(255,255,255,0.9)';
+                contexto.font = '16px system-ui';
+                contexto.textAlign = 'left';
+                contexto.fillText(`Puntaje: ${puntaje}`, 10, 25);
+                contexto.fillText(`Récord: ${mejorPuntaje}`, 10, 45);
+                contexto.fillText(`Longitud: ${serpiente.length}`, 10, 65);
+                contexto.fillText(`Velocidad: ${velocidad}`, 10, 85);
+
+                if (!juegoTerminado && !pausado) {
+                    contexto.fillStyle = 'rgba(255,255,255,0.7)';
+                    contexto.font = '14px system-ui';
+                    contexto.fillText('Flechas: mover • P: pausar • R: reiniciar', 10, MUNDO_ALTO - 15);
+                }
+            }
+
+            // === Controles ===
+            function configurarEventos() {
+                // Teclado
+                window.addEventListener('keydown', (e) => {
+                    if (!juegoIniciado) return;
+
+                    switch (e.code) {
+                        case 'ArrowUp':
+                        case 'KeyW':
+                            e.preventDefault();
+                            cambiarDireccion({ x: 0, y: -1 });
+                            break;
+                        case 'ArrowDown':
+                        case 'KeyS':
+                            e.preventDefault();
+                            cambiarDireccion({ x: 0, y: 1 });
+                            break;
+                        case 'ArrowLeft':
+                        case 'KeyA':
+                            e.preventDefault();
+                            cambiarDireccion({ x: -1, y: 0 });
+                            break;
+                        case 'ArrowRight':
+                        case 'KeyD':
+                            e.preventDefault();
+                            cambiarDireccion({ x: 1, y: 0 });
+                            break;
+                        case 'KeyP':
+                            e.preventDefault();
+                            alternarPausa();
+                            break;
+                        case 'KeyR':
+                            if (juegoTerminado) {
+                                e.preventDefault();
+                                reiniciarJuego();
+                            }
+                            break;
+                    }
+                });
+
+                // Botones táctiles
+                btnArriba.addEventListener('click', () => {
+                    if (juegoIniciado && !juegoTerminado) cambiarDireccion({ x: 0, y: -1 });
+                });
+
+                btnAbajo.addEventListener('click', () => {
+                    if (juegoIniciado && !juegoTerminado) cambiarDireccion({ x: 0, y: 1 });
+                });
+
+                btnIzquierda.addEventListener('click', () => {
+                    if (juegoIniciado && !juegoTerminado) cambiarDireccion({ x: -1, y: 0 });
+                });
+
+                btnDerecha.addEventListener('click', () => {
+                    if (juegoIniciado && !juegoTerminado) cambiarDireccion({ x: 1, y: 0 });
+                });
+
+                // Otros botones
+                btnComenzar.addEventListener('click', async () => {
+                    await setupAudio();
+                    comenzarJuego();
+                });
+
+                btnReiniciar.addEventListener('click', () => {
+                    reiniciarJuego();
+                });
+
+                btnPausa.addEventListener('click', alternarPausa);
+                btnPausa2.addEventListener('click', alternarPausa);
+
+                // Control de música y sonido
+                btnAudio.addEventListener('click', () => {
+                    // Solo permitir control de audio si el juego ha comenzado
+                    if (!juegoIniciado) return;
+
+                    audioHabilitado = !audioHabilitado;
+                    btnAudio.textContent = audioHabilitado ? '🔈 Silenciar' : '🔊 Sonido';
+
+                    if (audioHabilitado) {
+                        try {
+                            musicaFondo.play();
+                        } catch (e) {
+                            console.log("Error reproduciendo música:", e);
+                        }
+                    } else {
+                        musicaFondo.pause();
+                    }
+                });
+
+                // Gestos táctiles para móviles
+                let touchStartX = 0;
+                let touchStartY = 0;
+
+                lienzo.addEventListener('touchstart', (e) => {
+                    if (!juegoIniciado || juegoTerminado || pausado) return;
+                    e.preventDefault();
+
+                    const touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                }, { passive: false });
+
+                lienzo.addEventListener('touchend', (e) => {
+                    if (!juegoIniciado || juegoTerminado || pausado) return;
+                    e.preventDefault();
+
+                    const touch = e.changedTouches[0];
+                    const deltaX = touch.clientX - touchStartX;
+                    const deltaY = touch.clientY - touchStartY;
+
+                    const minSwipeDistance = 30;
+
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        if (Math.abs(deltaX) > minSwipeDistance) {
+                            cambiarDireccion({ x: deltaX > 0 ? 1 : -1, y: 0 });
+                        }
+                    } else {
+                        if (Math.abs(deltaY) > minSwipeDistance) {
+                            cambiarDireccion({ x: 0, y: deltaY > 0 ? 1 : -1 });
+                        }
+                    }
+                }, { passive: false });
+            }
+
+            // === Bucle principal ===
+            let ultimoMovimiento = 0;
+
+            function bucleJuego(timestamp) {
+                if (juegoIniciado && !pausado && !juegoTerminado) {
+                    if (timestamp - ultimoMovimiento >= intervaloJuego) {
+                        moverSerpiente();
+                        ultimoMovimiento = timestamp;
+                    }
+                }
+
+                dibujar();
+                requestAnimationFrame(bucleJuego);
+            }
+
+            function comenzarJuego() {
+                juegoIniciado = true;
+                pantallaInicio.hidden = true;
+
+                // Activar audio y reproducir música
+                audioHabilitado = true;
+                btnAudio.textContent = '🔈 Silenciar';
+                setupAudio();
+                try {
+                    musicaFondo.play();
+                } catch (e) {
+                    console.log("Error reproduciendo música:", e);
+                }
+
+                reiniciarJuego();
+            }
+
+            // === Inicialización ===
+            function iniciar() {
+                configurarEventos();
+                redimensionar();
+                generarComida();
+                actualizarIU();
+
+                window.addEventListener('resize', redimensionar);
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(redimensionar, 250);
+                });
+
+                requestAnimationFrame(bucleJuego);
+            }
+
+            // Iniciar el juego cuando se carga la página
+            iniciar();
+        })();
+    </script>
+
+</body>
+
+</html>

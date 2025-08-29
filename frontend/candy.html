@@ -268,6 +268,31 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
             z-index: 11;
         }
+
+        /* Nuevos estilos para efectos visuales */
+        .efecto-destello {
+            position: absolute;
+            border-radius: 8px;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,107,157,0.4) 70%, rgba(255,107,157,0) 100%);
+            pointer-events: none;
+            z-index: 5;
+            animation: destello 0.5s ease-out forwards;
+        }
+
+        @keyframes destello {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.2);
+            }
+        }
     </style>
 </head>
 
@@ -347,7 +372,7 @@
             AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756271398/Coraz%C3%B3n_Amarillo_azvkcn.png',
             NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756271399/Coraz%C3%B3n_Naranja_q9um5u.png',
             VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756271403/Coraz%C3%B3n_Verde_b0akys.png',
-            CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756271402/Coraz%C3%B3n_Celeste_ms0p5r.png'
+            CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756354210/Coraz%C3%B3n_Celeste_mdkz6d.png'
         };
 
         const IMAGENES_ESPECIALES = {
@@ -356,13 +381,13 @@
             RAYADO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273135/Rayado_Amarillo_yu7bni.png',
             RAYADO_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273141/Rayado_Naranja_kroan0.png',
             RAYADO_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273145/Rayado_Verde_cmuppx.png',
-            RAYADO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273136/Rayado_Celeste_i0xsxl.png',
+            RAYADO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756354492/Rayado_Celeste_fuhcmo.png',
             ENVUELTO_ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268133/Envuelto_Rosado_bjpyot.png',
             ENVUELTO_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268130/Envuelto_Morado_zzajds.png',
             ENVUELTO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756274417/Envuelto_Amarillo_ljnri5.png',
             ENVUELTO_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268134/Envuelto_Naranja_shgnmj.png',
             ENVUELTO_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268129/Envuelto_Verde_bfvef2.png',
-            ENVUELTO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268129/Envuelto_Celeste_lpywrf.png',
+            ENVUELTO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756355237/Envuelto_Celeste_mdybng.png',
             ARCOIRIS: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756272399/Coraz%C3%B3n_Arcoiris_tn2bzn.png'
         };
 
@@ -392,9 +417,9 @@
 
         // Configuración de niveles
         const NIVELES_CONFIG = [
-            { nivel: 1, objetivo: 'puntuacion', valor: 3500, movimientos: 25, obstaculos: [] },
-            { nivel: 2, objetivo: 'puntuacion', valor: 6000, movimientos: 25, obstaculos: [] },
-            { nivel: 3, objetivo: 'puntuacion', valor: 10000, movimientos: 25, obstaculos: ['piedra'] },
+            { nivel: 1, objetivo: 'puntuacion', valor: 35000, movimientos: 25, obstaculos: [] },
+            { nivel: 2, objetivo: 'puntuacion', valor: 60000, movimientos: 25, obstaculos: [] },
+            { nivel: 3, objetivo: 'puntuacion', valor: 100000, movimientos: 25, obstaculos: ['piedra'] },
             { nivel: 4, objetivo: 'besos', valor: 3, movimientos: 30, obstaculos: ['piedra'] },
             { nivel: 5, objetivo: 'besos', valor: 5, movimientos: 30, obstaculos: ['nube'] },
             { nivel: 6, objetivo: 'besos', valor: 8, movimientos: 35, obstaculos: ['nube'] },
@@ -657,18 +682,14 @@
 
             if (celda1.tipo === 'obstaculo' || celda2.tipo === 'obstaculo') return;
 
-            // Verificar si es una combinación especial Rayado + Envuelto
-            const esRayadoYEnvuelto =
-                ((celda1.especial && celda1.especial.startsWith('RAYADO_')) &&
-                    (celda2.especial && celda2.especial.startsWith('ENVUELTO_'))) ||
-                ((celda1.especial && celda1.especial.startsWith('ENVUELTO_')) &&
-                    (celda2.especial && celda2.especial.startsWith('RAYADO_')));
-
-            if (esRayadoYEnvuelto) {
-                // Activar efecto especial de cruz extendida
-                destruirCruzExtendida(pos1, pos2);
+            // CASO ESPECIAL: CORAZÓN ARCOÍRIS + ARCOÍRIS
+            if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS && celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                // Eliminar todos los corazones del tablero
+                limpiarTableroCompleto();
                 movimientos--;
                 actualizarUI();
+                //mostrarMensaje('¡Doble arcoíris! ¡Tablero limpio!');
+                playTone(880, 0.5);
 
                 // Aplicar gravedad y llenar espacios
                 setTimeout(() => {
@@ -676,53 +697,105 @@
                     llenarEspaciosVacios();
                     procesarMatches();
                 }, 300);
-
                 return;
             }
 
-            // Verificar si es un intercambio entre especial y normal
-            const esEspecialYNormal =
-                ((celda1.especial && (celda1.especial.startsWith('RAYADO_') || celda1.especial.startsWith('ENVUELTO_'))) &&
-                    !celda2.especial) ||
-                ((celda2.especial && (celda2.especial.startsWith('RAYADO_') || celda2.especial.startsWith('ENVUELTO_'))) &&
-                    !celda1.especial);
-
-            if (esEspecialYNormal) {
-                // Validar si el intercambio resulta en combinaciones válidas
-                if (!validarIntercambioEspecialNormal(pos1, pos2)) {
-                    playTone(208, 0.3); // Sonido de error
-                    return;
+            // CASO ESPECIAL: CORAZÓN ARCOÍRIS + OTRO
+            if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS || celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                let colorObjetivo;
+                if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                    colorObjetivo = celda2.color || obtenerColorDeEspecial(celda2.especial);
+                } else {
+                    colorObjetivo = celda1.color || obtenerColorDeEspecial(celda1.especial);
                 }
+
+                if (colorObjetivo) {
+                    eliminarTodosDelColor(colorObjetivo);
+                    movimientos--;
+                    actualizarUI();
+                    //mostrarMensaje('¡Arcoíris activado!');
+                    playTone(659, 0.3);
+
+                    setTimeout(() => {
+                        aplicarGravedad();
+                        llenarEspaciosVacios();
+                        procesarMatches();
+                    }, 300);
+                }
+                return;
+            }
+
+            // CASO ESPECIAL: RAYADO + RAYADO
+            if ((celda1.especial && celda1.especial.startsWith('RAYADO_')) &&
+                (celda2.especial && celda2.especial.startsWith('RAYADO_'))) {
+                destruirCruzCompleta(pos1);
+                movimientos--;
+                actualizarUI();
+                //mostrarMensaje('¡Doble rayado! ¡Cruz completa!');
+                playTone(740, 0.4);
+
+                setTimeout(() => {
+                    aplicarGravedad();
+                    llenarEspaciosVacios();
+                    procesarMatches();
+                }, 300);
+                return;
+            }
+
+            // CASO ESPECIAL: ENVUELTO + ENVUELTO
+            if ((celda1.especial && celda1.especial.startsWith('ENVUELTO_')) &&
+                (celda2.especial && celda2.especial.startsWith('ENVUELTO_'))) {
+                explosion5x5(pos1, pos2);
+                movimientos--;
+                actualizarUI();
+                //mostrarMensaje('¡Doble envuelto! ¡Gran explosión!');
+                playTone(880, 0.4);
+
+                setTimeout(() => {
+                    aplicarGravedad();
+                    llenarEspaciosVacios();
+                    procesarMatches();
+                }, 300);
+                return;
+            }
+
+            // CASO ESPECIAL: RAYADO + ENVUELTO
+            const esRayadoYEnvuelto =
+                ((celda1.especial && celda1.especial.startsWith('RAYADO_')) &&
+                    (celda2.especial && celda2.especial.startsWith('ENVUELTO_'))) ||
+                ((celda1.especial && celda1.especial.startsWith('ENVUELTO_')) &&
+                    (celda2.especial && celda2.especial.startsWith('RAYADO_')));
+
+            if (esRayadoYEnvuelto) {
+                destruirCruzExtendida(pos1, pos2);
+                movimientos--;
+                actualizarUI();
+                //mostrarMensaje('¡Rayado + Envuelto! ¡Cruz extendida!');
+                playTone(659, 0.4);
+
+                setTimeout(() => {
+                    aplicarGravedad();
+                    llenarEspaciosVacios();
+                    procesarMatches();
+                }, 300);
+                return;
             }
 
             // Guardar estado original para posible reversión
             const celda1Original = { ...celda1 };
             const celda2Original = { ...celda2 };
 
-            // Intercambiar
+            // Intercambiar temporalmente para verificar matches
             tablero[pos1.fila][pos1.col] = celda2;
             tablero[pos2.fila][pos2.col] = celda1;
 
-            // Verificar si hay corazones especiales involucrados
-            const hayEspecial = (celda1.especial && !celda1.especial.includes('ARCOIRIS')) ||
-                (celda2.especial && !celda2.especial.includes('ARCOIRIS'));
-
+            // Verificar si hay matches después del intercambio
             let hayMatch = false;
+            const matches1 = encontrarMatches(pos1.fila, pos1.col);
+            const matches2 = encontrarMatches(pos2.fila, pos2.col);
 
-            if (hayEspecial) {
-                // Caso especial: si hay un corazón especial, verificar matches en TODO el tablero
-                const todosLosMatches = encontrarTodosLosMatches();
-                hayMatch = todosLosMatches.length >= 3;
-
-                // También verificar si el intercambio activa un efecto especial
-                if (!hayMatch && hayCombinaciónEspecial(pos1, pos2)) {
-                    hayMatch = true;
-                }
-            } else {
-                // Caso normal: verificar solo alrededor de las posiciones intercambiadas
-                const matches1 = encontrarMatches(pos1.fila, pos1.col);
-                const matches2 = encontrarMatches(pos2.fila, pos2.col);
-                hayMatch = matches1.length >= 3 || matches2.length >= 3;
+            if (matches1.length >= 3 || matches2.length >= 3) {
+                hayMatch = true;
             }
 
             if (hayMatch) {
@@ -826,17 +899,17 @@
                 // Corazón rayado - destruir fila o columna completa
                 const direccion = determinarDireccionRayado(especialPos, normalPos);
                 destruirFilaOColumna(especialPos, direccion);
-                mostrarMensaje('¡Rayado activado!');
+                //mostrarMensaje('¡Rayado activado!');
 
             } else if (especial.startsWith('ENVUELTO_')) {
                 // Corazón envuelto - explosión 3x3
                 explosion3x3(especialPos);
-                mostrarMensaje('¡Envuelto activado!');
+                //mostrarMensaje('¡Envuelto activado!');
 
             } else if (especial === TIPOS_ESPECIALES.ARCOIRIS) {
                 // Corazón arcoíris - eliminar todos del mismo color (puede ser cualquier color)
                 eliminarTodosDelColor(colorNormal);
-                mostrarMensaje('¡Arcoíris activado!');
+                //mostrarMensaje('¡Arcoíris activado!');
             }
 
             // Eliminar el corazón especial después de usarlo
@@ -858,6 +931,7 @@
                 // Destruir toda la fila
                 for (let col = 0; col < COLUMNAS; col++) {
                     if (tablero[pos.fila][col] && tablero[pos.fila][col].tipo === 'normal') {
+                        crearEfectoDestelloFila(pos.fila);
                         crearParticulas(pos.fila, col);
                         tablero[pos.fila][col] = null;
                         puntaje += 100;
@@ -867,6 +941,7 @@
                 // Destruir toda la columna
                 for (let fila = 0; fila < FILAS; fila++) {
                     if (tablero[fila][pos.col] && tablero[fila][pos.col].tipo === 'normal') {
+                        crearEfectoDestelloColumna(pos.col);
                         crearParticulas(fila, pos.col);
                         tablero[fila][pos.col] = null;
                         puntaje += 100;
@@ -891,20 +966,34 @@
                     }
                 }
             }
+            
+            // Crear efecto visual para la explosión 3x3
+            crearEfectoDestelloArea(pos.fila, pos.col, 3);
         }
 
         function eliminarTodosDelColor(color) {
-            // Eliminar todos los corazones del color especificado
             for (let fila = 0; fila < FILAS; fila++) {
                 for (let col = 0; col < COLUMNAS; col++) {
                     const celda = tablero[fila][col];
-                    if (celda && celda.tipo === 'normal' && celda.color === color) {
-                        crearParticulas(fila, col);
-                        tablero[fila][col] = null;
-                        puntaje += 200;
+                    if (celda && celda.tipo === 'normal') {
+                        let colorCelda = celda.color;
+
+                        // Si es especial, obtener su color base
+                        if (celda.especial && celda.especial !== TIPOS_ESPECIALES.ARCOIRIS) {
+                            colorCelda = obtenerColorDeEspecial(celda.especial);
+                        }
+
+                        if (colorCelda === color) {
+                            crearParticulas(fila, col);
+                            tablero[fila][col] = null;
+                            puntaje += 200;
+                        }
                     }
                 }
             }
+            
+            // Crear efecto visual para eliminación de color
+            crearEfectoDestelloMultiple();
         }
 
         function hayCombinaciónEspecial(pos1, pos2) {
@@ -923,21 +1012,21 @@
                 (celda2.especial && celda2.especial.startsWith('RAYADO_'))) {
                 destruirFilaOColumna(pos1, 'horizontal');
                 destruirFilaOColumna(pos1, 'vertical');
-                mostrarMensaje('¡Cruz completa!');
+                //mostrarMensaje('¡Cruz completa!');
             }
-            // Rayado + Envuelto = Cruz con filas/columnas adyacentes
+            // Rayado + Envuelto = Cruz con filas/columns adyacentes
             else if (((celda1.especial && celda1.especial.startsWith('RAYADO_')) &&
                 (celda2.especial && celda2.especial.startsWith('ENVUELTO_'))) ||
                 ((celda1.especial && celda1.especial.startsWith('ENVUELTO_')) &&
                     (celda2.especial && celda2.especial.startsWith('RAYADO_')))) {
                 destruirCruzExtendida(pos1);
-                mostrarMensaje('¡Cruz extendida!');
+                //mostrarMensaje('¡Cruz extendida!');
             }
             // Envuelto + Envuelto = Explosión 5x5
             else if ((celda1.especial && celda1.especial.startsWith('ENVUELTO_')) &&
                 (celda2.especial && celda2.especial.startsWith('ENVUELTO_'))) {
                 explosion5x5(pos1, pos2);
-                mostrarMensaje('¡Gran explosión!');
+                //mostrarMensaje('¡Gran explosión!');
             }
             // Arcoíris + Rayado = Convertir todos del color en rayados y explotar
             else if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS &&
@@ -965,16 +1054,16 @@
             else if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS &&
                 celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
                 limpiarTableroCompleto();
-                mostrarMensaje('¡Explosión total!');
+                //mostrarMensaje('¡Explosión total!');
             }
             // Arcoíris + Normal = Eliminar todos del color
             else if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS) {
                 eliminarTodosDelColor(celda2.color);
-                mostrarMensaje('¡Poder arcoíris!');
+                //mostrarMensaje('¡Poder arcoíris!');
             }
             else if (celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
                 eliminarTodosDelColor(celda1.color);
-                mostrarMensaje('¡Poder arcoíris!');
+                //mostrarMensaje('¡Poder arcoíris!');
             }
         }
 
@@ -1014,8 +1103,47 @@
                 }
             }
 
-            mostrarMensaje('¡Combinación especial! ¡Cruz extendida!');
+            // Crear efecto visual para la cruz extendida
+            crearEfectoDestelloArea(centroFila, centroCol, 5);
+            
+            //mostrarMensaje('¡Combinación especial! ¡Cruz extendida!');
             playTone(659, 0.3); // Nota musical para efecto especial
+        }
+
+        function destruirCruzCompleta(pos) {
+            // Destruir 3 filas (arriba, centro, abajo)
+            for (let df = -1; df <= 1; df++) {
+                const fila = pos.fila + df;
+                if (fila >= 0 && fila < FILAS) {
+                    for (let col = 0; col < COLUMNAS; col++) {
+                        if (tablero[fila][col]) {
+                            crearParticulas(fila, col);
+                            tablero[fila][col] = null;
+                            puntaje += 100;
+                        }
+                    }
+                }
+            }
+
+            // Destruir 3 columnas (izquierda, centro, derecha)
+            for (let dc = -1; dc <= 1; dc++) {
+                const col = pos.col + dc;
+                if (col >= 0 && col < COLUMNAS) {
+                    for (let fila = 0; fila < FILAS; fila++) {
+                        // Evitar duplicar destrucción en intersecciones ya procesadas
+                        if (fila < pos.fila - 1 || fila > pos.fila + 1) {
+                            if (tablero[fila][col]) {
+                                crearParticulas(fila, col);
+                                tablero[fila][col] = null;
+                                puntaje += 100;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Crear efecto visual para la cruz completa
+            crearEfectoDestelloArea(pos.fila, pos.col, 5);
         }
 
         function convertirYExplotarRayados(color) {
@@ -1090,7 +1218,7 @@
                     const col = centroCol + dc;
 
                     if (fila >= 0 && fila < FILAS && col >= 0 && col < COLUMNAS) {
-                        if (tablero[fila][col] && tablero[fila][col].tipo === 'normal') {
+                        if (tablero[fila][col]) {
                             crearParticulas(fila, col);
                             tablero[fila][col] = null;
                             puntaje += 100;
@@ -1098,6 +1226,9 @@
                     }
                 }
             }
+            
+            // Crear efecto visual para la explosión 5x5
+            crearEfectoDestelloArea(centroFila, centroCol, 5);
         }
 
         // Sistema de matches
@@ -1109,12 +1240,23 @@
             let color;
 
             // Determinar el color base para la comparación
-            if (celda.especial) {
+            if (celda.especial && celda.especial !== TIPOS_ESPECIALES.ARCOIRIS) {
                 color = obtenerColorDeEspecial(celda.especial);
-                // Si no podemos determinar el color (arcoíris), no hacer match
-                if (!color) return [];
+                if (!color) return []; // Si no podemos determinar el color, no hacer match
+            } else if (celda.especial === TIPOS_ESPECIALES.ARCOIRIS) {
+                return []; // Los arcoíris no forman matches normales
             } else {
                 color = celda.color;
+            }
+
+            // Función auxiliar para obtener color de una celda
+            function obtenerColorCelda(c) {
+                if (!c || c.tipo !== 'normal') return null;
+                if (c.especial === TIPOS_ESPECIALES.ARCOIRIS) return null;
+                if (c.especial && c.especial !== TIPOS_ESPECIALES.ARCOIRIS) {
+                    return obtenerColorDeEspecial(c.especial);
+                }
+                return c.color;
             }
 
             // Buscar horizontal
@@ -1122,17 +1264,7 @@
 
             // Izquierda
             for (let c = col - 1; c >= 0; c--) {
-                const celdaActual = tablero[fila][c];
-                if (!celdaActual || celdaActual.tipo !== 'normal') break;
-
-                let colorActual;
-                if (celdaActual.especial) {
-                    colorActual = obtenerColorDeEspecial(celdaActual.especial);
-                    if (!colorActual) break;
-                } else {
-                    colorActual = celdaActual.color;
-                }
-
+                const colorActual = obtenerColorCelda(tablero[fila][c]);
                 if (colorActual === color) {
                     horizontal.unshift({ fila, col: c });
                 } else {
@@ -1142,17 +1274,7 @@
 
             // Derecha
             for (let c = col + 1; c < COLUMNAS; c++) {
-                const celdaActual = tablero[fila][c];
-                if (!celdaActual || celdaActual.tipo !== 'normal') break;
-
-                let colorActual;
-                if (celdaActual.especial) {
-                    colorActual = obtenerColorDeEspecial(celdaActual.especial);
-                    if (!colorActual) break;
-                } else {
-                    colorActual = celdaActual.color;
-                }
-
+                const colorActual = obtenerColorCelda(tablero[fila][c]);
                 if (colorActual === color) {
                     horizontal.push({ fila, col: c });
                 } else {
@@ -1169,17 +1291,7 @@
 
             // Arriba
             for (let f = fila - 1; f >= 0; f--) {
-                const celdaActual = tablero[f][col];
-                if (!celdaActual || celdaActual.tipo !== 'normal') break;
-
-                let colorActual;
-                if (celdaActual.especial) {
-                    colorActual = obtenerColorDeEspecial(celdaActual.especial);
-                    if (!colorActual) break;
-                } else {
-                    colorActual = celdaActual.color;
-                }
-
+                const colorActual = obtenerColorCelda(tablero[f][col]);
                 if (colorActual === color) {
                     vertical.unshift({ fila: f, col });
                 } else {
@@ -1189,17 +1301,7 @@
 
             // Abajo
             for (let f = fila + 1; f < FILAS; f++) {
-                const celdaActual = tablero[f][col];
-                if (!celdaActual || celdaActual.tipo !== 'normal') break;
-
-                let colorActual;
-                if (celdaActual.especial) {
-                    colorActual = obtenerColorDeEspecial(celdaActual.especial);
-                    if (!colorActual) break;
-                } else {
-                    colorActual = celdaActual.color;
-                }
-
+                const colorActual = obtenerColorCelda(tablero[f][col]);
                 if (colorActual === color) {
                     vertical.push({ fila: f, col });
                 } else {
@@ -1267,13 +1369,10 @@
 
                     // Romper obstáculos adyacentes
                     romperObstaculosAdyacentes(matches);
-
                     actualizarUI();
 
                     // Aplicar gravedad
                     aplicarGravedad();
-
-                    // Llenar espacios vacíos
                     llenarEspaciosVacios();
 
                     // Buscar más matches
@@ -1300,31 +1399,46 @@
         function activarEfectosEspecialesEnMatches(matches) {
             let efectosActivados = false;
 
-            // Buscar corazones especiales en los matches (ignorar los recién creados)
+            // Buscar corazones especiales en los matches
             for (const match of matches) {
                 const celda = tablero[match.fila][match.col];
-                if (celda && celda.especial && !celda.recienCreado &&
-                    (celda.especial.startsWith('RAYADO_') || celda.especial.startsWith('ENVUELTO_'))) {
+                if (celda && celda.especial && !celda.recienCreado) {
 
-                    // Activar efecto según el tipo de corazón especial
                     if (celda.especial.startsWith('RAYADO_')) {
-                        // Determinar dirección basada en el patrón del match
-                        const esHorizontal = matches.some(m => m.fila === match.fila && m.col !== match.col);
-                        const direccion = esHorizontal ? 'horizontal' : 'vertical';
-
-                        destruirFilaOColumna(match, direccion);
-                        tablero[match.fila][match.col] = null;
+                        // Eliminar toda la fila
+                        for (let col = 0; col < COLUMNAS; col++) {
+                            if (tablero[match.fila][col]) {
+                                crearParticulas(match.fila, col);
+                                tablero[match.fila][col] = null;
+                                puntaje += 100;
+                            }
+                        }
                         efectosActivados = true;
-                        mostrarMensaje('¡Rayado activado!');
+                        //mostrarMensaje('¡Rayado activado! ¡Fila eliminada!');
+                        playTone(659, 0.3);
 
                     } else if (celda.especial.startsWith('ENVUELTO_')) {
-                        explosion3x3(match);
-                        tablero[match.fila][match.col] = null;
+                        // Explosión 3x3
+                        for (let df = -1; df <= 1; df++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                const nuevaFila = match.fila + df;
+                                const nuevaCol = match.col + dc;
+
+                                if (nuevaFila >= 0 && nuevaFila < FILAS &&
+                                    nuevaCol >= 0 && nuevaCol < COLUMNAS &&
+                                    tablero[nuevaFila][nuevaCol]) {
+                                    crearParticulas(nuevaFila, nuevaCol);
+                                    tablero[nuevaFila][nuevaCol] = null;
+                                    puntaje += 100;
+                                }
+                            }
+                        }
                         efectosActivados = true;
-                        mostrarMensaje('¡Envuelto activado!');
+                        //mostrarMensaje('¡Envuelto activado! ¡Explosión 3x3!');
+                        playTone(740, 0.3);
                     }
 
-                    // Si se activó un efecto, salir del bucle para evitar procesamientos múltiples
+                    // Si se activó un efecto, salir del bucle
                     if (efectosActivados) break;
                 }
             }
@@ -1357,7 +1471,7 @@
                             };
                         }
                     }, 250);
-                    mostrarMensaje('Corazon Rayado!');
+                    //mostrarMensaje('Corazon Rayado!');
                 } else if (grupo.length === 5) {
                     // Crear corazón arcoíris
                     const pos = grupo[Math.floor(grupo.length / 2)];
@@ -1370,12 +1484,12 @@
                             };
                         }
                     }, 250);
-                    mostrarMensaje('Corazon Arcoiris!');
+                    //mostrarMensaje('Corazon Arcoiris!');
                     playTone(988, 0.3);
                 }
             });
 
-            // Detectar patrones L y T para corazón envuelto
+            // Detectar patrones L and T para corazón envuelto
             detectarPatronesLT(matches);
         }
 
@@ -1401,7 +1515,7 @@
                             };
                         }
                     }, 250);
-                    mostrarMensaje('¡Corazón Envuelto!');
+                    //mostrarMensaje('¡Corazón Envuelto!');
                     return;
                 }
             });
@@ -1575,13 +1689,17 @@
         function limpiarTableroCompleto() {
             for (let fila = 0; fila < FILAS; fila++) {
                 for (let col = 0; col < COLUMNAS; col++) {
-                    if (tablero[fila][col] && tablero[fila][col].tipo === 'normal') {
+                    const celda = tablero[fila][col];
+                    if (celda && celda.tipo === 'normal') {
                         crearParticulas(fila, col);
                         tablero[fila][col] = null;
                         puntaje += 300;
                     }
                 }
             }
+            
+            // Crear efecto visual para limpieza completa
+            crearEfectoDestelloMultiple();
         }
 
         // Gravedad y llenado
@@ -1621,9 +1739,9 @@
                     y,
                     vx: (Math.random() - 0.5) * 6,
                     vy: (Math.random() - 0.5) * 6,
-                    radio: Math.random() * 2 + 1,
+                    radio: Math.random() * 3 + 2, // Partículas más grandes
                     color: '#ff6b9d',
-                    vida: 20
+                    vida: 30 // Vida más larga
                 });
             }
         }
@@ -1641,6 +1759,65 @@
                     particulas.splice(i, 1);
                 }
             }
+        }
+
+        // Nuevos efectos visuales
+        function crearEfectoDestelloFila(fila) {
+            const x = MARGEN_X;
+            const y = MARGEN_Y + fila * TAMAÑO_CELDA;
+            const ancho = COLUMNAS * TAMAÑO_CELDA;
+            const alto = TAMAÑO_CELDA;
+            
+            crearEfectoDestello(x, y, ancho, alto);
+        }
+
+        function crearEfectoDestelloColumna(col) {
+            const x = MARGEN_X + col * TAMAÑO_CELDA;
+            const y = MARGEN_Y;
+            const ancho = TAMAÑO_CELDA;
+            const alto = FILAS * TAMAÑO_CELDA;
+            
+            crearEfectoDestello(x, y, ancho, alto);
+        }
+
+        function crearEfectoDestelloArea(fila, col, tamaño) {
+            const radio = Math.floor(tamaño / 2);
+            const x = MARGEN_X + (col - radio) * TAMAÑO_CELDA;
+            const y = MARGEN_Y + (fila - radio) * TAMAÑO_CELDA;
+            const ancho = tamaño * TAMAÑO_CELDA;
+            const alto = tamaño * TAMAÑO_CELDA;
+            
+            crearEfectoDestello(x, y, ancho, alto);
+        }
+
+        function crearEfectoDestelloMultiple() {
+            // Crear destello para todo el tablero
+            const x = MARGEN_X;
+            const y = MARGEN_Y;
+            const ancho = COLUMNAS * TAMAÑO_CELDA;
+            const alto = FILAS * TAMAÑO_CELDA;
+            
+            crearEfectoDestello(x, y, ancho, alto);
+        }
+
+        function crearEfectoDestello(x, y, ancho, alto) {
+            const destello = document.createElement('div');
+            destello.className = 'efecto-destello';
+            
+            // Posicionar y dimensionar el destello
+            destello.style.left = `${desplazamientoX + x * escala}px`;
+            destello.style.top = `${desplazamientoY + y * escala}px`;
+            destello.style.width = `${ancho * escala}px`;
+            destello.style.height = `${alto * escala}px`;
+            
+            document.getElementById('contenedor').appendChild(destello);
+            
+            // Eliminar el elemento después de la animación
+            setTimeout(() => {
+                if (destello.parentNode) {
+                    destello.parentNode.removeChild(destello);
+                }
+            }, 500);
         }
 
         // UI y estado del juego
@@ -1673,10 +1850,10 @@
             }
 
             if (objetivoCompleto) {
-                mostrarSuperposicion('Nivel Completado!', 'Eres un experto en amor!');
+                mostrarSuperposicion('Nivel Completado!', '¡Impresionante!');
             } else if (movimientos <= 0) {
                 vidas--;
-                mostrarSuperposicion('Nivel Fallido', 'El amor verdadero nunca se rinde');
+                mostrarSuperposicion('Nivel Fallido', 'Inténtalo de nuevo ♥');
             }
         }
 
@@ -1900,7 +2077,7 @@
             // Actualizar y dibujar partículas
             actualizarParticulas();
             particulas.forEach(p => {
-                contexto.globalAlpha = p.vida / 20;
+                contexto.globalAlpha = p.vida / 30;
                 contexto.fillStyle = p.color;
                 contexto.beginPath();
                 contexto.arc(p.x, p.y, p.radio, 0, Math.PI * 2);
