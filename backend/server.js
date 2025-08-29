@@ -34,7 +34,14 @@ app.post('/api/runs', async (req, res) => {
         }
 
         // Guarda el run (histórico)
-        await Run.create({ playerId, name, score, time, level });
+        await Run.create({
+            playerId,
+            name,
+            score,
+            time,
+            level,
+            game: game === 'snake' ? 'snake' : 'disparando' // default seguro
+        });
 
         // Actualiza/crea el player con mejores marcas
         const player = await Player.findOne({ playerId });
@@ -64,18 +71,44 @@ app.post('/api/runs', async (req, res) => {
  * Ranking por mejor puntaje (desc) y desempate por mejor tiempo (asc).
  */
 app.get('/api/leaderboard', async (req, res) => {
-    try {
-        const limit = Math.max(1, Math.min(100, parseInt(req.query.limit || '10', 10)));
-        const rows = await Player.find({})
-            .sort({ bestScore: -1, bestTime: 1 })
-            .limit(limit)
-            .select({ _id: 0, playerId: 1, name: 1, bestScore: 1, bestTime: 1, updatedAt: 1 });
+  try {
+    const limit = Math.max(1, Math.min(100, parseInt(req.query.limit || '10', 10)));
+    const gameParam = (req.query.game || '').toLowerCase();
+    const game = gameParam === 'snake' ? 'snake' : (gameParam === 'disparando' ? 'disparando' : null);
 
-        res.json({ ok: true, leaderboard: rows });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: 'Error de servidor' });
+    if (!game) {
+      // ✅ Comportamiento original (global)
+      const rows = await Player.find({})
+        .sort({ bestScore: -1, bestTime: 1 })
+        .limit(limit)
+        .select({ _id: 0, playerId: 1, name: 1, bestScore: 1, bestTime: 1, updatedAt: 1 });
+
+      return res.json({ ok: true, leaderboard: rows, scope: 'global' });
     }
+
+    // ✅ Ranking por juego desde Runs
+    // Ordenamos primero por score desc, luego time asc, y nos quedamos con el primer run por jugador.
+    const rows = await Run.aggregate([
+      { $match: { game } },
+      { $sort: { score: -1, time: 1, createdAt: 1 } },
+      {
+        $group: {
+          _id: '$playerId',
+          name: { $first: '$name' },
+          bestScore: { $first: '$score' },
+          bestTime: { $first: '$time' },
+          updatedAt: { $first: '$createdAt' },
+        }
+      },
+      { $limit: limit },
+      { $project: { _id: 0, playerId: '$_id', name: 1, bestScore: 1, bestTime: 1, updatedAt: 1, game: { $literal: game } } }
+    ]);
+
+    return res.json({ ok: true, game, leaderboard: rows, scope: 'by-game' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error de servidor' });
+  }
 });
 
 /**
