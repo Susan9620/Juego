@@ -296,7 +296,7 @@
                     <p class="juego-descripcion">Dispara corazones y conquista el espacio</p>
                 </a>
 
-                <a href="disparando.html" class="juego-card disponible" data-requires-auth="true">
+                <a href="snake.html" class="juego-card disponible" data-requires-auth="true">
                     <span class="juego-emoji">🐍</span>
                     <h3 class="juego-titulo">Snake Xenzia ❤️</h3>
                     <p class="juego-descripcion">Guía a la serpiente</p>
@@ -378,13 +378,13 @@
             const btnLogout = document.getElementById('btnLogout');
 
             if (AUTH_TOKEN) {
-                estado.textContent = `Conectada: ${USERNAME || 'Jugador@'}`;
+                estado.textContent = `Conectado: ${USERNAME || 'Jugador'}`;
                 btnLogin.hidden = true;
                 btnLogout.hidden = true; // lo mostramos cuando cargue todo; evitamos “parpadeo”
                 // pequeño delay para evitar saltos visuales por layout
                 setTimeout(() => btnLogout.hidden = false, 50);
             } else {
-                estado.textContent = 'Invitada';
+                estado.textContent = 'Invitado';
                 btnLogin.hidden = false;
                 btnLogout.hidden = true;
             }
