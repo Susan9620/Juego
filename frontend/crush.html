@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <title>Love Crush</title>
+    <link rel="stylesheet" href="global.css" />
     <style>
         :root {
             --acento-1: #ff6b9d;
@@ -193,7 +194,7 @@
             padding: 30px 25px;
             border-radius: 16px;
             text-align: center;
-            width: min(90vw, 310px);
+            width: min(90vw, 380px);
             max-height: 80vh;
             overflow-y: auto;
         }
@@ -273,7 +274,7 @@
         .efecto-destello {
             position: absolute;
             border-radius: 8px;
-            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,107,157,0.4) 70%, rgba(255,107,157,0) 100%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 107, 157, 0.4) 70%, rgba(255, 107, 157, 0) 100%);
             pointer-events: none;
             z-index: 5;
             animation: destello 0.5s ease-out forwards;
@@ -284,14 +285,79 @@
                 opacity: 0;
                 transform: scale(0.8);
             }
+
             50% {
                 opacity: 1;
                 transform: scale(1.1);
             }
+
             100% {
                 opacity: 0;
                 transform: scale(1.2);
             }
+        }
+
+        #modalReiniciar {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(0, 0, 0, .6);
+            z-index: 25;
+        }
+
+        #modalReiniciar[hidden] {
+            display: none;
+        }
+
+        .btn.booster.activo {
+            outline: 3px solid var(--acento-1);
+            box-shadow: 0 0 0 4px rgba(255, 107, 157, .25);
+        }
+
+        .btn.booster {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            padding: 0;
+            margin: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+            ;
+            border-radius: 16px;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 100% 100%;
+        }
+
+        .btn.booster::after {
+            content: attr(data-count);
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--acento-1), var(--acento-2));
+            color: #fff;
+            font-weight: 900;
+            font-size: 12px;
+            line-height: 24px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, .35);
+        }
+
+        .btn[disabled] {
+            opacity: .45;
+            cursor: not-allowed;
+            filter: grayscale(80%);
+        }
+
+        .btn.booster[disabled]::after {
+            background: #5b5b6a;
+            color: #ddd;
         }
     </style>
 </head>
@@ -308,14 +374,15 @@
     <div class="vidas" id="IUVidas">Vidas: 5</div>
 
     <div class="barra-superior">
+        <button id="btnAudio" class="pildora">🔊 Sonido</button>
         <button id="btnReiniciar" class="pildora">Reiniciar</button>
-        <button id="btnPista" class="pildora">Pista</button>
+        <button id="btnSalir" class="pildora">🏠 Menú</button>
     </div>
 
     <div class="controles">
-        <button class="btn" id="btnBooster1">Tinder</button>
-        <button class="btn" id="btnBooster2">Cupido</button>
-        <button class="btn" id="btnBooster3">Big Bang</button>
+        <button class="btn booster" id="btnBoosterCupido" title="Cupido"></button>
+        <button class="btn booster" id="btnBoosterMano" title="Mano"></button>
+        <button class="btn booster" id="btnBoosterBombon" title="Bombón"></button>
     </div>
 
     <div id="pantallaInicio">
@@ -333,12 +400,6 @@
                     <li>Lleva los besos abajo o empareja los osos segun el nivel</li>
                     <li>Tienes 5 vidas - usalas sabiamente!</li>
                 </ul>
-                <p><strong>Niveles:</strong></p>
-                <ul>
-                    <li>1-3: Alcanzar puntuacion objetivo</li>
-                    <li>4-6: Entregar besos</li>
-                    <li>7-10: Emparejar osos de peluche</li>
-                </ul>
             </div>
             <button id="btnComenzar" class="cta">Comenzar</button>
         </div>
@@ -346,14 +407,33 @@
 
     <div id="superposicion" hidden>
         <div class="panel">
-            <h1 id="tituloSuperposicion">Nivel Fallido</h1>
+            <h1 id="tituloSuperposicion">💔 Game Over</h1>
             <p class="linea">Nivel: <b id="nivelActual">1</b></p>
             <p class="linea">Puntaje: <b id="puntajeActual">0</b></p>
             <p class="linea">Objetivo: <b id="objetivoTexto">Alcanzar puntuacion</b></p>
-            <p class="frase" id="fraseFinal">"Inténtalo de nuevo ♥"</p>
+            <p class="frase" id="fraseFinal">"¡Inténtalo de nuevo ♥!"</p>
             <button id="btnContinuar" class="cta">Continuar</button>
         </div>
     </div>
+
+    <div id="modalReiniciar" hidden>
+        <div class="panel">
+            <h1>🔁 Reiniciar nivel</h1>
+            <p class="linea">¿Seguro? Perderás <b>1 vida</b>.</p>
+            <div style="display:flex; gap:8px; justify-content:center; margin-top:12px">
+                <button id="btnReiniciarConfirmar" class="cta">Sí, reiniciar</button>
+                <button id="btnReiniciarCancelar" class="pildora">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Elementos de audio -->
+    <audio id="musicaFondo" loop>
+        <source
+            src="https://res.cloudinary.com/dsf9hse1e/video/upload/v1756519542/Mini-Game_Land_Mario_Party_2_x9jkar.mp4"
+            type="audio/mpeg">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
 
     <script>
         // === Constantes del juego ===
@@ -376,18 +456,28 @@
         };
 
         const IMAGENES_ESPECIALES = {
+            // Rayados Horizontales
             RAYADO_ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273143/Rayado_Rosado_xj6w9o.png',
             RAYADO_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273139/Rayado_Morado_cn82wc.png',
-            RAYADO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273135/Rayado_Amarillo_yu7bni.png',
+            RAYADO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756353501/Rayado_Amarillo_rlwc0z.png',
             RAYADO_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273141/Rayado_Naranja_kroan0.png',
             RAYADO_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756273145/Rayado_Verde_cmuppx.png',
             RAYADO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756354492/Rayado_Celeste_fuhcmo.png',
+            // Rayados Verticales
+            RAYADO_V_ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756519365/Rayado_Horizontal_Rosado_ls2cfe.png',
+            RAYADO_V_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756519362/Rayado_Horizontal_Morado_rfbzqq.png',
+            RAYADO_V_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756519373/Rayado_Horizontal_Amarillo_m9e5hl.png',
+            RAYADO_V_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756519347/Rayado_Horizontal_Naranja_zuooiw.png',
+            RAYADO_V_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756519369/Rayado_Horizontal_Verde_btwcdv.png',
+            RAYADO_V_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756519358/Rayado_Horizontal_Celeste_aal7sc.png',
+            // Envueltos
             ENVUELTO_ROSADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268133/Envuelto_Rosado_bjpyot.png',
             ENVUELTO_MORADO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268130/Envuelto_Morado_zzajds.png',
             ENVUELTO_AMARILLO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756274417/Envuelto_Amarillo_ljnri5.png',
             ENVUELTO_NARANJA: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268134/Envuelto_Naranja_shgnmj.png',
             ENVUELTO_VERDE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268129/Envuelto_Verde_bfvef2.png',
             ENVUELTO_CELESTE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756355237/Envuelto_Celeste_mdybng.png',
+            // Arcoíris
             ARCOIRIS: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756272399/Coraz%C3%B3n_Arcoiris_tn2bzn.png'
         };
 
@@ -396,6 +486,12 @@
             NUBE: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756272179/Nubes_mrj0eq.png',
             BESO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756269140/Beso_fcfonz.png',
             OSO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756268766/Oso_de_Peluche_mubaz3.png'
+        };
+
+        const IMAGENES_BOOSTERS = {
+            CUPIDO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756524612/Cupido_betvib.png',
+            MANO: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756525572/Mano_sxrhl9.png',
+            BOMBON: 'https://res.cloudinary.com/dsf9hse1e/image/upload/v1756525189/Bombones_lnqnxd.png',
         };
 
         const CORAZONES_BASICOS = Object.keys(IMAGENES_CORAZONES);
@@ -429,6 +525,12 @@
             { nivel: 10, objetivo: 'osos', valor: 6, movimientos: 45, obstaculos: ['piedra', 'nube'] }
         ];
 
+        const BOOSTERS = {
+            CUPIDO: 'cupido',
+            MANO: 'mano',
+            BOMBON: 'bombon'
+        };
+
         // Referencias DOM
         const lienzo = document.getElementById('juego');
         const contexto = lienzo.getContext('2d');
@@ -436,6 +538,7 @@
         const IUVidas = document.getElementById('IUVidas');
         const pantallaInicio = document.getElementById('pantallaInicio');
         const superposicion = document.getElementById('superposicion');
+        const musicaFondo = document.getElementById('musicaFondo');
 
         // Estado del juego
         let tablero = [];
@@ -447,10 +550,56 @@
         let seleccionado = null;
         let animando = false;
         let objetivo = 'puntuacion';
-        let objetivoValor = 3500;
+        let objetivoValor = 35000;
         let particulas = [];
         let besosEntregados = 0;
         let ososEmparejados = 0;
+        let suprimirEfectosUnaVez = false;
+        let colaActivaciones = [];
+        let pendientesSegundaExplosion = [];
+        let UID = 1;
+        let ultimaDireccionIntercambio = null;
+        let boosterActivo = null;
+        let seleccionBooster = null;
+
+        let boosterRestantes = {
+            [BOOSTERS.CUPIDO]: 1,
+            [BOOSTERS.MANO]: 1,
+            [BOOSTERS.BOMBON]: 1,
+        };
+
+        function resetBoostersNuevaPartida() {
+            boosterRestantes[BOOSTERS.CUPIDO] = 1;
+            boosterRestantes[BOOSTERS.MANO] = 1;
+            boosterRestantes[BOOSTERS.BOMBON] = 1;
+            actualizarUIBoosters();
+        }
+
+        function actualizarUIBoosters() {
+            const map = [
+                ['btnBoosterCupido', BOOSTERS.CUPIDO, 'Cupido'],
+                ['btnBoosterMano', BOOSTERS.MANO, 'Mano'],
+                ['btnBoosterBombon', BOOSTERS.BOMBON, 'Bombón'],
+            ];
+            map.forEach(([btnId, tipo]) => {
+                const btn = document.getElementById(btnId);
+                if (!btn) return;
+                const left = boosterRestantes[tipo] ?? 0;
+                btn.disabled = left <= 0;
+                btn.classList.toggle('activo', boosterActivo === tipo);
+
+                // SOLO número: badge y tooltip
+                btn.dataset.count = String(left);   // <- muestra el número en el ::after
+                btn.textContent = '';               // <- sin texto visible
+                btn.title = String(left);           // <- tooltip con solo el número
+            });
+        }
+
+        function consumirBooster(tipo) {
+            boosterRestantes[tipo] = Math.max(0, (boosterRestantes[tipo] ?? 0) - 1);
+            desactivarBooster();
+            actualizarUIBoosters();
+        }
 
         // Variables responsive
         let dpr = 1;
@@ -484,6 +633,16 @@
             });
         }
 
+        function aplicarIconosBoosters() {
+            const setIcon = (btn, url) => {
+                if (!btn || !url) return;
+                btn.style.backgroundImage = `url(${url})`;
+            };
+            setIcon(document.getElementById('btnBoosterCupido'), IMAGENES_BOOSTERS.CUPIDO);
+            setIcon(document.getElementById('btnBoosterMano'), IMAGENES_BOOSTERS.MANO);
+            setIcon(document.getElementById('btnBoosterBombon'), IMAGENES_BOOSTERS.BOMBON);
+        }
+
         async function setupAudio() {
             if (audioCtx) return;
             try {
@@ -515,7 +674,169 @@
             } catch (e) { }
         }
 
+        function playBoosterCupid() {
+            if (!audioCtx) return;
+            const t = audioCtx.currentTime;
+            const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+            o.type = 'triangle';
+            o.frequency.setValueAtTime(880, t);
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+            o.connect(g); g.connect(masterGain);
+            o.start(t); o.stop(t + 0.26);
+        }
+        function playBoosterHand() {
+            // tres bips cortos (swap)
+            [392, 523, 392].forEach((f, i) => setTimeout(() => playTone(f, 0.08), i * 90));
+        }
+        function playBoosterBombon() {
+            // barrido descendente (limpieza masiva)
+            if (!audioCtx) return;
+            const t = audioCtx.currentTime;
+            const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+            o.type = 'sawtooth';
+            o.frequency.setValueAtTime(220, t);
+            o.frequency.exponentialRampToValueAtTime(55, t + 0.5);
+            g.gain.setValueAtTime(0.35, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+            o.connect(g); g.connect(masterGain);
+            o.start(t); o.stop(t + 0.52);
+        }
+
+        function activarBooster(tipo) {
+            if ((boosterRestantes[tipo] ?? 0) <= 0) {
+                mostrarMensaje('Sin usos disponibles');
+                return;
+            }
+            // Toggle: si vuelves a tocar el mismo, se desactiva
+            if (boosterActivo === tipo) {
+                desactivarBooster();
+                return;
+            }
+
+            boosterActivo = tipo;
+            seleccionBooster = null;
+            document.querySelectorAll('.btn.booster').forEach(b => b.classList.remove('activo'));
+            if (tipo === BOOSTERS.CUPIDO) document.getElementById('btnBoosterCupido')?.classList.add('activo');
+            if (tipo === BOOSTERS.MANO) document.getElementById('btnBoosterMano')?.classList.add('activo');
+            if (tipo === BOOSTERS.BOMBON) document.getElementById('btnBoosterBombon')?.classList.add('activo');
+            actualizarUIBoosters();
+        }
+
+        function desactivarBooster() {
+            boosterActivo = null;
+            seleccionBooster = null;
+            document.querySelectorAll('.btn.booster').forEach(b => b.classList.remove('activo'));
+            actualizarUIBoosters();
+        }
+
         // Utilidades
+        function marcarParaEliminar(fila, col, score = 100) {
+            const celda = tablero[fila]?.[col];
+            if (!celda || celda.tipo !== 'normal') return;
+
+            if (celda.especial && !celda._pendienteActivar) {
+                celda._pendienteActivar = true;
+
+                if (esRayadoH(celda)) {
+                    colaActivaciones.push({ tipo: 'rayado_h', fila, col });
+                } else if (esRayadoV(celda)) {
+                    colaActivaciones.push({ tipo: 'rayado_v', fila, col });
+                } else if (esEnvuelto(celda)) {
+                    if (!celda._uid) celda._uid = UID++;
+                    colaActivaciones.push({ tipo: 'envuelto_primera', fila, col, uid: celda._uid });
+                } else if (esArcoiris(celda)) {
+                    // Arcoíris "tocado" por otro efecto: elige un color presente y límpialo
+                    const colores = new Set();
+                    for (let f = 0; f < FILAS; f++) for (let c = 0; c < COLUMNAS; c++) {
+                        const cc = tablero[f][c];
+                        if (cc && cc.tipo === 'normal' && !cc.especial) colores.add(cc.color);
+                    }
+                    const arr = Array.from(colores);
+                    if (arr.length) colaActivaciones.push({ tipo: 'arcoiris_color', color: elegirAleatorio(arr) });
+                }
+                return;
+            }
+
+            celda._eliminar = true;
+            celda._score = Math.max(celda._score || 0, score);
+        }
+
+        function resolverActivacionesYEliminaciones() {
+            // Ejecutar todas las activaciones pendientes (pueden encolar más)
+            while (colaActivaciones.length > 0) {
+                const act = colaActivaciones.shift();
+
+                if (act.tipo === 'rayado_h') {
+                    crearEfectoDestelloFila(act.fila);
+                    for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(act.fila, c); // 100 por defecto
+                    const celda = tablero[act.fila]?.[act.col];
+                    if (celda) { celda._eliminar = true; celda._score = Math.max(celda._score || 0, 100); }
+                }
+                else if (act.tipo === 'rayado_v') {
+                    crearEfectoDestelloColumna(act.col);
+                    for (let f = 0; f < FILAS; f++) marcarParaEliminar(f, act.col); // 100 por defecto
+                    const celda = tablero[act.fila]?.[act.col];
+                    if (celda) { celda._eliminar = true; celda._score = Math.max(celda._score || 0, 100); }
+                }
+                else if (act.tipo === 'envuelto_primera') {
+                    explosion3x3({ fila: act.fila, col: act.col }, true); // preservar centro
+                    pendientesSegundaExplosion.push({ uid: act.uid });
+                }
+                else if (act.tipo === 'envuelto_segunda') {
+                    let pos = null;
+                    for (let f = 0; f < FILAS; f++) for (let c = 0; c < COLUMNAS; c++) {
+                        const cc = tablero[f][c];
+                        if (cc && cc.tipo === 'normal' && cc.especial && cc._uid === act.uid) pos = { fila: f, col: c };
+                    }
+                    if (pos) {
+                        explosion3x3(pos, false); // ahora sí incluye centro
+                        const celda = tablero[pos.fila]?.[pos.col];
+                        if (celda) { celda._eliminar = true; celda._score = Math.max(celda._score || 0, 100); }
+                    }
+                }
+                else if (act.tipo === 'arcoiris_color') {
+                    // eliminarTodosDelColor ya marcará con 200 si le pasaste el score en marcarParaEliminar
+                    eliminarTodosDelColor(act.color);
+                }
+            }
+
+            // Borrado efectivo y puntos (sumando el _score de cada celda)
+            let total = 0;
+            for (let f = 0; f < FILAS; f++) for (let c = 0; c < COLUMNAS; c++) {
+                const celda = tablero[f][c];
+                if (celda && celda._eliminar) {
+                    crearParticulas(f, c);
+                    total += (celda._score ?? 100); // fallback a 100 si no hay _score
+                    tablero[f][c] = null;
+                }
+            }
+            if (total > 0) puntaje += total;
+
+            // Gravedad + rellenar
+            aplicarGravedad();
+            llenarEspaciosVacios();
+
+            // Segunda explosión de envueltos (ya con caídas)
+            if (pendientesSegundaExplosion.length > 0) {
+                const pendientes = pendientesSegundaExplosion.slice();
+                pendientesSegundaExplosion = [];
+                pendientes.forEach(p => colaActivaciones.push({ tipo: 'envuelto_segunda', uid: p.uid }));
+                resolverActivacionesYEliminaciones(); // ejecuta segunda ronda
+            }
+
+            // Limpieza flags
+            for (let f = 0; f < FILAS; f++) for (let c = 0; c < COLUMNAS; c++) {
+                const celda = tablero[f][c];
+                if (celda) {
+                    delete celda._pendienteActivar;
+                    delete celda._eliminar;
+                    delete celda._score; // <-- importante
+                }
+            }
+        }
+
         function aleatorio(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
@@ -535,6 +856,54 @@
                     mensaje.parentNode.removeChild(mensaje);
                 }
             }, 2000);
+        }
+
+        // Helpers de rayados con orientación
+        function esRayado(celda) {
+            return !!(celda && celda.especial && (
+                celda.especial.startsWith('RAYADO_H_') ||
+                celda.especial.startsWith('RAYADO_V_') ||
+                celda.especial.startsWith('RAYADO_')       // compat: antiguos = horizontales
+            ));
+        }
+        function esRayadoH(celda) {
+            return !!(celda && celda.especial && (
+                celda.especial.startsWith('RAYADO_H_') ||
+                (celda.especial.startsWith('RAYADO_') && !celda.especial.startsWith('RAYADO_V_')) // compat
+            ));
+        }
+        function esRayadoV(celda) {
+            return !!(celda && celda.especial && celda.especial.startsWith('RAYADO_V_'));
+        }
+        function esEnvuelto(celda) {
+            return !!(celda && celda.especial && celda.especial.startsWith('ENVUELTO_'));
+        }
+        function esArcoiris(celda) {
+            return !!(celda && celda.especial === TIPOS_ESPECIALES.ARCOIRIS);
+        }
+
+        function obtenerColorDeEspecial(especial) {
+            if (especial.startsWith('RAYADO_H_')) return especial.replace('RAYADO_H_', '');
+            if (especial.startsWith('RAYADO_V_')) return especial.replace('RAYADO_V_', '');
+            if (especial.startsWith('RAYADO_')) return especial.replace('RAYADO_', ''); // compat
+            if (especial.startsWith('ENVUELTO_')) return especial.replace('ENVUELTO_', '');
+            return null;
+        }
+
+        function abrirModalReiniciar() { document.getElementById('modalReiniciar').hidden = false; }
+        function cerrarModalReiniciar() { document.getElementById('modalReiniciar').hidden = true; }
+
+        function toggleMusica() {
+            try {
+                if (musicaFondo.paused) {
+                    musicaFondo.volume = 0.25;
+                    musicaFondo.play();
+                    document.getElementById('btnAudio').textContent = '🔊 Música';
+                } else {
+                    musicaFondo.pause();
+                    document.getElementById('btnAudio').textContent = '🔇 Música';
+                }
+            } catch (e) { }
         }
 
         // Responsive
@@ -635,8 +1004,31 @@
             lienzo.addEventListener('pointerdown', manejarClick);
             document.getElementById('btnComenzar').addEventListener('click', iniciarJuego);
             document.getElementById('btnContinuar').addEventListener('click', continuarJuego);
-            document.getElementById('btnReiniciar').addEventListener('click', reiniciarNivel);
-            document.getElementById('btnPista').addEventListener('click', mostrarPista);
+
+            // Reiniciar con confirmación (quita si tenías antes el addEventListener directo a reiniciarNivel)
+            document.getElementById('btnReiniciar').addEventListener('click', abrirModalReiniciar);
+            document.getElementById('btnReiniciarConfirmar').addEventListener('click', () => {
+                cerrarModalReiniciar();
+                vidas = Math.max(0, vidas - 1);
+                if (vidas <= 0) {
+                    mostrarSuperposicion('Nivel Fallido', 'Inténtalo de nuevo ♥');
+                    actualizarUI();
+                    return;
+                }
+                crearTablero();
+                puntaje = 0;
+                actualizarUI();
+            });
+            document.getElementById('btnReiniciarCancelar').addEventListener('click', cerrarModalReiniciar);
+
+            // Música
+            document.getElementById('btnAudio').addEventListener('click', toggleMusica);
+
+            // Boosters
+            document.getElementById('btnBoosterCupido').addEventListener('click', () => activarBooster(BOOSTERS.CUPIDO));
+            document.getElementById('btnBoosterMano').addEventListener('click', () => activarBooster(BOOSTERS.MANO));
+            document.getElementById('btnBoosterBombon').addEventListener('click', () => activarBooster(BOOSTERS.BOMBON));
+            actualizarUIBoosters();
         }
 
         function manejarClick(e) {
@@ -654,6 +1046,81 @@
             const celda = tablero[pos.fila][pos.col];
             if (!celda || celda.tipo === 'obstaculo') return;
 
+            // === BOOSTERS ===
+            if (boosterActivo) {
+                // 1) CUPIDO: elimina la celda elegida (activa efecto si es especial)
+                if (boosterActivo === BOOSTERS.CUPIDO) {
+                    if (celda && celda.tipo === 'normal') {
+                        marcarParaEliminar(pos.fila, pos.col, 150);
+                        playBoosterCupid();
+                        resolverActivacionesYEliminaciones();
+                        actualizarUI();
+                        consumirBooster(BOOSTERS.CUPIDO);
+                        setTimeout(() => { procesarMatches(); }, 200);
+                    } else {
+                        mostrarMensaje('Selecciona un corazón válido');
+                    }
+                    return;
+                }
+
+                // 2) MANO: intercambia dos adyacentes sin exigir match
+                if (boosterActivo === BOOSTERS.MANO) {
+                    if (!seleccionBooster) {
+                        if (celda && celda.tipo === 'normal') {
+                            seleccionBooster = pos;
+                            playTone(500, 0.1);
+                        } else {
+                            mostrarMensaje('Selecciona un corazón');
+                        }
+                    } else {
+                        // Si tocas de nuevo el mismo, deselecciona
+                        if (pos.fila === seleccionBooster.fila && pos.col === seleccionBooster.col) {
+                            seleccionBooster = null;
+                            playTone(300, 0.08); // pequeño “click” de cancelación
+                            return;
+                        }
+
+                        if (!sonAdyacentes(seleccionBooster, pos)) {
+                            mostrarMensaje('Deben ser adyacentes');
+                            return;
+                        }
+                        const a = seleccionBooster, b = pos;
+                        const tmp = tablero[a.fila][a.col];
+                        tablero[a.fila][a.col] = tablero[b.fila][b.col];
+                        tablero[b.fila][b.col] = tmp;
+                        playBoosterHand();
+                        consumirBooster(BOOSTERS.MANO);
+                        desactivarBooster();
+                        // no resta movimientos; si quieres que cuente, resta aquí
+                        procesarMatches();
+                    }
+                    return;
+                }
+
+                // 3) BOMBÓN: elige un color tocando un corazón de ese color, limpia todo
+                if (boosterActivo === BOOSTERS.BOMBON) {
+                    let color = null;
+                    if (celda.tipo === 'normal') {
+                        if (celda.especial && celda.especial !== TIPOS_ESPECIALES.ARCOIRIS) {
+                            color = obtenerColorDeEspecial(celda.especial);
+                        } else if (!celda.especial) {
+                            color = celda.color;
+                        }
+                    }
+                    if (!color) {
+                        mostrarMensaje('Toca un corazón de color');
+                        return;
+                    }
+                    eliminarTodosDelColor(color);
+                    playBoosterBombon();
+                    resolverActivacionesYEliminaciones();
+                    actualizarUI();
+                    consumirBooster(BOOSTERS.BOMBON);
+                    return;
+                }
+            }
+
+            // === JUEGO NORMAL ===
             if (!seleccionado) {
                 seleccionado = pos;
                 playTone(440, 0.1);
@@ -682,6 +1149,22 @@
 
             if (celda1.tipo === 'obstaculo' || celda2.tipo === 'obstaculo') return;
 
+            // === CASO ESPECIAL: RAYADO + RAYADO (cruz simple) ===
+            if (esRayado(celda1) && esRayado(celda2)) {
+                const centroFila = Math.floor((pos1.fila + pos2.fila) / 2);
+                const centroCol = Math.floor((pos1.col + pos2.col) / 2);
+                destruirCruzSimple({ fila: centroFila, col: centroCol }); // tu helper de cruz simple
+                movimientos--;
+                actualizarUI();
+                resolverActivacionesYEliminaciones();
+                setTimeout(() => {
+                    aplicarGravedad();
+                    llenarEspaciosVacios();
+                    procesarMatches();
+                }, 300);
+                return;
+            }
+
             // CASO ESPECIAL: CORAZÓN ARCOÍRIS + ARCOÍRIS
             if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS && celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
                 // Eliminar todos los corazones del tablero
@@ -690,6 +1173,7 @@
                 actualizarUI();
                 //mostrarMensaje('¡Doble arcoíris! ¡Tablero limpio!');
                 playTone(880, 0.5);
+                resolverActivacionesYEliminaciones();
 
                 // Aplicar gravedad y llenar espacios
                 setTimeout(() => {
@@ -702,43 +1186,30 @@
 
             // CASO ESPECIAL: CORAZÓN ARCOÍRIS + OTRO
             if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS || celda2.especial === TIPOS_ESPECIALES.ARCOIRIS) {
-                let colorObjetivo;
-                if (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS) {
-                    colorObjetivo = celda2.color || obtenerColorDeEspecial(celda2.especial);
-                } else {
-                    colorObjetivo = celda1.color || obtenerColorDeEspecial(celda1.especial);
+                const arcoiris = (celda1.especial === TIPOS_ESPECIALES.ARCOIRIS) ? celda1 : celda2;
+                const otro = (arcoiris === celda1) ? celda2 : celda1;
+
+                // Si el otro es RAYADO_x -> convertir todos los normales de ese color a rayados y detonar
+                if (otro.especial && otro.especial.startsWith('RAYADO_')) {
+                    const color = obtenerColorDeEspecial(otro.especial);
+                    convertirYExplotarRayados(color);
+                }
+                // Si el otro es ENVUELTO_x -> convertir todos los normales de ese color a envueltos y detonar
+                else if (otro.especial && otro.especial.startsWith('ENVUELTO_')) {
+                    const color = obtenerColorDeEspecial(otro.especial);
+                    convertirYExplotarEnvueltos(color);
+                }
+                // Si el otro es normal -> eliminar todos de ese color
+                else {
+                    const colorObjetivo = otro.color || obtenerColorDeEspecial(otro.especial);
+                    if (colorObjetivo) eliminarTodosDelColor(colorObjetivo);
                 }
 
-                if (colorObjetivo) {
-                    eliminarTodosDelColor(colorObjetivo);
-                    movimientos--;
-                    actualizarUI();
-                    //mostrarMensaje('¡Arcoíris activado!');
-                    playTone(659, 0.3);
-
-                    setTimeout(() => {
-                        aplicarGravedad();
-                        llenarEspaciosVacios();
-                        procesarMatches();
-                    }, 300);
-                }
-                return;
-            }
-
-            // CASO ESPECIAL: RAYADO + RAYADO
-            if ((celda1.especial && celda1.especial.startsWith('RAYADO_')) &&
-                (celda2.especial && celda2.especial.startsWith('RAYADO_'))) {
-                destruirCruzCompleta(pos1);
                 movimientos--;
                 actualizarUI();
-                //mostrarMensaje('¡Doble rayado! ¡Cruz completa!');
-                playTone(740, 0.4);
-
-                setTimeout(() => {
-                    aplicarGravedad();
-                    llenarEspaciosVacios();
-                    procesarMatches();
-                }, 300);
+                resolverActivacionesYEliminaciones();
+                setTimeout(() => { aplicarGravedad(); llenarEspaciosVacios(); procesarMatches(); }, 300);
+                playTone(659, 0.3);
                 return;
             }
 
@@ -750,6 +1221,7 @@
                 actualizarUI();
                 //mostrarMensaje('¡Doble envuelto! ¡Gran explosión!');
                 playTone(880, 0.4);
+                resolverActivacionesYEliminaciones();
 
                 setTimeout(() => {
                     aplicarGravedad();
@@ -760,19 +1232,12 @@
             }
 
             // CASO ESPECIAL: RAYADO + ENVUELTO
-            const esRayadoYEnvuelto =
-                ((celda1.especial && celda1.especial.startsWith('RAYADO_')) &&
-                    (celda2.especial && celda2.especial.startsWith('ENVUELTO_'))) ||
-                ((celda1.especial && celda1.especial.startsWith('ENVUELTO_')) &&
-                    (celda2.especial && celda2.especial.startsWith('RAYADO_')));
-
-            if (esRayadoYEnvuelto) {
+            if ((esRayado(celda1) && esEnvuelto(celda2)) || (esRayado(celda2) && esEnvuelto(celda1))) {
+                suprimirEfectosUnaVez = true;
                 destruirCruzExtendida(pos1, pos2);
                 movimientos--;
                 actualizarUI();
-                //mostrarMensaje('¡Rayado + Envuelto! ¡Cruz extendida!');
-                playTone(659, 0.4);
-
+                resolverActivacionesYEliminaciones();
                 setTimeout(() => {
                     aplicarGravedad();
                     llenarEspaciosVacios();
@@ -797,6 +1262,11 @@
             if (matches1.length >= 3 || matches2.length >= 3) {
                 hayMatch = true;
             }
+
+            // Si el intercambio fue horizontal o vertical (para orientar rayados creados con 4)
+            const fueHorizontal = (pos1.fila === pos2.fila) && (pos1.col !== pos2.col);
+            const fueVertical = (pos1.col === pos2.col) && (pos1.fila !== pos2.fila);
+            ultimaDireccionIntercambio = fueVertical ? 'vertical' : 'horizontal';
 
             if (hayMatch) {
                 movimientos--;
@@ -855,65 +1325,29 @@
             return matchesEspecial.length >= 3 || matchesNormal.length >= 3 || todosLosMatches.length >= 3;
         }
 
-        function obtenerColorDeEspecial(especial) {
-            if (especial.startsWith('RAYADO_')) {
-                return especial.replace('RAYADO_', '');
-            } else if (especial.startsWith('ENVUELTO_')) {
-                return especial.replace('ENVUELTO_', '');
-            }
-            return null;
-        }
-
         function activarEfectoEspecial(pos1, pos2) {
             const celda1 = tablero[pos1.fila][pos1.col];
             const celda2 = tablero[pos2.fila][pos2.col];
 
-            // Determinar cuál es el especial y cuál es el normal
-            let especialPos, normalPos, especial, colorEspecial, colorNormal;
+            let especialPos, normalPos, especial, colorNormal;
 
             if (celda1.especial) {
-                especialPos = pos1;
-                normalPos = pos2;
-                especial = celda1.especial;
-                colorEspecial = obtenerColorDeEspecial(especial);
-                colorNormal = celda2.color;
+                especialPos = pos1; normalPos = pos2; especial = celda1.especial; colorNormal = celda2.color;
             } else {
-                especialPos = pos2;
-                normalPos = pos1;
-                especial = celda2.especial;
-                colorEspecial = obtenerColorDeEspecial(especial);
-                colorNormal = celda1.color;
+                especialPos = pos2; normalPos = pos1; especial = celda2.especial; colorNormal = celda1.color;
             }
 
-            // Verificar que el color coincida para rayados y envueltos
-            if ((especial.startsWith('RAYADO_') || especial.startsWith('ENVUELTO_')) && colorEspecial !== colorNormal) {
-                // Los colores no coinciden, revertir intercambio
-                tablero[normalPos.fila][normalPos.col] = tablero[especialPos.fila][especialPos.col];
-                tablero[especialPos.fila][especialPos.col] = celda1.especial ? celda2 : celda1;
-                playTone(208, 0.3);
-                return false;
-            }
-
-            // Ejecutar efecto según tipo de corazón especial
-            if (especial.startsWith('RAYADO_')) {
-                // Corazón rayado - destruir fila o columna completa
-                const direccion = determinarDireccionRayado(especialPos, normalPos);
-                destruirFilaOColumna(especialPos, direccion);
-                //mostrarMensaje('¡Rayado activado!');
-
+            if (especial.startsWith('RAYADO_V_')) {
+                destruirFilaOColumna(especialPos, 'vertical');
+            } else if (especial.startsWith('RAYADO_')) {
+                destruirFilaOColumna(especialPos, 'horizontal');
             } else if (especial.startsWith('ENVUELTO_')) {
-                // Corazón envuelto - explosión 3x3
                 explosion3x3(especialPos);
-                //mostrarMensaje('¡Envuelto activado!');
-
             } else if (especial === TIPOS_ESPECIALES.ARCOIRIS) {
-                // Corazón arcoíris - eliminar todos del mismo color (puede ser cualquier color)
-                eliminarTodosDelColor(colorNormal);
-                //mostrarMensaje('¡Arcoíris activado!');
+                if (colorNormal) eliminarTodosDelColor(colorNormal);
             }
 
-            // Eliminar el corazón especial después de usarlo
-            tablero[especialPos.fila][especialPos.col] = null;
+            // No borres aquí; el resolvedor lo hará si procede
             return true;
         }
 
@@ -928,71 +1362,35 @@
 
         function destruirFilaOColumna(pos, direccion) {
             if (direccion === 'horizontal') {
-                // Destruir toda la fila
-                for (let col = 0; col < COLUMNAS; col++) {
-                    if (tablero[pos.fila][col] && tablero[pos.fila][col].tipo === 'normal') {
-                        crearEfectoDestelloFila(pos.fila);
-                        crearParticulas(pos.fila, col);
-                        tablero[pos.fila][col] = null;
-                        puntaje += 100;
-                    }
-                }
+                crearEfectoDestelloFila(pos.fila);
+                for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(pos.fila, c);
             } else {
-                // Destruir toda la columna
-                for (let fila = 0; fila < FILAS; fila++) {
-                    if (tablero[fila][pos.col] && tablero[fila][pos.col].tipo === 'normal') {
-                        crearEfectoDestelloColumna(pos.col);
-                        crearParticulas(fila, pos.col);
-                        tablero[fila][pos.col] = null;
-                        puntaje += 100;
-                    }
-                }
+                crearEfectoDestelloColumna(pos.col);
+                for (let f = 0; f < FILAS; f++) marcarParaEliminar(f, pos.col);
             }
         }
 
-        function explosion3x3(pos) {
-            // Destruir área 3x3 alrededor de la posición
-            for (let df = -1; df <= 1; df++) {
-                for (let dc = -1; dc <= 1; dc++) {
-                    const nuevaFila = pos.fila + df;
-                    const nuevaCol = pos.col + dc;
-
-                    if (nuevaFila >= 0 && nuevaFila < FILAS && nuevaCol >= 0 && nuevaCol < COLUMNAS) {
-                        if (tablero[nuevaFila][nuevaCol] && tablero[nuevaFila][nuevaCol].tipo === 'normal') {
-                            crearParticulas(nuevaFila, nuevaCol);
-                            tablero[nuevaFila][nuevaCol] = null;
-                            puntaje += 100;
-                        }
-                    }
+        function explosion3x3(pos, preservarCentro = false) {
+            for (let df = -1; df <= 1; df++) for (let dc = -1; dc <= 1; dc++) {
+                const f = pos.fila + df, c = pos.col + dc;
+                if (f >= 0 && f < FILAS && c >= 0 && c < COLUMNAS) {
+                    if (preservarCentro && df === 0 && dc === 0) continue;
+                    marcarParaEliminar(f, c);
                 }
             }
-            
-            // Crear efecto visual para la explosión 3x3
             crearEfectoDestelloArea(pos.fila, pos.col, 3);
         }
 
         function eliminarTodosDelColor(color) {
-            for (let fila = 0; fila < FILAS; fila++) {
-                for (let col = 0; col < COLUMNAS; col++) {
-                    const celda = tablero[fila][col];
-                    if (celda && celda.tipo === 'normal') {
-                        let colorCelda = celda.color;
-
-                        // Si es especial, obtener su color base
-                        if (celda.especial && celda.especial !== TIPOS_ESPECIALES.ARCOIRIS) {
-                            colorCelda = obtenerColorDeEspecial(celda.especial);
-                        }
-
-                        if (colorCelda === color) {
-                            crearParticulas(fila, col);
-                            tablero[fila][col] = null;
-                            puntaje += 200;
-                        }
-                    }
+            for (let f = 0; f < FILAS; f++) for (let c = 0; c < COLUMNAS; c++) {
+                const celda = tablero[f][c];
+                if (celda && celda.tipo === 'normal') {
+                    let colorCelda = celda.especial && celda.especial !== TIPOS_ESPECIALES.ARCOIRIS
+                        ? obtenerColorDeEspecial(celda.especial)
+                        : celda.color;
+                    if (colorCelda === color) marcarParaEliminar(f, c, 200);
                 }
             }
-            
-            // Crear efecto visual para eliminación de color
             crearEfectoDestelloMultiple();
         }
 
@@ -1068,48 +1466,20 @@
         }
 
         function destruirCruzExtendida(pos1, pos2) {
-            // Determinar el centro de la explosión (punto medio entre las dos posiciones)
-            const centroFila = Math.floor((pos1.fila + pos2.fila) / 2);
-            const centroCol = Math.floor((pos1.col + pos2.col) / 2);
-
-            // Destruir 3 filas (centro, arriba y abajo)
-            for (let df = -1; df <= 1; df++) {
-                const fila = centroFila + df;
-                if (fila >= 0 && fila < FILAS) {
-                    for (let col = 0; col < COLUMNAS; col++) {
-                        if (tablero[fila][col] && tablero[fila][col].tipo === 'normal') {
-                            crearParticulas(fila, col);
-                            tablero[fila][col] = null;
-                            puntaje += 100;
-                        }
-                    }
-                }
-            }
-
-            // Destruir 3 columnas (centro, izquierda y derecha)
-            for (let dc = -1; dc <= 1; dc++) {
-                const col = centroCol + dc;
-                if (col >= 0 && col < COLUMNAS) {
-                    for (let fila = 0; fila < FILAS; fila++) {
-                        // Evitar duplicar la destrucción en el centro
-                        if (fila < centroFila - 1 || fila > centroFila + 1) {
-                            if (tablero[fila][col] && tablero[fila][col].tipo === 'normal') {
-                                crearParticulas(fila, col);
-                                tablero[fila][col] = null;
-                                puntaje += 100;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Crear efecto visual para la cruz extendida
-            crearEfectoDestelloArea(centroFila, centroCol, 5);
-            
-            //mostrarMensaje('¡Combinación especial! ¡Cruz extendida!');
-            playTone(659, 0.3); // Nota musical para efecto especial
+            const cf = Math.floor((pos1.fila + pos2.fila) / 2);
+            const cc = Math.floor((pos1.col + pos2.col) / 2);
+            for (let df = -1; df <= 1; df++) for (let c = 0; c < COLUMNAS; c++) if (cf + df >= 0 && cf + df < FILAS) marcarParaEliminar(cf + df, c);
+            for (let dc = -1; dc <= 1; dc++) for (let f = 0; f < FILAS; f++) if (cc + dc >= 0 && cc + dc < COLUMNAS) marcarParaEliminar(f, cc + dc);
+            crearEfectoDestelloArea(cf, cc, 5);
         }
 
+        function destruirCruzSimple(centro) {
+            for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(centro.fila, c);
+            for (let f = 0; f < FILAS; f++) marcarParaEliminar(f, centro.col);
+            crearEfectoDestelloArea(centro.fila, centro.col, 3);
+        }
+
+        /*
         function destruirCruzCompleta(pos) {
             // Destruir 3 filas (arriba, centro, abajo)
             for (let df = -1; df <= 1; df++) {
@@ -1141,10 +1511,10 @@
                     }
                 }
             }
-            
+
             // Crear efecto visual para la cruz completa
             crearEfectoDestelloArea(pos.fila, pos.col, 5);
-        }
+        }*/
 
         function convertirYExplotarRayados(color) {
             // Primero convertir todos los normales del color en rayados
@@ -1211,23 +1581,10 @@
         function explosion5x5(pos1, pos2) {
             const centroFila = Math.floor((pos1.fila + pos2.fila) / 2);
             const centroCol = Math.floor((pos1.col + pos2.col) / 2);
-
-            for (let df = -2; df <= 2; df++) {
-                for (let dc = -2; dc <= 2; dc++) {
-                    const fila = centroFila + df;
-                    const col = centroCol + dc;
-
-                    if (fila >= 0 && fila < FILAS && col >= 0 && col < COLUMNAS) {
-                        if (tablero[fila][col]) {
-                            crearParticulas(fila, col);
-                            tablero[fila][col] = null;
-                            puntaje += 100;
-                        }
-                    }
-                }
+            for (let df = -2; df <= 2; df++) for (let dc = -2; dc <= 2; dc++) {
+                const f = centroFila + df, c = centroCol + dc;
+                if (f >= 0 && f < FILAS && c >= 0 && c < COLUMNAS) marcarParaEliminar(f, c);
             }
-            
-            // Crear efecto visual para la explosión 5x5
             crearEfectoDestelloArea(centroFila, centroCol, 5);
         }
 
@@ -1331,7 +1688,7 @@
                 for (let col = 0; col < COLUMNAS; col++) {
                     const celda = tablero[fila][col];
                     // Solo buscar matches en corazones normales (sin especial) o que ya existían antes
-                    if (celda && celda.tipo === 'normal' && (!celda.especial || celda.especial === TIPOS_ESPECIALES.ARCOIRIS)) {
+                    if (celda && celda.tipo === 'normal' && celda.especial !== TIPOS_ESPECIALES.ARCOIRIS) {
                         const matches = encontrarMatches(fila, col);
                         matches.forEach(match => {
                             if (!todosLosMatches.some(m => m.fila === match.fila && m.col === match.col)) {
@@ -1352,41 +1709,31 @@
                 let matches = encontrarTodosLosMatches();
 
                 if (matches.length > 0) {
-                    // Verificar si hay corazones especiales en los matches y activar sus efectos
-                    const efectosActivados = activarEfectosEspecialesEnMatches(matches);
-
-                    if (!efectosActivados) {
-                        // Si no se activaron efectos especiales, procesar como match normal
-                        crearEfectosEspeciales(matches);
-
-                        // Eliminar matches y sumar puntos
-                        matches.forEach(match => {
-                            crearParticulas(match.fila, match.col);
-                            tablero[match.fila][match.col] = null;
-                            puntaje += 100;
-                        });
+                    let efectosActivados = false;
+                    if (!suprimirEfectosUnaVez) {
+                        efectosActivados = activarEfectosEspecialesEnMatches(matches);
+                    } else {
+                        suprimirEfectosUnaVez = false;
                     }
 
-                    // Romper obstáculos adyacentes
+                    if (!efectosActivados) {
+                        crearEfectosEspeciales(matches);
+                        matches.forEach(m => marcarParaEliminar(m.fila, m.col));
+                    }
+
                     romperObstaculosAdyacentes(matches);
+                    resolverActivacionesYEliminaciones(); // <--- clave
                     actualizarUI();
 
-                    // Aplicar gravedad
-                    aplicarGravedad();
-                    llenarEspaciosVacios();
-
-                    // Buscar más matches
                     setTimeout(() => {
-                        procesarMatches();
-                        // Limpiar bandera de recién creado después del primer procesamiento
+                        // limpiar "recienCreado" tras primer pase
                         for (let fila = 0; fila < FILAS; fila++) {
                             for (let col = 0; col < COLUMNAS; col++) {
                                 const celda = tablero[fila][col];
-                                if (celda && celda.recienCreado) {
-                                    delete celda.recienCreado;
-                                }
+                                if (celda && celda.recienCreado) delete celda.recienCreado;
                             }
                         }
+                        procesarMatches();
                     }, 300);
                 } else {
                     animando = false;
@@ -1399,50 +1746,23 @@
         function activarEfectosEspecialesEnMatches(matches) {
             let efectosActivados = false;
 
-            // Buscar corazones especiales en los matches
             for (const match of matches) {
                 const celda = tablero[match.fila][match.col];
                 if (celda && celda.especial && !celda.recienCreado) {
 
-                    if (celda.especial.startsWith('RAYADO_')) {
-                        // Eliminar toda la fila
-                        for (let col = 0; col < COLUMNAS; col++) {
-                            if (tablero[match.fila][col]) {
-                                crearParticulas(match.fila, col);
-                                tablero[match.fila][col] = null;
-                                puntaje += 100;
-                            }
-                        }
-                        efectosActivados = true;
-                        //mostrarMensaje('¡Rayado activado! ¡Fila eliminada!');
-                        playTone(659, 0.3);
-
+                    if (esRayadoH(celda)) {
+                        for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(match.fila, c);
+                        efectosActivados = true; playTone(659, 0.3);
+                    } else if (esRayadoV(celda)) {
+                        for (let f = 0; f < FILAS; f++) marcarParaEliminar(f, match.col);
+                        efectosActivados = true; playTone(659, 0.3);
                     } else if (celda.especial.startsWith('ENVUELTO_')) {
-                        // Explosión 3x3
-                        for (let df = -1; df <= 1; df++) {
-                            for (let dc = -1; dc <= 1; dc++) {
-                                const nuevaFila = match.fila + df;
-                                const nuevaCol = match.col + dc;
-
-                                if (nuevaFila >= 0 && nuevaFila < FILAS &&
-                                    nuevaCol >= 0 && nuevaCol < COLUMNAS &&
-                                    tablero[nuevaFila][nuevaCol]) {
-                                    crearParticulas(nuevaFila, nuevaCol);
-                                    tablero[nuevaFila][nuevaCol] = null;
-                                    puntaje += 100;
-                                }
-                            }
-                        }
-                        efectosActivados = true;
-                        //mostrarMensaje('¡Envuelto activado! ¡Explosión 3x3!');
-                        playTone(740, 0.3);
+                        explosion3x3({ fila: match.fila, col: match.col });
+                        efectosActivados = true; playTone(740, 0.3);
                     }
-
-                    // Si se activó un efecto, salir del bucle
                     if (efectosActivados) break;
                 }
             }
-
             return efectosActivados;
         }
 
@@ -1458,20 +1778,19 @@
 
             grupos.forEach(grupo => {
                 if (grupo.length === 4) {
-                    // Crear corazón rayado del color correspondiente
                     const pos = grupo[Math.floor(grupo.length / 2)];
                     const color = tablero[pos.fila][pos.col].color;
+                    const orient = (ultimaDireccionIntercambio === 'vertical') ? 'V' : 'H';
                     setTimeout(() => {
                         if (tablero[pos.fila][pos.col]) {
                             tablero[pos.fila][pos.col] = {
                                 tipo: 'normal',
-                                color: color,
-                                especial: `RAYADO_${color}`,
-                                recienCreado: true // Marcar como recién creado
+                                color,
+                                especial: `RAYADO_${orient}_${color}`,
+                                recienCreado: true
                             };
                         }
                     }, 250);
-                    //mostrarMensaje('Corazon Rayado!');
                 } else if (grupo.length === 5) {
                     // Crear corazón arcoíris
                     const pos = grupo[Math.floor(grupo.length / 2)];
@@ -1633,6 +1952,7 @@
             });
         }
 
+        /*
         // Activaciones especiales
         function activarArcoiris(colorObjetivo) {
             for (let fila = 0; fila < FILAS; fila++) {
@@ -1684,21 +2004,10 @@
                     }
                 }
             }
-        }
+        }*/
 
         function limpiarTableroCompleto() {
-            for (let fila = 0; fila < FILAS; fila++) {
-                for (let col = 0; col < COLUMNAS; col++) {
-                    const celda = tablero[fila][col];
-                    if (celda && celda.tipo === 'normal') {
-                        crearParticulas(fila, col);
-                        tablero[fila][col] = null;
-                        puntaje += 300;
-                    }
-                }
-            }
-            
-            // Crear efecto visual para limpieza completa
+            for (let f = 0; f < FILAS; f++) for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(f, c, 300);
             crearEfectoDestelloMultiple();
         }
 
@@ -1767,7 +2076,7 @@
             const y = MARGEN_Y + fila * TAMAÑO_CELDA;
             const ancho = COLUMNAS * TAMAÑO_CELDA;
             const alto = TAMAÑO_CELDA;
-            
+
             crearEfectoDestello(x, y, ancho, alto);
         }
 
@@ -1776,7 +2085,7 @@
             const y = MARGEN_Y;
             const ancho = TAMAÑO_CELDA;
             const alto = FILAS * TAMAÑO_CELDA;
-            
+
             crearEfectoDestello(x, y, ancho, alto);
         }
 
@@ -1786,7 +2095,7 @@
             const y = MARGEN_Y + (fila - radio) * TAMAÑO_CELDA;
             const ancho = tamaño * TAMAÑO_CELDA;
             const alto = tamaño * TAMAÑO_CELDA;
-            
+
             crearEfectoDestello(x, y, ancho, alto);
         }
 
@@ -1796,22 +2105,22 @@
             const y = MARGEN_Y;
             const ancho = COLUMNAS * TAMAÑO_CELDA;
             const alto = FILAS * TAMAÑO_CELDA;
-            
+
             crearEfectoDestello(x, y, ancho, alto);
         }
 
         function crearEfectoDestello(x, y, ancho, alto) {
             const destello = document.createElement('div');
             destello.className = 'efecto-destello';
-            
+
             // Posicionar y dimensionar el destello
             destello.style.left = `${desplazamientoX + x * escala}px`;
             destello.style.top = `${desplazamientoY + y * escala}px`;
             destello.style.width = `${ancho * escala}px`;
             destello.style.height = `${alto * escala}px`;
-            
+
             document.getElementById('contenedor').appendChild(destello);
-            
+
             // Eliminar el elemento después de la animación
             setTimeout(() => {
                 if (destello.parentNode) {
@@ -1882,9 +2191,14 @@
             pantallaInicio.hidden = true;
             juegoIniciado = true;
             setupAudio();
+            // arrancar música
+            musicaFondo.volume = 0.25;
+            musicaFondo.play().catch(() => { /* ignorar bloqueo si ocurre */ });
+            document.getElementById('btnAudio').textContent = '🔊 Música';
             crearTablero();
             actualizarUI();
             buclePrincipal();
+            resetBoostersNuevaPartida();
         }
 
         function continuarJuego() {
@@ -1895,6 +2209,7 @@
                 vidas = 5;
                 nivel = 1;
                 puntaje = 0;
+                resetBoostersNuevaPartida();
                 crearTablero();
             } else {
                 const config = NIVELES_CONFIG[nivel - 1];
@@ -1920,6 +2235,7 @@
                         vidas = 5;
                         nivel = 1;
                         puntaje = 0;
+                        resetBoostersNuevaPartida();
                         crearTablero();
                     }
                 } else {
@@ -1938,10 +2254,6 @@
             actualizarUI();
         }
 
-        function mostrarPista() {
-            mostrarMensaje('Busca matches largos para crear especiales!');
-        }
-
         // Renderizado
         function dibujarCelda(fila, col, x, y) {
             const celda = tablero[fila][col];
@@ -1954,9 +2266,14 @@
                 // Dibujar imagen según el tipo de corazón
                 let imagen;
 
-                if (celda.especial && celda.especial.startsWith('RAYADO_')) {
-                    const colorEspecial = celda.especial.replace('RAYADO_', '');
-                    imagen = imagenesCargadas[`RAYADO_${colorEspecial}`];
+                if (celda.especial && (celda.especial.startsWith('RAYADO_H_') || celda.especial.startsWith('RAYADO_V_') || celda.especial.startsWith('RAYADO_'))) {
+                    const colorEspecial = obtenerColorDeEspecial(celda.especial);
+                    if (esRayadoV(celda)) {
+                        imagen = imagenesCargadas[`RAYADO_V_${colorEspecial}`];
+                    } else {
+                        // Horizontal por defecto (+ compat con RAYADO_COLOR)
+                        imagen = imagenesCargadas[`RAYADO_H_${colorEspecial}`] || imagenesCargadas[`RAYADO_${colorEspecial}`];
+                    }
                 } else if (celda.especial && celda.especial.startsWith('ENVUELTO_')) {
                     const colorEspecial = celda.especial.replace('ENVUELTO_', '');
                     imagen = imagenesCargadas[`ENVUELTO_${colorEspecial}`];
@@ -2029,8 +2346,17 @@
             }
 
             // Resaltar selección
-            if (seleccionado && seleccionado.fila === fila && seleccionado.col === col) {
-                contexto.strokeStyle = '#ff6b9d';
+            const isNormalSelected =
+                seleccionado && seleccionado.fila === fila && seleccionado.col === col;
+
+            const isHandSelected =
+                boosterActivo === BOOSTERS.MANO &&
+                seleccionBooster &&
+                seleccionBooster.fila === fila &&
+                seleccionBooster.col === col;
+
+            if (isNormalSelected || isHandSelected) {
+                contexto.strokeStyle = '#ff6b9d'; // mismo estilo que la selección normal
                 contexto.lineWidth = 3;
                 contexto.strokeRect(x + 2, y + 2, TAMAÑO_CELDA - 4, TAMAÑO_CELDA - 4);
             }
@@ -2095,7 +2421,13 @@
             configurarEventos();
             cargarImagenes();
             actualizarUI();
+            aplicarIconosBoosters();
+            actualizarUIBoosters();
         }
+
+        document.getElementById('btnSalir')?.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', inicializar);

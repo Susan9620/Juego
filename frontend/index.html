@@ -281,7 +281,7 @@
 
             <!-- BARRA USUARIO: estado + botones -->
             <div id="barraUsuario" class="barra-usuario">
-                <span id="estadoUsuario" class="estado-usuario">Invitada</span>
+                <span id="estadoUsuario" class="estado-usuario">Invitado</span>
                 <button id="btnAbrirLogin" class="cta cta--sm" type="button">Iniciar sesión</button>
                 <button id="btnLogout" class="cta cta--sm" type="button" hidden>Cerrar sesión</button>
             </div>
@@ -368,7 +368,7 @@
     <div id="modalConfirmLogout" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
         <div class="modal-card" role="document">
             <h2>¿Cerrar sesión?</h2>
-            <p class="auth-msg">Se cerrará tu sesión y volverás al estado de invitada.</p>
+            <p class="auth-msg">Se cerrará tu sesión y volverás al estado de invitado.</p>
 
             <div class="btn-row">
                 <button id="btnConfirmLogout" class="cta" type="button">Sí, cerrar sesión</button>
@@ -459,7 +459,7 @@
 
             try {
                 await authFetch('register', { username: u, password: p });
-                msg.textContent = '✅ Registrada. Ahora inicia sesión.';
+                msg.textContent = '✅ Registrado. Ahora inicia sesión.';
             } catch (e) {
                 msg.textContent = `❌ ${e.message}`;
             }
@@ -505,7 +505,7 @@
             localStorage.removeItem('username');
 
             // actualiza UI del MENÚ
-            if (estadoUsuario) estadoUsuario.textContent = 'Invitada';
+            if (estadoUsuario) estadoUsuario.textContent = 'Invitado';
             if (btnAbrirLogin) btnAbrirLogin.hidden = false;
             if (btnLogoutMenu) btnLogoutMenu.hidden = true;
 
