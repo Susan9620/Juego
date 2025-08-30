@@ -89,7 +89,7 @@ app.post('/api/runs', async (req, res) => {
             // Global = máximo de los dos por juego 
             const maxPerGame = Math.max(
                 player.bestScoreSnake ?? 0,
-                player.bestScoreDisparando ?? 0
+                player.bestScoreDisparando ?? 0,
                 player.bestScoreCrush ?? 0
             );
             if (maxPerGame > (player.bestScore ?? 0)) player.bestScore = maxPerGame;
