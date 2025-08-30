@@ -7,30 +7,10 @@ const Player = require('./models/Player');
 const Run = require('./models/run');
 
 const app = express();
-const raw = process.env.CORS_ORIGIN || '';
-const allow = raw
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);            // quita vacíos
-
-if (allow.length === 0) allow.push('*');  // fallback seguro
+const allow = process.env.CORS_ORIGIN?.split(',').map(s => s.trim()) ?? ['*'];
 console.log('CORS allow list:', allow);
-
-app.use(cors({
-    origin(origin, cb) {
-        // Permite herramientas sin Origin (curl/Postman)
-        if (!origin) return cb(null, true);
-        if (allow.includes('*') || allow.includes(origin)) return cb(null, true);
-        return cb(null, false); // origen no permitido → sin ACAO
-    },
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 204,
-    maxAge: 600
-}));
-
-// Responder preflights en cualquier ruta
-app.options('*', cors());
+app.use(cors({ origin: allow }));
+app.options('*', cors({ origin: allow }));
 app.use(express.json());
 
 const { MONGODB_URI, PORT = 3000 } = process.env;
