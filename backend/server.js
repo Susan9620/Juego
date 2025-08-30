@@ -7,8 +7,22 @@ const Player = require('./models/Player');
 const Run = require('./models/run');
 
 const app = express();
-const allow = process.env.CORS_ORIGIN?.split(',').map(s => s.trim()) ?? ['*'];
-app.use(cors({ origin: allow }));
+app.use((req, res, next) => {
+    res.header('Vary', 'Origin'); // para caches/CDN
+    next();
+});
+
+app.use(cors({
+    origin: true, // refleja el Origin del request (permite tus frontends)
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    optionsSuccessStatus: 204
+}));
+
+// Respuesta explícita a preflight
+app.options('*', cors());
+
 app.use(express.json());
 
 const { MONGODB_URI, PORT = 3000 } = process.env;
@@ -157,7 +171,16 @@ app.get('/api/leaderboard', async (req, res) => {
 app.get('/api/player/:playerId', async (req, res) => {
     try {
         const player = await Player.findOne({ playerId: req.params.playerId })
-            .select({ _id: 0, playerId: 1, name: 1, bestScore: 1, bestScoreSnake: 1, bestScoreDisparando: 1, bestTime: 1, lastLevel: 1, updatedAt: 1 });
+            .select({
+                _id: 0,
+                playerId: 1, name: 1,
+                bestScore: 1, bestScoreSnake: 1,
+                bestScoreDisparando: 1,
+                bestScoreCrush: 1,
+                bestTime: 1,
+                lastLevel: 1,
+                updatedAt: 1
+            });
         if (!player) return res.status(404).json({ error: 'No encontrado' });
         res.json({ ok: true, player });
     } catch (e) {
