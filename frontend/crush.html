@@ -643,6 +643,7 @@
         let ultimaDireccionIntercambio = null;
         let boosterActivo = null;
         let seleccionBooster = null;
+        let ultimaJugada = null;
 
         let boosterRestantes = {
             [BOOSTERS.CUPIDO]: 1,
@@ -1027,27 +1028,49 @@
             for (let fila = 0; fila < FILAS; fila++) {
                 tablero[fila] = [];
                 for (let col = 0; col < COLUMNAS; col++) {
-                    // Agregar obstáculos según configuración del nivel
-                    if (config.obstaculos.includes('piedra') && Math.random() < 0.1) {
-                        tablero[fila][col] = { tipo: 'obstaculo', elemento: ELEMENTOS.PIEDRA };
-                    } else if (config.obstaculos.includes('nube') && Math.random() < 0.08) {
-                        tablero[fila][col] = { tipo: 'obstaculo', elemento: ELEMENTOS.NUBE };
-                    } else if (config.objetivo === 'besos' && fila === 0 && Math.random() < 0.3) {
-                        tablero[fila][col] = { tipo: 'objetivo', elemento: ELEMENTOS.BESO };
-                    } else if (config.objetivo === 'osos' && Math.random() < 0.15) {
-                        tablero[fila][col] = { tipo: 'objetivo', elemento: ELEMENTOS.OSO, pareja: aleatorio(1, 3) };
-                    } else {
-                        let corazon;
-                        do {
-                            corazon = elegirAleatorio(CORAZONES_BASICOS);
-                        } while (verificarMatchInicial(fila, col, corazon));
+                    const filaSuperiorBesos = (config.objetivo === 'besos' && fila === 0);
 
-                        tablero[fila][col] = { tipo: 'normal', color: corazon };
+                    // Obstáculos (no en la fila superior cuando hay besos)
+                    if (!filaSuperiorBesos) {
+                        if (config.obstaculos.includes('piedra') && Math.random() < 0.1) {
+                            tablero[fila][col] = { tipo: 'obstaculo', elemento: ELEMENTOS.PIEDRA };
+                            continue;
+                        } else if (config.obstaculos.includes('nube') && Math.random() < 0.08) {
+                            tablero[fila][col] = { tipo: 'obstaculo', elemento: ELEMENTOS.NUBE, vida: 2 };
+                            continue;
+                        }
                     }
+
+                    // Osos solo en niveles de osos
+                    if (config.objetivo === 'osos' && Math.random() < 0.15) {
+                        tablero[fila][col] = { tipo: 'objetivo', elemento: ELEMENTOS.OSO, pareja: aleatorio(1, 3) };
+                        continue;
+                    }
+
+                    // Relleno normal evitando matches iniciales
+                    let corazon;
+                    do {
+                        corazon = elegirAleatorio(CORAZONES_BASICOS);
+                    } while (verificarMatchInicial(fila, col, corazon));
+                    tablero[fila][col] = { tipo: 'normal', color: corazon };
                 }
             }
 
-            // Configurar objetivos y movimientos para el nivel
+            // Colocar besos controlados en la fila superior
+            if (config.objetivo === 'besos') {
+                const cuantos = Math.min(config.valor, COLUMNAS);
+                const columnas = Array.from({ length: COLUMNAS }, (_, i) => i);
+                for (let i = columnas.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [columnas[i], columnas[j]] = [columnas[j], columnas[i]];
+                }
+                for (let i = 0; i < cuantos; i++) {
+                    const c = columnas[i];
+                    tablero[0][c] = { tipo: 'objetivo', elemento: ELEMENTOS.BESO };
+                }
+            }
+
+            // Config de nivel
             objetivo = config.objetivo;
             objetivoValor = config.valor;
             movimientos = config.movimientos;
@@ -1133,12 +1156,8 @@
             document.getElementById('btnReiniciar').addEventListener('click', abrirModalReiniciar);
             document.getElementById('btnReiniciarConfirmar').addEventListener('click', () => {
                 cerrarModalReiniciar();
+                // Gasta 1 vida, pero NO dispares Game Over aquí
                 vidas = Math.max(0, vidas - 1);
-                if (vidas <= 0) {
-                    mostrarSuperposicion('Nivel Fallido', 'Inténtalo de nuevo ♥');
-                    actualizarUI();
-                    return;
-                }
                 crearTablero();
                 puntaje = 0;
                 actualizarUI();
@@ -1268,6 +1287,8 @@
         }
 
         function intentarIntercambio(pos1, pos2) {
+            // Recordar última jugada (copias planas)
+            ultimaJugada = { a: { fila: pos1.fila, col: pos1.col }, b: { fila: pos2.fila, col: pos2.col } };
             const celda1 = tablero[pos1.fila][pos1.col];
             const celda2 = tablero[pos2.fila][pos2.col];
 
@@ -1902,15 +1923,29 @@
 
             grupos.forEach(grupo => {
                 if (grupo.length === 4) {
-                    const pos = grupo[Math.floor(grupo.length / 2)];
-                    const color = tablero[pos.fila][pos.col].color;
                     const orient = (ultimaDireccionIntercambio === 'vertical') ? 'V' : 'H';
+
+                    // elige la celda del intercambio si pertenece al grupo (prioriza la "b")
+                    const pertenece = (p) => p && grupo.some(g => g.fila === p.fila && g.col === p.col);
+                    let pos = null;
+                    if (ultimaJugada && (pertenece(ultimaJugada.b) || pertenece(ultimaJugada.a))) {
+                        pos = pertenece(ultimaJugada.b) ? ultimaJugada.b : ultimaJugada.a;
+                    } else {
+                        // fallback: centro del grupo
+                        pos = grupo[Math.floor(grupo.length / 2)];
+                    }
+
+                    const base = tablero[pos.fila][pos.col];
+                    const colorBase = (base.especial && base.especial !== TIPOS_ESPECIALES.ARCOIRIS)
+                        ? obtenerColorDeEspecial(base.especial)
+                        : base.color;
+
                     setTimeout(() => {
                         if (tablero[pos.fila][pos.col]) {
                             tablero[pos.fila][pos.col] = {
                                 tipo: 'normal',
-                                color,
-                                especial: `RAYADO_${orient}_${color}`,
+                                color: colorBase,
+                                especial: `RAYADO_${orient}_${colorBase}`,
                                 recienCreado: true
                             };
                         }
@@ -2011,10 +2046,19 @@
 
                     if (nuevaFila >= 0 && nuevaFila < FILAS && nuevaCol >= 0 && nuevaCol < COLUMNAS) {
                         const celda = tablero[nuevaFila][nuevaCol];
-                        if (celda && celda.tipo === 'obstaculo' && celda.elemento === ELEMENTOS.PIEDRA) {
-                            // Romper piedra
-                            tablero[nuevaFila][nuevaCol] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
-                            crearParticulas(nuevaFila, nuevaCol);
+
+                        if (celda && celda.tipo === 'obstaculo') {
+                            if (celda.elemento === ELEMENTOS.PIEDRA) {
+                                tablero[nuevaFila][nuevaCol] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
+                                crearParticulas(nuevaFila, nuevaCol);
+                            } else if (celda.elemento === ELEMENTOS.NUBE) {
+                                celda.vida = Math.max(1, (celda.vida || 2)); // default 2
+                                celda.vida -= 1;
+                                if (celda.vida <= 0) {
+                                    tablero[nuevaFila][nuevaCol] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
+                                    crearParticulas(nuevaFila, nuevaCol);
+                                } // si queda en 1, la render la mostramos translúcida
+                            }
                         }
                     }
                 });
@@ -2032,6 +2076,7 @@
                         besosEntregados++;
                         tablero[FILAS - 1][col] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
                         mostrarMensaje(`Beso entregado! ${besosEntregados}/${config.valor}`);
+                        actualizarUI();
                     }
                 }
             } else if (config.objetivo === 'osos') {
@@ -2041,6 +2086,7 @@
                         const celda = tablero[fila][col];
                         if (celda && celda.tipo === 'objetivo' && celda.elemento === ELEMENTOS.OSO) {
                             verificarEmparejamientoOsos(fila, col, celda.pareja);
+                            actualizarUI();
                         }
                     }
                 }
@@ -2291,7 +2337,7 @@
                 });
                 mostrarSuperposicion('Nivel Completado!', '¡Impresionante!');
             } else if (movimientos <= 0) {
-                vidas--;
+                vidas = Math.max(0, vidas - 1);
                 mostrarSuperposicion('Nivel Fallido', 'Inténtalo de nuevo ♥');
             }
         }
@@ -2458,12 +2504,23 @@
                         contexto.fillRect(x + 5, y + 5, TAMAÑO_CELDA - 10, TAMAÑO_CELDA - 10);
                     }
                 } else if (celda.elemento === ELEMENTOS.NUBE) {
+                    const vida = celda.vida ?? 2;
+                    contexto.save();
+                    contexto.globalAlpha = (vida === 1) ? 0.45 : 1; // translúcida si le queda 1
+
                     if (imagenesCargadas.NUBE) {
                         contexto.drawImage(imagenesCargadas.NUBE, x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
                     } else {
-                        contexto.fillStyle = 'rgba(128, 128, 128, 0.7)';
+                        contexto.fillStyle = 'rgba(200,200,200,0.7)';
                         contexto.fillRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
                     }
+
+                    if (vida === 1) {
+                        contexto.strokeStyle = 'rgba(255,255,255,0.6)';
+                        contexto.lineWidth = 2;
+                        contexto.strokeRect(x + 2, y + 2, TAMAÑO_CELDA - 4, TAMAÑO_CELDA - 4);
+                    }
+                    contexto.restore();
                 }
             } else if (celda.tipo === 'objetivo') {
                 if (celda.elemento === ELEMENTOS.BESO) {
