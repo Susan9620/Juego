@@ -944,6 +944,36 @@
             }, 2000);
         }
 
+        function contarBesosEnTablero() {
+            let n = 0;
+            for (let f = 0; f < FILAS; f++)
+                for (let c = 0; c < COLUMNAS; c++)
+                    if (tablero[f][c]?.tipo === 'objetivo' && tablero[f][c].elemento === ELEMENTOS.BESO) n++;
+            return n;
+        }
+
+        function colocarBesoEnFilaSuperior() {
+            // elige una columna superior válida (que no sea obstáculo ni especial)
+            const cols = [];
+            for (let c = 0; c < COLUMNAS; c++) {
+                const celda = tablero[0][c];
+                if (!celda || celda.tipo === 'normal') cols.push(c);
+            }
+            if (!cols.length) return;
+            const c = cols[Math.floor(Math.random() * cols.length)];
+            tablero[0][c] = { tipo: 'objetivo', elemento: ELEMENTOS.BESO };
+        }
+
+        function asegurarBesoEnJuego() {
+            if (objetivo !== 'besos') return;
+            const pendientes = Math.max(0, objetivoValor - besosEntregados);
+            const enTablero = contarBesosEnTablero();
+            // Garantiza al menos 1 beso activo si aún faltan por entregar
+            if (pendientes > enTablero && pendientes > 0) {
+                colocarBesoEnFilaSuperior();
+            }
+        }
+
         // Helpers de rayados con orientación
         function esRayado(celda) {
             return !!(celda && celda.especial && (
@@ -1074,6 +1104,7 @@
             objetivo = config.objetivo;
             objetivoValor = config.valor;
             movimientos = config.movimientos;
+            asegurarBesoEnJuego();
         }
 
         function verificarMatchInicial(fila, col, corazon) {
@@ -1296,9 +1327,8 @@
 
             // === CASO ESPECIAL: RAYADO + RAYADO (cruz simple) ===
             if (esRayado(celda1) && esRayado(celda2)) {
-                const centroFila = Math.floor((pos1.fila + pos2.fila) / 2);
-                const centroCol = Math.floor((pos1.col + pos2.col) / 2);
-                destruirCruzSimple({ fila: centroFila, col: centroCol }); // tu helper de cruz simple
+                // Anclamos la cruz en la segunda celda tocada (pos2)
+                destruirCruzSimple(pos2);
                 movimientos--;
                 actualizarUI();
                 resolverActivacionesYEliminaciones();
@@ -1359,15 +1389,17 @@
             }
 
             // CASO ESPECIAL: ENVUELTO + ENVUELTO
-            if ((celda1.especial && celda1.especial.startsWith('ENVUELTO_')) &&
-                (celda2.especial && celda2.especial.startsWith('ENVUELTO_'))) {
-                explosion5x5(pos1, pos2);
+            if (esEnvuelto(celda1) && esEnvuelto(celda2)) {
+                const uid1 = UID++, uid2 = UID++;
+                // disparamos la misma mecánica de "primera/segunda" que ya usas
+                colaActivaciones.push({ tipo: 'envuelto_primera', fila: pos1.fila, col: pos1.col, uid: uid1 });
+                colaActivaciones.push({ tipo: 'envuelto_primera', fila: pos2.fila, col: pos2.col, uid: uid2 });
+
                 movimientos--;
                 actualizarUI();
-                //mostrarMensaje('¡Doble envuelto! ¡Gran explosión!');
                 playTone(880, 0.4);
-                resolverActivacionesYEliminaciones();
 
+                resolverActivacionesYEliminaciones();
                 setTimeout(() => {
                     aplicarGravedad();
                     llenarEspaciosVacios();
@@ -1662,30 +1694,46 @@
         }*/
 
         function convertirYExplotarRayados(color) {
-            // Primero convertir todos los normales del color en rayados
-            const posicionesConvertidas = [];
+            const posiciones = [];
+
+            // 1) Convertir a rayados con orientación aleatoria
             for (let fila = 0; fila < FILAS; fila++) {
                 for (let col = 0; col < COLUMNAS; col++) {
                     const celda = tablero[fila][col];
-                    if (celda && celda.tipo === 'normal' && celda.color === color && !celda.especial) {
-                        tablero[fila][col] = {
-                            tipo: 'normal',
-                            color: color,
-                            especial: `RAYADO_${color}`
-                        };
-                        posicionesConvertidas.push({ fila, col });
+                    if (celda && celda.tipo === 'normal' && !celda.especial) {
+                        const baseColor = celda.color;
+                        if (baseColor === color) {
+                            const orient = (Math.random() < 0.5) ? 'H' : 'V';
+                            tablero[fila][col] = {
+                                tipo: 'normal',
+                                color,
+                                especial: `RAYADO_${orient}_${color}`
+                            };
+                            posiciones.push({ fila, col, orient });
+                        }
                     }
                 }
             }
 
-            // Luego explotar todos los rayados de ese color
+            // 2) Activarlos inmediatamente según su orientación
             setTimeout(() => {
-                posicionesConvertidas.forEach(pos => {
-                    destruirFilaOColumna(pos, 'horizontal');
+                posiciones.forEach(({ fila, col, orient }) => {
+                    if (orient === 'H') {
+                        crearEfectoDestelloFila(fila);
+                        for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(fila, c);
+                    } else {
+                        crearEfectoDestelloColumna(col);
+                        for (let f = 0; f < FILAS; f++) marcarParaEliminar(f, col);
+                    }
                 });
-                aplicarGravedad();
-                llenarEspaciosVacios();
-            }, 200);
+
+                resolverActivacionesYEliminaciones();
+                setTimeout(() => {
+                    aplicarGravedad();
+                    llenarEspaciosVacios();
+                    procesarMatches();
+                }, 200);
+            }, 0);
         }
 
         function convertirYExplotarEnvueltos(color) {
@@ -2205,6 +2253,53 @@
                     }
                 }
             }
+            asegurarBesoEnJuego();
+        }
+
+        function activarEspecialesRestantes() {
+            let loops = 0;
+            const MAX_LOOPS = 10;
+
+            while (loops++ < MAX_LOOPS) {
+                let activado = false;
+
+                for (let f = 0; f < FILAS; f++) {
+                    for (let c = 0; c < COLUMNAS; c++) {
+                        const celda = tablero[f][c];
+                        if (!celda || celda.tipo !== 'normal' || !celda.especial) continue;
+
+                        if (esRayadoH(celda)) {
+                            colaActivaciones.push({ tipo: 'rayado_h', fila: f, col: c });
+                            activado = true;
+                        } else if (esRayadoV(celda)) {
+                            colaActivaciones.push({ tipo: 'rayado_v', fila: f, col: c });
+                            activado = true;
+                        } else if (esEnvuelto(celda)) {
+                            const uid = UID++;
+                            colaActivaciones.push({ tipo: 'envuelto_primera', fila: f, col: c, uid });
+                            activado = true;
+                        } else if (esArcoiris(celda)) {
+                            // elige el color más frecuente presente
+                            const conteo = {};
+                            for (let ff = 0; ff < FILAS; ff++)
+                                for (let cc = 0; cc < COLUMNAS; cc++) {
+                                    const x = tablero[ff][cc];
+                                    if (x && x.tipo === 'normal' && !x.especial) {
+                                        conteo[x.color] = (conteo[x.color] || 0) + 1;
+                                    }
+                                }
+                            const color = Object.entries(conteo).sort((a, b) => b[1] - a[1])[0]?.[0];
+                            if (color) {
+                                colaActivaciones.push({ tipo: 'arcoiris_color', color });
+                                activado = true;
+                            }
+                        }
+                    }
+                }
+
+                if (!activado) break;
+                resolverActivacionesYEliminaciones();
+            }
         }
 
         // Sistema de partículas
@@ -2331,7 +2426,10 @@
             }
 
             if (objetivoCompleto) {
-                // ✅ Enviar run al completar nivel
+                activarEspecialesRestantes();   // ← activa y suma puntaje
+                actualizarUI();
+
+                // Enviar run ya con ese extra de puntaje
                 enviarResultadoCrush({
                     score: puntajeAcumulado,
                     time: tiempoSegundos(),
