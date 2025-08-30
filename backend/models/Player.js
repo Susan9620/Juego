@@ -8,7 +8,6 @@ const PlayerSchema = new mongoose.Schema({
   lastLevel: { type: Number, default: 1 },
   bestScoreSnake: { type: Number, default: 0 },
   bestScoreDisparando: { type: Number, default: 0 },
-  bestScoreCrush: { type: Number, default: 0 },
   updatedAt: { type: Date, default: Date.now }
 }, { versionKey: false });
 

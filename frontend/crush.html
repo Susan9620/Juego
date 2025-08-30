@@ -448,35 +448,6 @@
     </audio>
 
     <script>
-        // === Backend API solo para Crush ===
-        const API_BASE = 'https://juego-xexm.onrender.com';
-
-        // ID persistente del jugador
-        let PLAYER_ID = localStorage.getItem('player_id');
-        if (!PLAYER_ID) {
-            PLAYER_ID = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2);
-            localStorage.setItem('player_id', PLAYER_ID);
-        }
-        const USERNAME = localStorage.getItem('username') || '';
-
-        function enviarResultadoCrush({ score, time, level }) {
-            return fetch(`${API_BASE}/api/runs`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    playerId: PLAYER_ID,
-                    name: USERNAME,
-                    score,
-                    time,
-                    level,
-                    game: 'crush'
-                })
-            }).then(r => r.json()).then(data => {
-                if (!data?.ok) throw new Error(data?.error || 'Error enviando run Crush');
-                return data;
-            });
-        }
-
         // === Constantes del juego ===
         const MUNDO_ANCHO = 500;
         const MUNDO_ALTO = 750;
@@ -2285,11 +2256,6 @@
             superposicion.hidden = true;
 
             if (vidas <= 0) {
-                enviarResultadoCrush({
-                    score: puntaje,
-                    time: 0,    // si no llevas cronómetro, deja 0
-                    level: nivel
-                }).catch(err => console.error('Crush run (game over) error:', err));
                 // Game over - reiniciar
                 vidas = 5;
                 nivel = 1;
@@ -2316,11 +2282,6 @@
                         crearTablero();
                     } else {
                         // Juego completado
-                        enviarResultadoCrush({
-                            score: puntaje,
-                            time: 0,
-                            level: nivel
-                        }).catch(err => console.error('Crush run (completado) error:', err));
                         mostrarMensaje('Juego Completado! Felicidades!');
                         vidas = 5;
                         nivel = 1;
