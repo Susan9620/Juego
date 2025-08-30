@@ -7,6 +7,7 @@ const Player = require('./models/Player');
 const Run = require('./models/run');
 
 const app = express();
+
 app.use((req, res, next) => {
     res.header('Vary', 'Origin'); // para caches/CDN
     next();
@@ -21,8 +22,7 @@ app.use(cors({
 }));
 
 // Respuesta explícita a preflight
-app.options('*', cors());
-
+app.options('(.*)', cors());
 app.use(express.json());
 
 const { MONGODB_URI, PORT = 3000 } = process.env;
