@@ -448,6 +448,76 @@
     </audio>
 
     <script>
+        // === Backend API / Auth ===
+        const API_BASE = 'https://juego-xexm.onrender.com';
+
+        var AUTH_TOKEN = localStorage.getItem('auth_token') || null;
+        var USERNAME = localStorage.getItem('username') || '';
+
+        // Redirigir al menú con modal si NO hay sesión
+        if (!AUTH_TOKEN || AUTH_TOKEN === 'null') {
+            localStorage.removeItem('auth_token');
+            const target = encodeURIComponent('crush.html');
+            window.location.href = `index.html?login=1&redir=${target}`;
+        }
+
+        // Identidad del jugador (persistente en el navegador)
+        let PLAYER_ID = localStorage.getItem('player_id');
+        if (!PLAYER_ID) {
+            PLAYER_ID = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2);
+            localStorage.setItem('player_id', PLAYER_ID);
+        }
+        const PLAYER_NAME = localStorage.getItem('player_name') || '';
+
+        // Tiempo y puntaje acumulado (no se reinician al cambiar de nivel)
+        let inicioEpoch = 0;
+        let puntajeAcumulado = 0;
+
+        function tiempoSegundos() {
+            return Math.max(0, Math.round((Date.now() - inicioEpoch) / 1000));
+        }
+
+        // Enviar resultado al backend
+        async function enviarResultadoCrush({ score, time, level }) {
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (AUTH_TOKEN) headers.Authorization = `Bearer ${AUTH_TOKEN}`;
+
+                const payload = {
+                    playerId: PLAYER_ID,
+                    name: USERNAME || PLAYER_NAME,
+                    score: Number(score) || 0,
+                    time: Number(time) || 0,
+                    level: Number(level) || 1,
+                    game: 'crush'
+                };
+
+                const res = await fetch(`${API_BASE}/api/runs`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload)
+                });
+
+                // 401 = no autenticado
+                if (res.status === 401) {
+                    localStorage.removeItem('auth_token');
+                    AUTH_TOKEN = null;
+                    console.warn('Crush: no autenticado, no se guardó el resultado.');
+                    return;
+                }
+
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data?.ok) {
+                    console.warn('Crush: respuesta no OK', data);
+                } else {
+                    console.log('Crush: run guardada', data);
+                }
+            } catch (e) {
+                console.error('Crush: error enviando resultado', e);
+            }
+        }
+
+
         // === Constantes del juego ===
         const MUNDO_ANCHO = 500;
         const MUNDO_ALTO = 750;
@@ -824,7 +894,10 @@
                     tablero[f][c] = null;
                 }
             }
-            if (total > 0) puntaje += total;
+            if (total > 0) {
+                puntaje += total;          // puntaje del nivel (UI)
+                puntajeAcumulado += total; // puntaje acumulado de la run (DB)
+            }
 
             // Gravedad + rellenar
             aplicarGravedad();
@@ -2210,6 +2283,12 @@
             }
 
             if (objetivoCompleto) {
+                // ✅ Enviar run al completar nivel
+                enviarResultadoCrush({
+                    score: puntajeAcumulado,
+                    time: tiempoSegundos(),
+                    level: nivel
+                });
                 mostrarSuperposicion('Nivel Completado!', '¡Impresionante!');
             } else if (movimientos <= 0) {
                 vidas--;
@@ -2241,6 +2320,8 @@
         function iniciarJuego() {
             pantallaInicio.hidden = true;
             juegoIniciado = true;
+            inicioEpoch = Date.now();
+            puntajeAcumulado = 0;
             setupAudio();
             // arrancar música
             musicaFondo.volume = 0.25;
@@ -2255,12 +2336,23 @@
         function continuarJuego() {
             superposicion.hidden = true;
 
+            const _t = tiempoSegundos(); // tiempo al cerrar la superposición
+
             if (vidas <= 0) {
-                // Game over - reiniciar
+                // Guardar run por Game Over
+                enviarResultadoCrush({
+                    score: puntajeAcumulado,
+                    time: _t,
+                    level: nivel
+                });
+
+                // Reiniciar run
                 vidas = 5;
                 nivel = 1;
                 puntaje = 0;
                 resetBoostersNuevaPartida();
+                inicioEpoch = Date.now();
+                puntajeAcumulado = 0;
                 crearTablero();
             } else {
                 const config = NIVELES_CONFIG[nivel - 1];
@@ -2275,10 +2367,16 @@
                 }
 
                 if (objetivoCompleto) {
-                    // Siguiente nivel
+                    // Guardar run al completar nivel
+                    enviarResultadoCrush({
+                        score: puntajeAcumulado,
+                        time: _t,
+                        level: nivel
+                    });
+
                     if (nivel < 10) {
                         nivel++;
-                        puntaje = 0;
+                        puntaje = 0;     // mantienes UI por nivel
                         crearTablero();
                     } else {
                         // Juego completado
@@ -2287,6 +2385,8 @@
                         nivel = 1;
                         puntaje = 0;
                         resetBoostersNuevaPartida();
+                        inicioEpoch = Date.now();
+                        puntajeAcumulado = 0;
                         crearTablero();
                     }
                 } else {

@@ -45,7 +45,7 @@ app.post('/api/runs', async (req, res) => {
         }
 
         // Acepta solo 'snake' o 'disparando' y por defecto 'disparando'
-        const gameNorm = (game === 'snake') ? 'snake' : 'disparando';
+        const gameNorm = (game === 'snake') ? 'snake' : (game === 'crush' ? 'crush' : 'disparando');
 
         // Guarda el histórico
         await Run.create({
@@ -77,6 +77,8 @@ app.post('/api/runs', async (req, res) => {
             // Actualiza por juego
             if (gameNorm === 'snake') {
                 if (nScore > (player.bestScoreSnake ?? 0)) player.bestScoreSnake = nScore;
+            } else if (gameNorm === 'crush') {
+                if (nScore > (player.bestScoreCrush ?? 0)) player.bestScoreCrush = nScore;
             } else {
                 if (nScore > (player.bestScoreDisparando ?? 0)) player.bestScoreDisparando = nScore;
             }
@@ -84,7 +86,8 @@ app.post('/api/runs', async (req, res) => {
             // Global = máximo de los dos por juego 
             const maxPerGame = Math.max(
                 player.bestScoreSnake ?? 0,
-                player.bestScoreDisparando ?? 0
+                player.bestScoreDisparando ?? 0,
+                player.bestScoreCrush ?? 0
             );
             if (maxPerGame > (player.bestScore ?? 0)) player.bestScore = maxPerGame;
             if (player.bestTime === 0 || (nTime > 0 && nTime < player.bestTime)) player.bestTime = nTime;
@@ -107,7 +110,11 @@ app.get('/api/leaderboard', async (req, res) => {
     try {
         const limit = Math.max(1, Math.min(100, parseInt(req.query.limit || '10', 10)));
         const gameParam = (req.query.game || '').toLowerCase();
-        const game = gameParam === 'snake' ? 'snake' : (gameParam === 'disparando' ? 'disparando' : null);
+        const game = gameParam === 'snake'
+            ? 'snake'
+            : (gameParam === 'disparando'
+                ? 'disparando'
+                : (gameParam === 'crush' ? 'crush' : null));
 
         if (!game) {
             // ✅ Comportamiento original (global)
@@ -151,7 +158,18 @@ app.get('/api/leaderboard', async (req, res) => {
 app.get('/api/player/:playerId', async (req, res) => {
     try {
         const player = await Player.findOne({ playerId: req.params.playerId })
-            .select({ _id: 0, playerId: 1, name: 1, bestScore: 1, bestScoreSnake: 1, bestScoreDisparando: 1, bestTime: 1, lastLevel: 1, updatedAt: 1 });
+            .select({
+                _id: 0,
+                playerId: 1,
+                name: 1,
+                bestScore: 1,
+                bestTime: 1,
+                lastLevel: 1,
+                bestScoreSnake: 1,
+                bestScoreDisparando: 1,
+                bestScoreCrush: 1,
+                updatedAt: 1
+            });
         if (!player) return res.status(404).json({ error: 'No encontrado' });
         res.json({ ok: true, player });
     } catch (e) {
