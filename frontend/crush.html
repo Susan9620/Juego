@@ -2289,7 +2289,9 @@
             destello.style.width = `${ancho * escala}px`;
             destello.style.height = `${alto * escala}px`;
 
-            document.getElementById('contenedor').appendChild(destello);
+            const cont = document.getElementById('contenedor');
+            if (!cont) return; // si no existe, salimos (no rompe)
+            cont.appendChild(destello);
 
             // Eliminar el elemento después de la animación
             setTimeout(() => {
@@ -2508,11 +2510,19 @@
                     contexto.save();
                     contexto.globalAlpha = (vida === 1) ? 0.45 : 1; // translúcida si le queda 1
 
+                    const pad = 5; // ← margen consistente con piedras/corazones
                     if (imagenesCargadas.NUBE) {
-                        contexto.drawImage(imagenesCargadas.NUBE, x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
+                        contexto.drawImage(
+                            imagenesCargadas.NUBE,
+                            x + pad, y + pad,
+                            TAMAÑO_CELDA - 2 * pad, TAMAÑO_CELDA - 2 * pad
+                        );
                     } else {
                         contexto.fillStyle = 'rgba(200,200,200,0.7)';
-                        contexto.fillRect(x, y, TAMAÑO_CELDA, TAMAÑO_CELDA);
+                        contexto.fillRect(
+                            x + pad, y + pad,
+                            TAMAÑO_CELDA - 2 * pad, TAMAÑO_CELDA - 2 * pad
+                        );
                     }
 
                     if (vida === 1) {
