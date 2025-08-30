@@ -444,7 +444,6 @@
         const TAMAÑO_CELDA = 60;
         const MARGEN_X = (MUNDO_ANCHO - COLUMNAS * TAMAÑO_CELDA) / 2;
         const MARGEN_Y = 15;
-        const TAP_ASSIST = 16;
 
         // Imágenes de corazones
         const IMAGENES_CORAZONES = {
@@ -1003,6 +1002,11 @@
             const boardTop = desplazamientoY + MARGEN_Y * escala;
             const cellCSS = TAMAÑO_CELDA * escala;
 
+            if (
+                xCSS < boardLeft || xCSS > boardLeft + COLUMNAS * cellCSS ||
+                yCSS < boardTop || yCSS > boardTop + FILAS * cellCSS
+            ) return null;
+
             // Celda base por división simple
             let col = Math.floor((xCSS - boardLeft) / cellCSS);
             let fila = Math.floor((yCSS - boardTop) / cellCSS);
@@ -1068,13 +1072,10 @@
 
             e.preventDefault();
 
-            if (e.pointerId != null && lienzo.setPointerCapture) { try { lienzo.setPointerCapture(e.pointerId); } catch {} }
-
             if (e.pointerId != null && lienzo.setPointerCapture) {
                 try { lienzo.setPointerCapture(e.pointerId); } catch (_) { }
             }
 
-            const rect = lienzo.getBoundingClientRect();
             const pos = obtenerPosicionTablero(e.clientX, e.clientY);
             if (!pos) return;
 
