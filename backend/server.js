@@ -10,7 +10,6 @@ const app = express();
 const allow = process.env.CORS_ORIGIN?.split(',').map(s => s.trim()) ?? ['*'];
 console.log('CORS allow list:', allow);
 app.use(cors({ origin: allow }));
-app.options('*', cors({ origin: allow }));
 app.use(express.json());
 
 const { MONGODB_URI, PORT = 3000 } = process.env;
