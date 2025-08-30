@@ -991,28 +991,45 @@
         }
 
         // Posicionamiento y eventos
-        function obtenerPosicionTablero(x, y) {
-            // coords relativas al tablero
-            const cx = x - MARGEN_X;
-            const cy = y - MARGEN_Y;
+        function obtenerPosicionTablero(clientX, clientY) {
+            const rect = lienzo.getBoundingClientRect();
 
-            const ancho = COLUMNAS * TAMAÑO_CELDA;
-            const alto = FILAS * TAMAÑO_CELDA;
+            // Coordenadas en CSS px dentro del canvas
+            const xCSS = clientX - rect.left;
+            const yCSS = clientY - rect.top;
 
-            // si el toque está muy lejos, ignorar (pero dejamos un margen TAP_ASSIST)
-            if (cx < -TAP_ASSIST || cy < -TAP_ASSIST || cx > ancho + TAP_ASSIST || cy > alto + TAP_ASSIST) {
-                return null;
-            }
+            // Borde superior-izquierdo del tablero en CSS px
+            const boardLeft = desplazamientoX + MARGEN_X * escala;
+            const boardTop = desplazamientoY + MARGEN_Y * escala;
+            const cellCSS = TAMAÑO_CELDA * escala;
 
-            // elegir la celda por centro más cercano en vez de por “floor”
-            let col = Math.round((cx - TAMAÑO_CELDA / 2) / TAMAÑO_CELDA);
-            let fila = Math.round((cy - TAMAÑO_CELDA / 2) / TAMAÑO_CELDA);
+            // Celda base por división simple
+            let col = Math.floor((xCSS - boardLeft) / cellCSS);
+            let fila = Math.floor((yCSS - boardTop) / cellCSS);
 
-            // clamp para no salirnos
+            // Clamp suave (si cae algo fuera, lo llevamos al borde)
             col = Math.max(0, Math.min(COLUMNAS - 1, col));
             fila = Math.max(0, Math.min(FILAS - 1, fila));
 
-            return { fila, col };
+            // SNAP: elige el centro más cercano entre esta celda y sus vecinas N/E/S/O
+            const candidatos = [{ fila, col }];
+            if (col + 1 < COLUMNAS) candidatos.push({ fila, col: col + 1 });
+            if (col - 1 >= 0) candidatos.push({ fila, col: col - 1 });
+            if (fila + 1 < FILAS) candidatos.push({ fila: fila + 1, col });
+            if (fila - 1 >= 0) candidatos.push({ fila: fila - 1, col });
+
+            let mejor = candidatos[0];
+            let mejorD2 = Infinity;
+
+            for (const p of candidatos) {
+                const cx = boardLeft + (p.col + 0.5) * cellCSS;
+                const cy = boardTop + (p.fila + 0.5) * cellCSS;
+                const dx = xCSS - cx, dy = yCSS - cy;
+                const d2 = dx * dx + dy * dy;
+                if (d2 < mejorD2) { mejorD2 = d2; mejor = p; }
+            }
+
+            return mejor;
         }
 
         function configurarEventos() {
@@ -1056,10 +1073,7 @@
             }
 
             const rect = lienzo.getBoundingClientRect();
-            const x = (e.clientX - rect.left - desplazamientoX) / escala;
-            const y = (e.clientY - rect.top - desplazamientoY) / escala;
-
-            const pos = obtenerPosicionTablero(x, y);
+            const pos = obtenerPosicionTablero(e.clientX, e.clientY);
             if (!pos) return;
 
             const celda = tablero[pos.fila][pos.col];
