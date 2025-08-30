@@ -9,20 +9,20 @@ const Run = require('./models/run');
 const app = express();
 
 app.use((req, res, next) => {
-    res.header('Vary', 'Origin'); // para caches/CDN
-    next();
+  res.header('Vary', 'Origin');
+  next();
 });
 
 app.use(cors({
-    origin: true, // refleja el Origin del request (permite tus frontends)
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    optionsSuccessStatus: 204
+  origin: true, // refleja el Origin que llega (no usa .env)
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 204
 }));
 
-// Respuesta explícita a preflight
-app.options('(.*)', cors());
+// Preflight para todas las rutas (nota el slash inicial)
+app.options('/(.*)', cors());
 app.use(express.json());
 
 const { MONGODB_URI, PORT = 3000 } = process.env;
