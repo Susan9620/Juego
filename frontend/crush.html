@@ -444,6 +444,7 @@
         const TAMAÑO_CELDA = 60;
         const MARGEN_X = (MUNDO_ANCHO - COLUMNAS * TAMAÑO_CELDA) / 2;
         const MARGEN_Y = 15;
+        const TAP_ASSIST = 10;
 
         // Imágenes de corazones
         const IMAGENES_CORAZONES = {
@@ -513,9 +514,9 @@
 
         // Configuración de niveles
         const NIVELES_CONFIG = [
-            { nivel: 1, objetivo: 'puntuacion', valor: 35000, movimientos: 25, obstaculos: [] },
-            { nivel: 2, objetivo: 'puntuacion', valor: 60000, movimientos: 25, obstaculos: [] },
-            { nivel: 3, objetivo: 'puntuacion', valor: 100000, movimientos: 25, obstaculos: ['piedra'] },
+            { nivel: 1, objetivo: 'puntuacion', valor: 3500, movimientos: 25, obstaculos: [] },
+            { nivel: 2, objetivo: 'puntuacion', valor: 6000, movimientos: 25, obstaculos: [] },
+            { nivel: 3, objetivo: 'puntuacion', valor: 10000, movimientos: 25, obstaculos: ['piedra'] },
             { nivel: 4, objetivo: 'besos', valor: 3, movimientos: 30, obstaculos: ['piedra'] },
             { nivel: 5, objetivo: 'besos', valor: 5, movimientos: 30, obstaculos: ['nube'] },
             { nivel: 6, objetivo: 'besos', valor: 8, movimientos: 35, obstaculos: ['nube'] },
@@ -550,7 +551,7 @@
         let seleccionado = null;
         let animando = false;
         let objetivo = 'puntuacion';
-        let objetivoValor = 35000;
+        let objetivoValor = 3500;
         let particulas = [];
         let besosEntregados = 0;
         let ososEmparejados = 0;
@@ -991,17 +992,31 @@
 
         // Posicionamiento y eventos
         function obtenerPosicionTablero(x, y) {
-            const col = Math.floor((x - MARGEN_X) / TAMAÑO_CELDA);
-            const fila = Math.floor((y - MARGEN_Y) / TAMAÑO_CELDA);
+            // coords relativas al tablero
+            const cx = x - MARGEN_X;
+            const cy = y - MARGEN_Y;
 
-            if (col >= 0 && col < COLUMNAS && fila >= 0 && fila < FILAS) {
-                return { fila, col };
+            const ancho = COLUMNAS * TAMAÑO_CELDA;
+            const alto = FILAS * TAMAÑO_CELDA;
+
+            // si el toque está muy lejos, ignorar (pero dejamos un margen TAP_ASSIST)
+            if (cx < -TAP_ASSIST || cy < -TAP_ASSIST || cx > ancho + TAP_ASSIST || cy > alto + TAP_ASSIST) {
+                return null;
             }
-            return null;
+
+            // elegir la celda por centro más cercano en vez de por “floor”
+            let col = Math.round((cx - TAMAÑO_CELDA / 2) / TAMAÑO_CELDA);
+            let fila = Math.round((cy - TAMAÑO_CELDA / 2) / TAMAÑO_CELDA);
+
+            // clamp para no salirnos
+            col = Math.max(0, Math.min(COLUMNAS - 1, col));
+            fila = Math.max(0, Math.min(FILAS - 1, fila));
+
+            return { fila, col };
         }
 
         function configurarEventos() {
-            lienzo.addEventListener('pointerdown', manejarClick);
+            lienzo.addEventListener('pointerdown', manejarClick, { passive: false });
             document.getElementById('btnComenzar').addEventListener('click', iniciarJuego);
             document.getElementById('btnContinuar').addEventListener('click', continuarJuego);
 
@@ -1035,6 +1050,10 @@
             if (!juegoIniciado || animando) return;
 
             e.preventDefault();
+
+            if (e.pointerId != null && lienzo.setPointerCapture) {
+                try { lienzo.setPointerCapture(e.pointerId); } catch (_) { }
+            }
 
             const rect = lienzo.getBoundingClientRect();
             const x = (e.clientX - rect.left - desplazamientoX) / escala;
