@@ -53,7 +53,7 @@
         }
 
         .chip {
-            margin-top: 20px;
+            margin-top: 40px;
             background: rgba(0, 0, 0, .35);
             border: 1px solid rgba(255, 255, 255, .15);
             border-radius: 999px;
@@ -358,6 +358,18 @@
         .btn.booster[disabled]::after {
             background: #5b5b6a;
             color: #ddd;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            /* fallback */
+        }
+
+        @supports (height: 100svh) {
+            canvas {
+                height: 100svh;
+            }
         }
     </style>
 </head>
@@ -908,10 +920,13 @@
 
         // Responsive
         function redimensionar() {
-            const cssAncho = window.innerWidth;
-            const cssAlto = window.innerHeight;
+            const rect = lienzo.getBoundingClientRect(); // tamaño CSS real del canvas
+            const cssAncho = rect.width;
+            const cssAlto = rect.height;
+
             dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+            // Ajusta el buffer interno al tamaño CSS real
             lienzo.width = Math.floor(cssAncho * dpr);
             lienzo.height = Math.floor(cssAlto * dpr);
 
