@@ -448,6 +448,50 @@
     </audio>
 
     <script>
+        // === Backend API solo para Crush ===
+        const API_BASE = 'https://juego-xexm.onrender.com';
+
+        const AUTH_TOKEN = localStorage.getItem('auth_token') || null;
+        if (!AUTH_TOKEN || AUTH_TOKEN === 'null') {
+            localStorage.removeItem('auth_token');
+            const target = encodeURIComponent('crush.html');
+            window.location.href = `index.html?login=1&redir=${target}`;
+        }
+
+        // Identidad del jugador persistente
+        let PLAYER_ID = localStorage.getItem('player_id');
+        if (!PLAYER_ID) {
+            PLAYER_ID = (crypto.randomUUID && crypto.randomUUID()) || String(Math.random()).slice(2);
+            localStorage.setItem('player_id', PLAYER_ID);
+        }
+        const USERNAME = localStorage.getItem('username') || '';
+
+        async function enviarResultadoCrush({ score, time, level }) {
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                // Si activas auth arriba, añade:
+                // if (AUTH_TOKEN) headers.Authorization = `Bearer ${AUTH_TOKEN}`;
+
+                const res = await fetch(`${API_BASE}/api/runs`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        playerId: PLAYER_ID,
+                        name: USERNAME,
+                        score,
+                        time,
+                        level,
+                        game: 'crush'
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data?.error || 'Error enviando run Crush');
+                return data;
+            } catch (err) {
+                console.error('Error enviando resultado Crush:', err);
+            }
+        }
+
         // === Constantes del juego ===
         const MUNDO_ANCHO = 500;
         const MUNDO_ALTO = 750;

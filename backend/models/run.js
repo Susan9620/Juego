@@ -6,7 +6,7 @@ const RunSchema = new mongoose.Schema({
   score:    { type: Number, required: true },
   time:     { type: Number, required: true },  // segundos
   level:    { type: Number, required: true },
-  game:     { type: String, enum: ['disparando', 'snake'], default: 'disparando', index: true },
+  game:     { type: String, enum: ['disparando', 'snake', 'crush'], default: 'disparando', index: true },
   createdAt:{ type: Date, default: Date.now, index: true }
 }, { versionKey: false });
 
