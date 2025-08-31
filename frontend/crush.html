@@ -846,6 +846,36 @@
             celda._score = Math.max(celda._score || 0, score);
         }
 
+        function golpearCelda(fila, col, score = 100) {
+            const celda = tablero[fila]?.[col];
+            if (!celda) return;
+
+            if (celda.tipo === 'normal') {
+                // Mantiene la lógica (activa especiales en cola, o marca para eliminar)
+                marcarParaEliminar(fila, col, score);
+                return;
+            }
+
+            if (celda.tipo === 'obstaculo') {
+                if (celda.elemento === ELEMENTOS.PIEDRA) {
+                    tablero[fila][col] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
+                    crearParticulas(fila, col);
+                } else if (celda.elemento === ELEMENTOS.NUBE) {
+                    celda.vida = Math.max(1, (celda.vida || 2));
+                    celda.vida -= 1;
+                    if (celda.vida <= 0) {
+                        tablero[fila][col] = { tipo: 'normal', color: elegirAleatorio(CORAZONES_BASICOS) };
+                        crearParticulas(fila, col);
+                    }
+                    // Si queda en 1, la render ya la dibuja translúcida
+                }
+                return;
+            }
+
+            // No afectamos objetivos (besos/osos), se ignoran para no romper mecánicas
+            // if (celda.tipo === 'objetivo') return;
+        }
+
         function resolverActivacionesYEliminaciones() {
             // Ejecutar todas las activaciones pendientes (pueden encolar más)
             while (colaActivaciones.length > 0) {
@@ -853,13 +883,13 @@
 
                 if (act.tipo === 'rayado_h') {
                     crearEfectoDestelloFila(act.fila);
-                    for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(act.fila, c); // 100 por defecto
+                    for (let c = 0; c < COLUMNAS; c++) golpearCelda(act.fila, c);
                     const celda = tablero[act.fila]?.[act.col];
                     if (celda) { celda._eliminar = true; celda._score = Math.max(celda._score || 0, 100); }
                 }
                 else if (act.tipo === 'rayado_v') {
                     crearEfectoDestelloColumna(act.col);
-                    for (let f = 0; f < FILAS; f++) marcarParaEliminar(f, act.col); // 100 por defecto
+                    for (let f = 0; f < FILAS; f++) golpearCelda(f, act.col);
                     const celda = tablero[act.fila]?.[act.col];
                     if (celda) { celda._eliminar = true; celda._score = Math.max(celda._score || 0, 100); }
                 }
@@ -1540,10 +1570,10 @@
         function destruirFilaOColumna(pos, direccion) {
             if (direccion === 'horizontal') {
                 crearEfectoDestelloFila(pos.fila);
-                for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(pos.fila, c);
+                for (let c = 0; c < COLUMNAS; c++) golpearCelda(pos.fila, c);
             } else {
                 crearEfectoDestelloColumna(pos.col);
-                for (let f = 0; f < FILAS; f++) marcarParaEliminar(f, pos.col);
+                for (let f = 0; f < FILAS; f++) golpearCelda(f, pos.col);
             }
         }
 
@@ -1552,7 +1582,7 @@
                 const f = pos.fila + df, c = pos.col + dc;
                 if (f >= 0 && f < FILAS && c >= 0 && c < COLUMNAS) {
                     if (preservarCentro && df === 0 && dc === 0) continue;
-                    marcarParaEliminar(f, c);
+                    golpearCelda(f, c);
                 }
             }
             crearEfectoDestelloArea(pos.fila, pos.col, 3);
@@ -1645,53 +1675,23 @@
         function destruirCruzExtendida(pos1, pos2) {
             const cf = Math.floor((pos1.fila + pos2.fila) / 2);
             const cc = Math.floor((pos1.col + pos2.col) / 2);
-            for (let df = -1; df <= 1; df++) for (let c = 0; c < COLUMNAS; c++) if (cf + df >= 0 && cf + df < FILAS) marcarParaEliminar(cf + df, c);
-            for (let dc = -1; dc <= 1; dc++) for (let f = 0; f < FILAS; f++) if (cc + dc >= 0 && cc + dc < COLUMNAS) marcarParaEliminar(f, cc + dc);
+
+            for (let df = -1; df <= 1; df++)
+                for (let c = 0; c < COLUMNAS; c++)
+                    if (cf + df >= 0 && cf + df < FILAS) golpearCelda(cf + df, c);
+
+            for (let dc = -1; dc <= 1; dc++)
+                for (let f = 0; f < FILAS; f++)
+                    if (cc + dc >= 0 && cc + dc < COLUMNAS) golpearCelda(f, cc + dc);
+
             crearEfectoDestelloArea(cf, cc, 5);
         }
 
         function destruirCruzSimple(centro) {
-            for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(centro.fila, c);
-            for (let f = 0; f < FILAS; f++) marcarParaEliminar(f, centro.col);
+            for (let c = 0; c < COLUMNAS; c++) golpearCelda(centro.fila, c);
+            for (let f = 0; f < FILAS; f++) golpearCelda(f, centro.col);
             crearEfectoDestelloArea(centro.fila, centro.col, 3);
         }
-
-        /*
-        function destruirCruzCompleta(pos) {
-            // Destruir 3 filas (arriba, centro, abajo)
-            for (let df = -1; df <= 1; df++) {
-                const fila = pos.fila + df;
-                if (fila >= 0 && fila < FILAS) {
-                    for (let col = 0; col < COLUMNAS; col++) {
-                        if (tablero[fila][col]) {
-                            crearParticulas(fila, col);
-                            tablero[fila][col] = null;
-                            puntaje += 100;
-                        }
-                    }
-                }
-            }
-
-            // Destruir 3 columnas (izquierda, centro, derecha)
-            for (let dc = -1; dc <= 1; dc++) {
-                const col = pos.col + dc;
-                if (col >= 0 && col < COLUMNAS) {
-                    for (let fila = 0; fila < FILAS; fila++) {
-                        // Evitar duplicar destrucción en intersecciones ya procesadas
-                        if (fila < pos.fila - 1 || fila > pos.fila + 1) {
-                            if (tablero[fila][col]) {
-                                crearParticulas(fila, col);
-                                tablero[fila][col] = null;
-                                puntaje += 100;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Crear efecto visual para la cruz completa
-            crearEfectoDestelloArea(pos.fila, pos.col, 5);
-        }*/
 
         function convertirYExplotarRayados(color) {
             const posiciones = [];
@@ -1720,19 +1720,15 @@
                 posiciones.forEach(({ fila, col, orient }) => {
                     if (orient === 'H') {
                         crearEfectoDestelloFila(fila);
-                        for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(fila, c);
+                        for (let c = 0; c < COLUMNAS; c++) golpearCelda(fila, c);
                     } else {
                         crearEfectoDestelloColumna(col);
-                        for (let f = 0; f < FILAS; f++) marcarParaEliminar(f, col);
+                        for (let f = 0; f < FILAS; f++) golpearCelda(f, col);
                     }
                 });
 
                 resolverActivacionesYEliminaciones();
-                setTimeout(() => {
-                    aplicarGravedad();
-                    llenarEspaciosVacios();
-                    procesarMatches();
-                }, 200);
+                setTimeout(() => { aplicarGravedad(); llenarEspaciosVacios(); procesarMatches(); }, 200);
             }, 0);
         }
 
@@ -1776,7 +1772,7 @@
             const centroCol = Math.floor((pos1.col + pos2.col) / 2);
             for (let df = -2; df <= 2; df++) for (let dc = -2; dc <= 2; dc++) {
                 const f = centroFila + df, c = centroCol + dc;
-                if (f >= 0 && f < FILAS && c >= 0 && c < COLUMNAS) marcarParaEliminar(f, c);
+                if (f >= 0 && f < FILAS && c >= 0 && c < COLUMNAS) golpearCelda(f, c);
             }
             crearEfectoDestelloArea(centroFila, centroCol, 5);
         }
@@ -1942,12 +1938,11 @@
             for (const match of matches) {
                 const celda = tablero[match.fila][match.col];
                 if (celda && celda.especial && !celda.recienCreado) {
-
                     if (esRayadoH(celda)) {
-                        for (let c = 0; c < COLUMNAS; c++) marcarParaEliminar(match.fila, c);
+                        for (let c = 0; c < COLUMNAS; c++) golpearCelda(match.fila, c);
                         efectosActivados = true; playTone(659, 0.3);
                     } else if (esRayadoV(celda)) {
-                        for (let f = 0; f < FILAS; f++) marcarParaEliminar(f, match.col);
+                        for (let f = 0; f < FILAS; f++) golpearCelda(f, match.col);
                         efectosActivados = true; playTone(659, 0.3);
                     } else if (celda.especial.startsWith('ENVUELTO_')) {
                         explosion3x3({ fila: match.fila, col: match.col });
