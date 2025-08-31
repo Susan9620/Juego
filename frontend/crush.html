@@ -1052,6 +1052,14 @@
             } catch (e) { }
         }
 
+        function reportarResultadoRun() {
+            enviarResultadoCrush({
+                score: puntajeAcumulado,
+                time: tiempoSegundos(),
+                level: nivel
+            });
+        }
+
         // Responsive
         function redimensionar() {
             const rect = lienzo.getBoundingClientRect(); // tamaño CSS real del canvas
@@ -2404,7 +2412,7 @@
                 objetivoTexto = `Osos: ${ososEmparejados}/${config.valor}`;
             }
 
-            IUPuntaje.textContent = `Nivel: ${nivel} • ${objetivoTexto} • Movimientos: ${movimientos}`;
+            IUPuntaje.textContent = `Nivel: ${nivel} • Puntaje: ${puntaje} • ${objetivoTexto} • Movimientos: ${movimientos}`;
             IUVidas.textContent = `Vidas: ${vidas}`;
         }
 
@@ -2421,15 +2429,9 @@
             }
 
             if (objetivoCompleto) {
-                activarEspecialesRestantes();   // ← activa y suma puntaje
+                activarEspecialesRestantes(); // suma el extra al puntaje
                 actualizarUI();
-
-                // Enviar run ya con ese extra de puntaje
-                enviarResultadoCrush({
-                    score: puntajeAcumulado,
-                    time: tiempoSegundos(),
-                    level: nivel
-                });
+                // NO enviar aquí: se reporta al finalizar la run
                 mostrarSuperposicion('Nivel Completado!', '¡Impresionante!');
             } else if (movimientos <= 0) {
                 vidas = Math.max(0, vidas - 1);
@@ -2477,17 +2479,11 @@
         function continuarJuego() {
             superposicion.hidden = true;
 
-            const _t = tiempoSegundos(); // tiempo al cerrar la superposición
-
             if (vidas <= 0) {
-                // Guardar run por Game Over
-                enviarResultadoCrush({
-                    score: puntajeAcumulado,
-                    time: _t,
-                    level: nivel
-                });
+                // Fin de run por Game Over
+                reportarResultadoRun();
 
-                // Reiniciar run
+                // Reset de run
                 vidas = 5;
                 nivel = 1;
                 puntaje = 0;
@@ -2508,19 +2504,15 @@
                 }
 
                 if (objetivoCompleto) {
-                    // Guardar run al completar nivel
-                    enviarResultadoCrush({
-                        score: puntajeAcumulado,
-                        time: _t,
-                        level: nivel
-                    });
-
                     if (nivel < 10) {
+                        // Siguiente nivel: seguimos acumulando
                         nivel++;
-                        puntaje = 0;     // mantienes UI por nivel
+                        puntaje = 0;
                         crearTablero();
                     } else {
-                        // Juego completado
+                        // Fin de run por completar el juego
+                        reportarResultadoRun();
+
                         mostrarMensaje('Juego Completado! Felicidades!');
                         vidas = 5;
                         nivel = 1;
@@ -2531,7 +2523,7 @@
                         crearTablero();
                     }
                 } else {
-                    // Reintentar nivel
+                    // Reintento del mismo nivel (se mantiene el acumulado)
                     crearTablero();
                 }
             }
