@@ -422,6 +422,7 @@
             <h1 id="tituloSuperposicion">💔 Game Over</h1>
             <p class="linea">Nivel: <b id="nivelActual">1</b></p>
             <p class="linea">Puntaje: <b id="puntajeActual">0</b></p>
+            <p class="linea">Puntaje Total: <b id="puntajeAcumuladoTotal">0</b></p>
             <p class="linea">Objetivo: <b id="objetivoTexto">Alcanzar puntuacion</b></p>
             <p class="frase" id="fraseFinal">"¡Inténtalo de nuevo ♥!"</p>
             <button id="btnContinuar" class="cta">Continuar</button>
@@ -436,6 +437,14 @@
                 <button id="btnReiniciarConfirmar" class="cta">Sí, reiniciar</button>
                 <button id="btnReiniciarCancelar" class="pildora">Cancelar</button>
             </div>
+        </div>
+    </div>
+
+    <div id="modalObjetivo" hidden>
+        <div class="panel">
+            <h1>🎉 ¡Objetivo logrado!</h1>
+            <p class="linea">Convirtiendo <b>movimientos restantes</b> en <b>corazones envueltos</b>…</p>
+            <p class="linea">Espera un momento 💝</p>
         </div>
     </div>
 
@@ -454,12 +463,13 @@
         var AUTH_TOKEN = localStorage.getItem('auth_token') || null;
         var USERNAME = localStorage.getItem('username') || '';
 
-        // Redirigir al menú con modal si NO hay sesión
+
+        /*// Redirigir al menú con modal si NO hay sesión
         if (!AUTH_TOKEN || AUTH_TOKEN === 'null') {
             localStorage.removeItem('auth_token');
             const target = encodeURIComponent('crush.html');
             window.location.href = `index.html?login=1&redir=${target}`;
-        }
+        }*/
 
         // Identidad del jugador (persistente en el navegador)
         let PLAYER_ID = localStorage.getItem('player_id');
@@ -517,13 +527,13 @@
             }
         }
 
-
         // === Constantes del juego ===
         const MUNDO_ANCHO = 500;
         const MUNDO_ALTO = 750;
         const FILAS = 12;
         const COLUMNAS = 8;
         const TAMAÑO_CELDA = 60;
+        const OSO_PAD = 5;
         const MARGEN_X = (MUNDO_ANCHO - COLUMNAS * TAMAÑO_CELDA) / 2;
         const MARGEN_Y = 15;
 
@@ -593,18 +603,20 @@
             OSO: 'bear'
         };
 
+        const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
         // Configuración de niveles
         const NIVELES_CONFIG = [
             { nivel: 1, objetivo: 'puntuacion', valor: 3500, movimientos: 25, obstaculos: [] },
             { nivel: 2, objetivo: 'puntuacion', valor: 6000, movimientos: 25, obstaculos: [] },
             { nivel: 3, objetivo: 'puntuacion', valor: 10000, movimientos: 25, obstaculos: ['piedra'] },
-            { nivel: 4, objetivo: 'besos', valor: 3, movimientos: 30, obstaculos: ['piedra'] },
-            { nivel: 5, objetivo: 'besos', valor: 5, movimientos: 45, obstaculos: ['nube'] },
-            { nivel: 6, objetivo: 'besos', valor: 8, movimientos: 70, obstaculos: ['nube'] },
+            { nivel: 4, objetivo: 'besos', valor: 3, movimientos: 40, obstaculos: ['piedra'] },
+            { nivel: 5, objetivo: 'besos', valor: 5, movimientos: 55, obstaculos: ['nube'] },
+            { nivel: 6, objetivo: 'besos', valor: 8, movimientos: 80, obstaculos: ['nube'] },
             { nivel: 7, objetivo: 'osos', valor: 3, movimientos: 50, obstaculos: ['piedra', 'nube'] },
-            { nivel: 8, objetivo: 'osos', valor: 4, movimientos: 80, obstaculos: ['piedra', 'nube'] },
-            { nivel: 9, objetivo: 'osos', valor: 5, movimientos: 100, obstaculos: ['piedra', 'nube'] },
-            { nivel: 10, objetivo: 'osos', valor: 6, movimientos: 125, obstaculos: ['piedra', 'nube'] }
+            { nivel: 8, objetivo: 'osos', valor: 4, movimientos: 60, obstaculos: ['piedra', 'nube'] },
+            { nivel: 9, objetivo: 'osos', valor: 5, movimientos: 70, obstaculos: ['piedra', 'nube'] },
+            { nivel: 10, objetivo: 'osos', valor: 6, movimientos: 80, obstaculos: ['piedra', 'nube'] }
         ];
 
         const BOOSTERS = {
@@ -644,6 +656,7 @@
         let boosterActivo = null;
         let seleccionBooster = null;
         let ultimaJugada = null;
+        let finDeNivelEnProgreso = false;
 
         let boosterRestantes = {
             [BOOSTERS.CUPIDO]: 1,
@@ -788,6 +801,7 @@
         }
 
         function activarBooster(tipo) {
+            if (finDeNivelEnProgreso) return;
             if ((boosterRestantes[tipo] ?? 0) <= 0) {
                 mostrarMensaje('Sin usos disponibles');
                 return;
@@ -926,8 +940,7 @@
                 }
             }
             if (total > 0) {
-                puntaje += total;          // puntaje del nivel (UI)
-                puntajeAcumulado += total; // puntaje acumulado de la run (DB)
+                puntaje += total;
             }
 
             // Gravedad + rellenar
@@ -959,6 +972,102 @@
 
         function elegirAleatorio(arr) {
             return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // ¿Esta pareja produce efecto especial seguro?
+        function esComboEspecialSiempreValido(a, b) {
+            if (!a || !b) return false;
+            if (a.tipo === 'obstaculo' || b.tipo === 'obstaculo') return false;
+            if (a.tipo !== 'normal' || b.tipo !== 'normal') return false;
+
+            // Arcoíris con algo (normal o especial) siempre es jugada válida
+            if (a.especial === TIPOS_ESPECIALES.ARCOIRIS || b.especial === TIPOS_ESPECIALES.ARCOIRIS) return true;
+
+            // Rayado+Rayado, Envuelto+Envuelto, Rayado+Envuelto
+            if ((esRayado(a) && esRayado(b)) || (esEnvuelto(a) && esEnvuelto(b)) || (esRayado(a) && esEnvuelto(b)) || (esEnvuelto(a) && esRayado(b))) {
+                return true;
+            }
+            return false;
+        }
+
+        // ¿Habría match si swapeamos estas dos celdas normales?
+        function hayMatchTrasSwap(pos1, pos2) {
+            const A = tablero[pos1.fila][pos1.col];
+            const B = tablero[pos2.fila][pos2.col];
+            if (!A || !B || A.tipo !== 'normal' || B.tipo !== 'normal') return false;
+
+            // swap temporal
+            tablero[pos1.fila][pos1.col] = B;
+            tablero[pos2.fila][pos2.col] = A;
+
+            let ok = false;
+            if (tablero[pos1.fila][pos1.col]?.tipo === 'normal') {
+                ok = ok || encontrarMatches(pos1.fila, pos1.col).length >= 3;
+            }
+            if (!ok && tablero[pos2.fila][pos2.col]?.tipo === 'normal') {
+                ok = ok || encontrarMatches(pos2.fila, pos2.col).length >= 3;
+            }
+
+            // revertir
+            tablero[pos2.fila][pos2.col] = B;
+            tablero[pos1.fila][pos1.col] = A;
+            return ok;
+        }
+
+        // Escaneo global: ¿existe al menos un movimiento válido?
+        function hayMovimientoPosible() {
+            for (let f = 0; f < FILAS; f++) {
+                for (let c = 0; c < COLUMNAS; c++) {
+                    const a = tablero[f][c];
+                    if (!a || a.tipo === 'obstaculo') continue;
+
+                    // Solo revisamos derecha y abajo para no duplicar pares
+                    const vecinos = [[f, c + 1], [f + 1, c]];
+                    for (const [vf, vc] of vecinos) {
+                        if (vf >= FILAS || vc >= COLUMNAS) continue;
+                        const b = tablero[vf][vc];
+                        if (!b || b.tipo === 'obstaculo') continue;
+
+                        // Cualquier combo especial seguro es válido
+                        if (esComboEspecialSiempreValido(a, b)) return true;
+
+                        // Si no, probamos si un swap normal daría match
+                        if (hayMatchTrasSwap({ fila: f, col: c }, { fila: vf, col: vc })) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Mezclar SOLO las celdas normales (no toca besos/osos/obstáculos)
+        function barajarTableroConservandoEstado(maxIntentos = 40) {
+            const coords = [], piezas = [];
+            for (let f = 0; f < FILAS; f++) {
+                for (let c = 0; c < COLUMNAS; c++) {
+                    const cell = tablero[f][c];
+                    if (cell && cell.tipo === 'normal') {
+                        coords.push({ f, c });
+                        piezas.push(cell);
+                    }
+                }
+            }
+            if (piezas.length < 2) return false;
+
+            let intento = 0;
+            while (intento++ < maxIntentos) {
+                // Fisher–Yates
+                for (let i = piezas.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [piezas[i], piezas[j]] = [piezas[j], piezas[i]];
+                }
+                // Colocar
+                for (let i = 0; i < coords.length; i++) {
+                    const { f, c } = coords[i];
+                    tablero[f][c] = piezas[i];
+                }
+                if (hayMovimientoPosible()) return true;
+            }
+            return false; // muy raro: tablero geométricamente bloqueado por obstáculos
         }
 
         function mostrarMensaje(texto) {
@@ -1002,6 +1111,53 @@
             if (pendientes > enTablero && pendientes > 0) {
                 colocarBesoEnFilaSuperior();
             }
+        }
+
+        function celdaEsNormalConvertible(f, c) {
+            const celda = tablero[f]?.[c];
+            if (!celda) return false;
+            if (celda.tipo !== 'normal') return false;
+            // no convertir arcoíris ni rayados existentes
+            if (celda.especial) return false;
+            return true;
+        }
+
+        function posicionesConvertibles() {
+            const pos = [];
+            for (let f = 0; f < FILAS; f++) {
+                for (let c = 0; c < COLUMNAS; c++) {
+                    if (celdaEsNormalConvertible(f, c)) pos.push({ f, c });
+                }
+            }
+            return pos;
+        }
+
+        // Convierte UNA celda aleatoria en ENVUELTO_<color> (color aleatorio)
+        function convertirUnEnvueltoAleatorio() {
+            const candidatas = posicionesConvertibles();
+            if (!candidatas.length) return false;
+
+            const { f, c } = candidatas[Math.floor(Math.random() * candidatas.length)];
+            const color = elegirAleatorio(CORAZONES_BASICOS);
+            tablero[f][c] = { tipo: 'normal', color, especial: `ENVUELTO_${color}`, recienCreado: true };
+            crearEfectoDestelloArea(f, c, 3);
+            return true;
+        }
+
+        // Encola la detonación simultánea de TODOS los envueltos
+        function detonarTodosLosEnvueltosSimultaneamente() {
+            const lote = [];
+            for (let f = 0; f < FILAS; f++) {
+                for (let c = 0; c < COLUMNAS; c++) {
+                    const celda = tablero[f][c];
+                    if (celda && celda.tipo === 'normal' && celda.especial && celda.especial.startsWith('ENVUELTO_')) {
+                        const uid = UID++;
+                        lote.push({ f, c, uid });
+                    }
+                }
+            }
+            // Encolar todas las primeras explosiones antes de resolver (para que sean “a la vez”)
+            lote.forEach(({ f, c, uid }) => colaActivaciones.push({ tipo: 'envuelto_primera', fila: f, col: c, uid }));
         }
 
         // Helpers de rayados con orientación
@@ -1143,6 +1299,11 @@
             objetivoValor = config.valor;
             movimientos = config.movimientos;
             asegurarBesoEnJuego();
+
+            // Garantizar al menos 1 movimiento posible al iniciar el nivel
+            if (!hayMovimientoPosible()) {
+                barajarTableroConservandoEstado();
+            }
         }
 
         function verificarMatchInicial(fila, col, corazon) {
@@ -1244,7 +1405,7 @@
         }
 
         function manejarClick(e) {
-            if (!juegoIniciado || animando) return;
+            if (!juegoIniciado || animando || finDeNivelEnProgreso) return;
 
             e.preventDefault();
 
@@ -1933,6 +2094,15 @@
                         procesarMatches();
                     }, 300);
                 } else {
+                    // No hay más matches en cascada.
+                    // Si no queda NINGÚN movimiento, mezclamos sin penalizar al jugador.
+                    if (!hayMovimientoPosible()) {
+                        mostrarMensaje('Sin movimientos. ¡Mezclando!');
+                        barajarTableroConservandoEstado();
+                        actualizarUI();
+                        setTimeout(() => procesarMatches(), 200);
+                        return;
+                    }
                     animando = false;
                     verificarObjetivosEspeciales();
                     verificarEstadoJuego();
@@ -2429,20 +2599,69 @@
             }
 
             if (objetivoCompleto) {
-                activarEspecialesRestantes(); // suma el extra al puntaje
-                actualizarUI();
-                // NO enviar aquí: se reporta al finalizar la run
-                mostrarSuperposicion('Nivel Completado!', '¡Impresionante!');
+                // NUEVO: bonus por movimientos restantes
+                // (ya no llamamos a activarEspecialesRestantes aquí)
+                iniciarFaseBonus();
             } else if (movimientos <= 0) {
+                // sin cambios
                 vidas = Math.max(0, vidas - 1);
+                puntaje = 0;
                 mostrarSuperposicion('Nivel Fallido', 'Inténtalo de nuevo ♥');
             }
+        }
+
+        async function iniciarFaseBonus() {
+            finDeNivelEnProgreso = true;
+            animando = true;
+
+            // 1) Mostrar modal de “objetivo logrado”
+            const modal = document.getElementById('modalObjetivo');
+            if (modal) modal.hidden = false;
+
+            // 2) Contador: por cada movimiento restante -> convertir un envuelto aleatorio
+            //    Nota: si en algún momento no hay celdas convertibles, solo descontamos igualmente
+            while (movimientos > 0) {
+                convertirUnEnvueltoAleatorio();
+                movimientos = Math.max(0, movimientos - 1);
+                actualizarUI();
+                await sleep(280); // velocidad del conteo/convertido (ajusta si quieres)
+            }
+
+            await sleep(200); // pequeño respiro visual
+
+            // 3) Detonar todos los envueltos a la vez
+            detonarTodosLosEnvueltosSimultaneamente();
+            resolverActivacionesYEliminaciones();
+
+            // Dejar que caídas y posibles cascadas terminen
+            // (reutilizamos tu pipeline existente con un par de ciclos cortos)
+            await sleep(200);
+            for (let i = 0; i < 5; i++) { // 5 iteraciones suelen bastar para estabilizar
+                const m = encontrarTodosLosMatches();
+                if (!m.length) break;
+                m.forEach(mm => marcarParaEliminar(mm.fila, mm.col));
+                resolverActivacionesYEliminaciones();
+                await sleep(150);
+            }
+
+            // 4) Cerrar modal intermedio y mostrar el modal final “Nivel Completado”
+            if (modal) modal.hidden = true;
+
+            // Commit del puntaje del nivel superado
+            puntajeAcumulado += puntaje;
+
+            animando = false;
+            finDeNivelEnProgreso = false;
+
+            // Tu modal final existente
+            mostrarSuperposicion('Nivel Completado!', '¡Impresionante!');
         }
 
         function mostrarSuperposicion(titulo, frase) {
             document.getElementById('tituloSuperposicion').textContent = titulo;
             document.getElementById('nivelActual').textContent = nivel;
             document.getElementById('puntajeActual').textContent = puntaje;
+            document.getElementById('puntajeAcumuladoTotal').textContent = puntajeAcumulado;
 
             const config = NIVELES_CONFIG[nivel - 1];
             let objetivoTexto = '';
@@ -2480,7 +2699,9 @@
             superposicion.hidden = true;
 
             if (vidas <= 0) {
-                // Fin de run por Game Over
+                // (4) Game Over: el puntaje del nivel actual SÍ cuenta
+                puntajeAcumulado += puntaje;
+
                 reportarResultadoRun();
 
                 // Reset de run
@@ -2505,12 +2726,12 @@
 
                 if (objetivoCompleto) {
                     if (nivel < 10) {
-                        // Siguiente nivel: seguimos acumulando
+                        // (5) Pasaste el nivel: ya hicimos commit en verificarEstadoJuego()
                         nivel++;
-                        puntaje = 0;
+                        puntaje = 0;    // reset para el nuevo nivel
                         crearTablero();
                     } else {
-                        // Fin de run por completar el juego
+                        // Fin de run por completar el juego (el último nivel ya hizo commit)
                         reportarResultadoRun();
 
                         mostrarMensaje('Juego Completado! Felicidades!');
@@ -2523,7 +2744,8 @@
                         crearTablero();
                     }
                 } else {
-                    // Reintento del mismo nivel (se mantiene el acumulado)
+                    // Reintento del mismo nivel: NO cuenta lo jugado y se resetea puntaje del nivel
+                    puntaje = 0;
                     crearTablero();
                 }
             }
@@ -2628,23 +2850,32 @@
                         contexto.fill();
                     }
                 } else if (celda.elemento === ELEMENTOS.OSO) {
+                    const pad = (typeof OSO_PAD === 'number') ? OSO_PAD : 5;
+                    const w = TAMAÑO_CELDA - 2 * pad;
+                    const h = TAMAÑO_CELDA - 2 * pad;
+                    const ox = x + pad;
+                    const oy = y + pad;
+
                     if (imagenesCargadas.OSO) {
-                        contexto.drawImage(imagenesCargadas.OSO, centroX - 12, centroY - 12, 24, 24);
-                        contexto.fillStyle = 'white';
-                        contexto.font = '12px Arial';
-                        contexto.textAlign = 'center';
-                        contexto.textBaseline = 'middle';
-                        contexto.fillText(celda.pareja.toString(), centroX, centroY + 8);
+                        contexto.drawImage(imagenesCargadas.OSO, ox, oy, w, h);
                     } else {
                         const coloresOso = ['#8B4513', '#CD853F', '#A0522D'];
                         contexto.fillStyle = coloresOso[celda.pareja - 1] || '#8B4513';
-                        contexto.fillRect(centroX - 12, centroY - 12, 24, 24);
-                        contexto.fillStyle = 'white';
-                        contexto.font = '12px Arial';
-                        contexto.textAlign = 'center';
-                        contexto.textBaseline = 'middle';
-                        contexto.fillText(celda.pareja.toString(), centroX, centroY);
+                        contexto.fillRect(ox, oy, w, h);
                     }
+
+                    // Número de pareja centrado y legible sobre el oso
+                    contexto.font = `${Math.round(TAMAÑO_CELDA * 0.28)}px Arial`;
+                    contexto.textAlign = 'center';
+                    contexto.textBaseline = 'middle';
+
+                    // Borde para contraste
+                    contexto.lineWidth = 4;
+                    contexto.strokeStyle = 'rgba(0,0,0,0.65)';
+                    contexto.strokeText(String(celda.pareja), centroX, centroY);
+
+                    contexto.fillStyle = 'white';
+                    contexto.fillText(String(celda.pareja), centroX, centroY);
                 }
             }
 
