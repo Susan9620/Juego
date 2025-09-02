@@ -1,7 +1,7 @@
 {
-  "name": "Love Crush",
-  "short_name": "Love Crush",
-  "description": "Match-3 de corazones.",
+  "name": "Mini Juegos",
+  "short_name": "Mini Juegos",
+  "description": "Mini juegos para divertirse",
   "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
@@ -9,13 +9,13 @@
   "theme_color": "#1a1625",
   "icons": [
     {
-      "src": "https://TU_LOGO.png",
+      "src": "https://res.cloudinary.com/dsf9hse1e/image/upload/v1756771662/Logo_bm3qmh.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://TU_LOGO.png",
+      "src": "https://res.cloudinary.com/dsf9hse1e/image/upload/v1756771662/Logo_bm3qmh.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
